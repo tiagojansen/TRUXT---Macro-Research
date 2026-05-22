@@ -1,6 +1,22 @@
 {
   "reports": [
     {
+      "id": "ibc_br",
+      "title": "IBC-Br — Índice de Atividade Econômica do BCB",
+      "country": "brasil",
+      "section": "atividade",
+      "file": "reports/brasil/atividade/IBC_Br.html",
+      "updated": "2026-05-22"
+    },
+    {
+      "id": "pim",
+      "title": "PIM — Pesquisa Industrial Mensal",
+      "country": "brasil",
+      "section": "atividade",
+      "file": "reports/brasil/atividade/PIM.html",
+      "updated": "2026-05-22"
+    },
+    {
       "id": "pmc",
       "title": "PMC — Pesquisa Mensal de Comércio",
       "country": "brasil",

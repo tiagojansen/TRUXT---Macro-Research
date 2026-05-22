@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Macro Research Portal</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #4f7dff;
+      --accent2: #7c5cfc;
+      --text: #e8eaf6;
+      --text2: #8b93b8;
+      --green: #34d399;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --radius: 10px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+    /* ── Auth overlay ── */
+    #auth-overlay {
+      display: none; position: fixed; inset: 0; background: var(--bg);
+      z-index: 1000; align-items: center; justify-content: center;
+    }
+    .auth-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2rem; width: min(360px, 90vw);
+      text-align: center;
+    }
+    .auth-box h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .auth-box p { color: var(--text2); font-size: 0.85rem; margin-bottom: 1.5rem; }
+    .auth-box input[type="password"] {
+      width: 100%; padding: 0.75rem 1rem; background: var(--bg);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text); font-size: 1rem; margin-bottom: 1rem; outline: none;
+    }
+    .auth-box input[type="password"]:focus { border-color: var(--accent); }
+    .auth-box button {
+      width: 100%; padding: 0.75rem; background: var(--accent);
+      color: #fff; border: none; border-radius: var(--radius);
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+    }
+    .auth-box button:hover { opacity: 0.9; }
+    #auth-error { color: var(--red); font-size: 0.85rem; margin-top: 0.75rem; display: none; }
+    .auth-logo { font-size: 2rem; margin-bottom: 1rem; }
+
+    /* ── App shell ── */
+    #app { display: none; }
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 1rem; position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between; height: 52px;
+    }
+    .header-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+    .header-title span { color: var(--accent); }
+
+    /* ── Tab bar ── */
+    .tab-bar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      display: flex; overflow-x: auto; scrollbar-width: none;
+      position: sticky; top: 52px; z-index: 99;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 0.75rem 1.25rem; background: none; border: none; color: var(--text2);
+      font-size: 0.875rem; font-weight: 500; cursor: pointer; white-space: nowrap;
+      border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ── Main content ── */
+    main { padding: 1rem; max-width: 960px; margin: 0 auto; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Country list ── */
+    .country-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem;
+    }
+    .country-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1rem; text-align: center;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    }
+    .country-card:hover { border-color: var(--accent); background: var(--surface2); }
+    .country-card .flag { font-size: 2rem; margin-bottom: 0.4rem; }
+    .country-card .name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+
+    /* ── Country detail ── */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: none; border: none; color: var(--text2); font-size: 0.875rem;
+      cursor: pointer; margin-bottom: 1rem; padding: 0.25rem 0;
+    }
+    .back-btn:hover { color: var(--text); }
+    .section-title {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text2); margin: 1.25rem 0 0.5rem;
+    }
+    .report-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .report-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.875rem 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; text-decoration: none; transition: border-color 0.15s, background 0.15s;
+    }
+    .report-card:hover { border-color: var(--accent); background: var(--surface2); }
+    .report-info { flex: 1; min-width: 0; }
+    .report-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .report-meta { font-size: 0.75rem; color: var(--text2); margin-top: 0.2rem; }
+    .report-arrow { color: var(--text2); font-size: 1rem; margin-left: 0.75rem; flex-shrink: 0; }
+    .empty-section { color: var(--text2); font-size: 0.85rem; padding: 0.5rem 0; }
+
+    /* ── Central Banks tab ── */
+    .bc-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .bc-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem; display: flex;
+      align-items: center; gap: 1rem;
+    }
+    .bc-flag { font-size: 1.5rem; flex-shrink: 0; }
+    .bc-info { flex: 1; min-width: 0; }
+    .bc-name { font-size: 0.9rem; font-weight: 600; }
+    .bc-cycle { font-size: 0.75rem; margin-top: 0.2rem; }
+    .badge {
+      display: inline-block; padding: 0.15rem 0.55rem; border-radius: 99px;
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badge-tightening { background: rgba(248,113,113,0.15); color: var(--red); }
+    .badge-easing { background: rgba(52,211,153,0.15); color: var(--green); }
+    .badge-hold { background: rgba(251,191,36,0.15); color: var(--yellow); }
+    .bc-rate { font-size: 0.85rem; color: var(--text2); font-weight: 600; flex-shrink: 0; }
+
+    /* ── Speeches tab ── */
+    .speech-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .speech-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem;
+    }
+    .speech-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
+    .speech-who { font-size: 0.9rem; font-weight: 600; }
+    .speech-date { font-size: 0.75rem; color: var(--text2); white-space: nowrap; }
+    .speech-summary { font-size: 0.83rem; color: var(--text2); line-height: 1.5; }
+    .speech-link {
+      display: inline-block; margin-top: 0.5rem; font-size: 0.78rem;
+      color: var(--accent); text-decoration: none;
+    }
+    .speech-link:hover { text-decoration: underline; }
+
+    /* ── PPTs tab ── */
+    .ppt-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .ppt-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.875rem 1rem;
+      display: flex; align-items: center; gap: 0.75rem;
+      cursor: pointer; text-decoration: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .ppt-card:hover { border-color: var(--accent); background: var(--surface2); }
+    .ppt-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .ppt-info { flex: 1; min-width: 0; }
+    .ppt-title { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .ppt-meta { font-size: 0.75rem; color: var(--text2); margin-top: 0.2rem; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 3rem 1rem; color: var(--text2);
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .empty-state p { font-size: 0.875rem; }
+
+    /* ── Page title ── */
+    .page-header { margin-bottom: 1.25rem; }
+    .page-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .page-header p { font-size: 0.8rem; color: var(--text2); margin-top: 0.25rem; }
+
+    /* ── Loading spinner ── */
+    .spinner {
+      display: inline-block; width: 20px; height: 20px;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (min-width: 600px) {
+      main { padding: 1.5rem; }
+      .country-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Auth overlay ── -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo">📊</div>
+    <h2>Macro Research Portal</h2>
+    <p>Acesso restrito. Digite a senha para continuar.</p>
+    <form id="auth-form">
+      <input type="password" id="auth-input" placeholder="Senha" autofocus autocomplete="current-password" />
+      <button type="submit">Entrar</button>
+    </form>
+    <div id="auth-error">Senha incorreta. Tente novamente.</div>
+  </div>
+</div>
+
+<!-- ── App ── -->
+<div id="app">
+  <header>
+    <div class="header-title"><span>Macro</span> Research</div>
+    <div style="font-size:0.75rem;color:var(--text2);" id="header-date"></div>
+  </header>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="paises">Países</button>
+    <button class="tab-btn" data-tab="bcs">BCs</button>
+    <button class="tab-btn" data-tab="falas">Falas</button>
+    <button class="tab-btn" data-tab="ppts">PPTs</button>
+  </nav>
+
+  <main>
+
+    <!-- ── Países ── -->
+    <div id="tab-paises" class="tab-panel active">
+      <div id="country-list-view">
+        <div class="page-header">
+          <h2>Países</h2>
+          <p>Selecione um país para ver os relatórios disponíveis</p>
+        </div>
+        <div class="country-grid" id="country-grid"></div>
+      </div>
+      <div id="country-detail-view" style="display:none;">
+        <button class="back-btn" id="back-btn">&#8592; Países</button>
+        <div id="country-detail-content"></div>
+      </div>
+    </div>
+
+    <!-- ── BCs ── -->
+    <div id="tab-bcs" class="tab-panel">
+      <div class="page-header">
+        <h2>Bancos Centrais</h2>
+        <p>Fase do ciclo e documentos relevantes</p>
+      </div>
+      <div class="bc-list" id="bc-list"></div>
+    </div>
+
+    <!-- ── Falas ── -->
+    <div id="tab-falas" class="tab-panel">
+      <div class="page-header">
+        <h2>Falas</h2>
+        <p>Discursos de chairs com resumo e link para transcrição</p>
+      </div>
+      <div class="speech-list" id="speech-list"></div>
+    </div>
+
+    <!-- ── PPTs ── -->
+    <div id="tab-ppts" class="tab-panel">
+      <div class="page-header">
+        <h2>Apresentações</h2>
+        <p>Decks e slides internos</p>
+      </div>
+      <div class="ppt-list" id="ppt-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="auth.js"></script>
+<script>
+// ── Config & static data ──────────────────────────────────────────────────
+const COUNTRY_META = {
+  brasil:  { name: "Brasil",         flag: "🇧🇷" },
+  eua:     { name: "EUA",            flag: "🇺🇸" },
+  zona_euro:{ name: "Zona do Euro",  flag: "🇪🇺" },
+  china:   { name: "China",          flag: "🇨🇳" },
+  reino_unido:{ name: "Reino Unido", flag: "🇬🇧" },
+  japao:   { name: "Japão",          flag: "🇯🇵" },
+};
+
+const SECTIONS = ["atividade", "inflacao", "fiscal"];
+const SECTION_LABELS = { atividade: "Atividade", inflacao: "Inflação", fiscal: "Fiscal" };
+
+const CENTRAL_BANKS_STATIC = [
+  { flag: "🇧🇷", name: "BCB — Banco Central do Brasil", cycle: "hold",       rate: "13,25%", docs: [] },
+  { flag: "🇺🇸", name: "Fed — Federal Reserve",          cycle: "hold",       rate: "4,25–4,50%", docs: [] },
+  { flag: "🇪🇺", name: "BCE — Banco Central Europeu",    cycle: "easing",     rate: "2,40%", docs: [] },
+  { flag: "🇬🇧", name: "BoE — Bank of England",          cycle: "easing",     rate: "4,25%", docs: [] },
+  { flag: "🇯🇵", name: "BoJ — Bank of Japan",            cycle: "tightening", rate: "0,50%", docs: [] },
+  { flag: "🇨🇳", name: "PBoC — People's Bank of China",  cycle: "easing",     rate: "3,10%", docs: [] },
+];
+
+const CYCLE_LABEL = { tightening: "Alta de juros", easing: "Corte de juros", hold: "Em espera" };
+const CYCLE_BADGE = { tightening: "badge-tightening", easing: "badge-easing", hold: "badge-hold" };
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  const months = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  return `${d} ${months[+m - 1]} ${y}`;
+}
+
+function emptyState(msg) {
+  return `<div class="empty-state"><div class="icon">📭</div><p>${msg}</p></div>`;
+}
+
+// ── Tab navigation ────────────────────────────────────────────────────────
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+// ── Header date ───────────────────────────────────────────────────────────
+document.getElementById("header-date").textContent =
+  new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+
+// ── Load config & render ──────────────────────────────────────────────────
+async function loadConfig() {
+  try {
+    const res = await fetch("config.json");
+    if (!res.ok) throw new Error("config.json not found");
+    return await res.json();
+  } catch(e) {
+    console.error("Failed to load config.json:", e);
+    return { reports: [], centralBanks: [], speeches: [], presentations: [] };
+  }
+}
+
+function groupReports(reports) {
+  const byCountry = {};
+  reports.forEach(r => {
+    if (!byCountry[r.country]) byCountry[r.country] = {};
+    if (!byCountry[r.country][r.section]) byCountry[r.country][r.section] = [];
+    byCountry[r.country][r.section].push(r);
+  });
+  return byCountry;
+}
+
+// ── Países tab ────────────────────────────────────────────────────────────
+function renderCountryGrid(byCountry) {
+  const countries = Object.keys(byCountry);
+  const grid = document.getElementById("country-grid");
+  if (countries.length === 0) {
+    grid.innerHTML = emptyState("Nenhum relatório disponível ainda.");
+    return;
+  }
+  grid.innerHTML = countries.map(c => {
+    const meta = COUNTRY_META[c] || { name: c, flag: "🌍" };
+    return `<div class="country-card" data-country="${c}">
+      <div class="flag">${meta.flag}</div>
+      <div class="name">${meta.name}</div>
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll(".country-card").forEach(card => {
+    card.addEventListener("click", () => showCountryDetail(card.dataset.country, byCountry));
+  });
+}
+
+function showCountryDetail(country, byCountry) {
+  document.getElementById("country-list-view").style.display = "none";
+  const detail = document.getElementById("country-detail-view");
+  detail.style.display = "block";
+
+  const meta = COUNTRY_META[country] || { name: country, flag: "🌍" };
+  const sections = byCountry[country] || {};
+
+  let html = `<div class="page-header"><h2>${meta.flag} ${meta.name}</h2></div>`;
+
+  SECTIONS.forEach(sec => {
+    html += `<div class="section-title">${SECTION_LABELS[sec]}</div>`;
+    const reps = sections[sec] || [];
+    if (reps.length === 0) {
+      html += `<div class="empty-section">Nenhum relatório disponível.</div>`;
+    } else {
+      html += `<div class="report-list">` + reps.map(r => `
+        <a class="report-card" href="${r.file}" target="_blank" rel="noopener">
+          <div class="report-info">
+            <div class="report-name">${r.title}</div>
+            <div class="report-meta">Atualizado em ${fmtDate(r.updated)}</div>
+          </div>
+          <span class="report-arrow">↗</span>
+        </a>
+      `).join("") + `</div>`;
+    }
+  });
+
+  document.getElementById("country-detail-content").innerHTML = html;
+}
+
+document.getElementById("back-btn").addEventListener("click", () => {
+  document.getElementById("country-detail-view").style.display = "none";
+  document.getElementById("country-list-view").style.display = "block";
+});
+
+// ── BCs tab ───────────────────────────────────────────────────────────────
+function renderBCs(configBCs) {
+  const list = document.getElementById("bc-list");
+  const bcs = configBCs && configBCs.length ? configBCs : CENTRAL_BANKS_STATIC;
+  if (bcs.length === 0) {
+    list.innerHTML = emptyState("Nenhum banco central cadastrado.");
+    return;
+  }
+  list.innerHTML = bcs.map(bc => `
+    <div class="bc-card">
+      <div class="bc-flag">${bc.flag || "🏦"}</div>
+      <div class="bc-info">
+        <div class="bc-name">${bc.name}</div>
+        <div class="bc-cycle">
+          <span class="badge ${CYCLE_BADGE[bc.cycle] || 'badge-hold'}">${CYCLE_LABEL[bc.cycle] || bc.cycle}</span>
+        </div>
+      </div>
+      <div class="bc-rate">${bc.rate || ""}</div>
+    </div>
+  `).join("");
+}
+
+// ── Speeches tab ──────────────────────────────────────────────────────────
+function renderSpeeches(speeches) {
+  const list = document.getElementById("speech-list");
+  if (!speeches || speeches.length === 0) {
+    list.innerHTML = emptyState("Nenhuma fala cadastrada ainda.");
+    return;
+  }
+  list.innerHTML = speeches.map(s => `
+    <div class="speech-card">
+      <div class="speech-header">
+        <span class="speech-who">${s.who}</span>
+        <span class="speech-date">${fmtDate(s.date)}</span>
+      </div>
+      <div class="speech-summary">${s.summary}</div>
+      ${s.url ? `<a class="speech-link" href="${s.url}" target="_blank" rel="noopener">Ver transcrição ↗</a>` : ""}
+    </div>
+  `).join("");
+}
+
+// ── PPTs tab ──────────────────────────────────────────────────────────────
+function renderPPTs(presentations) {
+  const list = document.getElementById("ppt-list");
+  if (!presentations || presentations.length === 0) {
+    list.innerHTML = emptyState("Nenhuma apresentação cadastrada ainda.");
+    return;
+  }
+  list.innerHTML = presentations.map(p => `
+    <a class="ppt-card" href="${p.file}" target="_blank" rel="noopener">
+      <div class="ppt-icon">📑</div>
+      <div class="ppt-info">
+        <div class="ppt-title">${p.title}</div>
+        <div class="ppt-meta">${fmtDate(p.date)}${p.description ? " · " + p.description : ""}</div>
+      </div>
+    </a>
+  `).join("");
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────
+async function bootstrap() {
+  initAuth();
+  if (sessionStorage.getItem("macro_auth") !== "ok") return;
+
+  const config = await loadConfig();
+  const byCountry = groupReports(config.reports || []);
+
+  renderCountryGrid(byCountry);
+  renderBCs(config.centralBanks);
+  renderSpeeches(config.speeches);
+  renderPPTs(config.presentations);
+}
+
+bootstrap();
+</script>
+</body>
+</html>

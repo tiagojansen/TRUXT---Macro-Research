@@ -1,0 +1,26 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# R / Quarto artifacts
+.Rproj.user/
+.Rhistory
+.RData
+*_cache/
+*_files/
+*.Rmd.lock
+
+# Node (se houver build futura)
+node_modules/
+dist/
+
+# Env / segredos
+.env
+*.key

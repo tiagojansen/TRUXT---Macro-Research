@@ -69,6 +69,13 @@
   "speeches": [],
   "presentations": [
     {
+      "id": "copom_abr26",
+      "title": "Pré-Copom — Abril 2026",
+      "file": "presentations/Brasil 2026.04.29 Copom.pdf",
+      "date": "2026-04-29",
+      "description": "Buy Side · Brasil"
+    },
+    {
       "id": "ipca_abr26",
       "title": "IPCA — Pré-divulgação Abril 2026",
       "file": "presentations/IPCA_Abr26_Pre-divulgacao.pdf",

@@ -464,17 +464,19 @@ function renderPPTs(presentations) {
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────
-async function bootstrap() {
-  initAuth();
-  if (sessionStorage.getItem("macro_auth") !== "ok") return;
-
+async function loadApp() {
   const config = await loadConfig();
   const byCountry = groupReports(config.reports || []);
-
   renderCountryGrid(byCountry);
   renderBCs(config.centralBanks);
   renderSpeeches(config.speeches);
   renderPPTs(config.presentations);
+}
+window.loadApp = loadApp;
+
+async function bootstrap() {
+  initAuth();
+  if (checkAuth()) await loadApp();
 }
 
 bootstrap();

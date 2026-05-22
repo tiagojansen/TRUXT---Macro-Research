@@ -17,6 +17,7 @@ function promptPassword() {
       sessionStorage.setItem(SESSION_KEY, "ok");
       overlay.style.display = "none";
       document.getElementById("app").style.display = "block";
+      if (typeof window.loadApp === "function") window.loadApp();
     } else {
       document.getElementById("auth-error").style.display = "block";
       document.getElementById("auth-input").value = "";

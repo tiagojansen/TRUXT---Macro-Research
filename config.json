@@ -33,6 +33,14 @@
       "updated": "2026-05-22"
     },
     {
+      "id": "pnad",
+      "title": "PNAD — Pesquisa Nacional por Amostra de Domicílios",
+      "country": "brasil",
+      "section": "atividade",
+      "file": "reports/brasil/atividade/PNAD.html",
+      "updated": "2026-05-22"
+    },
+    {
       "id": "ipca",
       "title": "IPCA — Novo Fluxo",
       "country": "brasil",

@@ -1,6 +1,14 @@
 {
   "reports": [
     {
+      "id": "pib",
+      "title": "PIB — Produto Interno Bruto",
+      "country": "brasil",
+      "section": "atividade",
+      "file": "reports/brasil/atividade/PIB.html",
+      "updated": "2026-05-22"
+    },
+    {
       "id": "ibc_br",
       "title": "IBC-Br — Índice de Atividade Econômica do BCB",
       "country": "brasil",

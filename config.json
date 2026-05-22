@@ -1,4 +1,5 @@
 {
+  "countries": ["brasil", "eua", "zona_euro", "china"],
   "reports": [
     {
       "id": "pib",

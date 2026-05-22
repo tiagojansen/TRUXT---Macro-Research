@@ -303,7 +303,6 @@
   <nav class="tab-bar">
     <button class="tab-btn active" data-tab="paises">Países</button>
     <button class="tab-btn" data-tab="bcs">BCs</button>
-    <button class="tab-btn" data-tab="falas">Falas</button>
     <button class="tab-btn" data-tab="ppts">PPTs</button>
   </nav>
 
@@ -330,15 +329,6 @@
         <p>Fase do ciclo e documentos relevantes</p>
       </div>
       <div class="bc-list" id="bc-list"></div>
-    </div>
-
-    <!-- Falas -->
-    <div id="tab-falas" class="tab-panel">
-      <div class="page-header">
-        <h2>Falas</h2>
-        <p>Discursos de chairs com resumo e link para transcrição</p>
-      </div>
-      <div class="speech-list" id="speech-list"></div>
     </div>
 
     <!-- PPTs -->
@@ -437,16 +427,17 @@ function groupReports(reports) {
 }
 
 // ── Países ────────────────────────────────────────────────────────────────
-function renderCountryGrid(byCountry) {
+function renderCountryGrid(countries, byCountry) {
   const grid = document.getElementById("country-grid");
-  const countries = Object.keys(byCountry);
-  if (!countries.length) { grid.innerHTML = emptyState("Nenhum relatório disponível ainda."); return; }
+  if (!countries.length) { grid.innerHTML = emptyState("Nenhum país cadastrado ainda."); return; }
 
   grid.innerHTML = countries.map(c => {
     const m = COUNTRY_META[c] || { name: c, flag: "🌍" };
+    const hasReports = !!byCountry[c];
     return `<div class="country-card" data-country="${c}">
       <div class="flag">${m.flag}</div>
       <div class="name">${m.name}</div>
+      ${!hasReports ? `<div style="font-size:0.65rem;color:var(--text2);margin-top:0.3rem;">Em breve</div>` : ""}
     </div>`;
   }).join("");
 
@@ -533,9 +524,9 @@ function renderPPTs(presentations) {
 async function loadApp() {
   const config = await loadConfig();
   const byCountry = groupReports(config.reports || []);
-  renderCountryGrid(byCountry);
+  const countries = config.countries || Object.keys(byCountry);
+  renderCountryGrid(countries, byCountry);
   renderBCs(config.centralBanks);
-  renderSpeeches(config.speeches);
   renderPPTs(config.presentations);
 }
 window.loadApp = loadApp;

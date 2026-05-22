@@ -31,6 +31,22 @@
       "section": "atividade",
       "file": "reports/brasil/atividade/PMS.html",
       "updated": "2026-05-22"
+    },
+    {
+      "id": "ipca",
+      "title": "IPCA — Novo Fluxo",
+      "country": "brasil",
+      "section": "inflacao",
+      "file": "reports/brasil/inflacao/IPCA_Novo_Fluxo.html",
+      "updated": "2026-05-22"
+    },
+    {
+      "id": "ipca15",
+      "title": "IPCA-15 — Novo Fluxo",
+      "country": "brasil",
+      "section": "inflacao",
+      "file": "reports/brasil/inflacao/IPCA15_Novo_Fluxo.html",
+      "updated": "2026-05-22"
     }
   ],
   "centralBanks": [],

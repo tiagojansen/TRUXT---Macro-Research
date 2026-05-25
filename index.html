@@ -5,281 +5,149 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TRUXT Macro Research</title>
   <style>
-    /* ── Truxt palette ─────────────────────────────────────────────────────
-       #003d68 navy   #00a3b4 teal   #a31418 red     #83a540 green
-       #eea320 amber  #583f99 purple #231f20 black   #ed1c24 bright-red
-    ── */
-
-    /* Dark theme (default) */
+    /* ── Truxt palette ───────────────────────────────────────────────────── */
     [data-theme="dark"] {
-      --bg:        #1a1718;
-      --surface:   #252122;
-      --surface2:  #2e2b2c;
-      --border:    #3a3637;
-      --accent:    #00a3b4;
-      --accent-dk: #007e8a;
-      --brand:     #003d68;
-      --text:      #f0eeef;
-      --text2:     #9a9496;
-      --green:     #83a540;
-      --red:       #c9484c;
-      --amber:     #eea320;
-      --purple:    #8b72cc;
-      --shadow:    rgba(0,0,0,0.4);
-      --logo-filter: brightness(0) invert(1);
+      --bg:#1a1718; --surface:#252122; --surface2:#2e2b2c; --border:#3a3637;
+      --accent:#00a3b4; --brand:#003d68; --text:#f0eeef; --text2:#9a9496;
+      --green:#83a540; --red:#c9484c; --amber:#eea320; --purple:#8b72cc;
+      --shadow:rgba(0,0,0,.4); --logo-filter:brightness(0) invert(1);
     }
-
-    /* Light theme */
     [data-theme="light"] {
-      --bg:        #f0f2f5;
-      --surface:   #ffffff;
-      --surface2:  #e8ebf0;
-      --border:    #d0d5de;
-      --accent:    #003d68;
-      --accent-dk: #002d50;
-      --brand:     #00a3b4;
-      --text:      #231f20;
-      --text2:     #5e5a5b;
-      --green:     #5c7a2c;
-      --red:       #a31418;
-      --amber:     #c47d0a;
-      --purple:    #583f99;
-      --shadow:    rgba(0,0,0,0.08);
-      --logo-filter: none;
+      --bg:#f0f2f5; --surface:#fff; --surface2:#e8ebf0; --border:#d0d5de;
+      --accent:#003d68; --brand:#00a3b4; --text:#231f20; --text2:#5e5a5b;
+      --green:#5c7a2c; --red:#a31418; --amber:#c47d0a; --purple:#583f99;
+      --shadow:rgba(0,0,0,.08); --logo-filter:none;
     }
+    :root { --radius:10px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
+    *  { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; transition:background .2s,color .2s; }
 
-    :root {
-      --radius: 10px;
-      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
+    /* ── Auth ───────────────────────────────────────────────────────────── */
+    #auth-overlay { display:none; position:fixed; inset:0; background:var(--bg); z-index:1000; align-items:center; justify-content:center; }
+    .auth-box { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:2rem; width:min(360px,90vw); text-align:center; box-shadow:0 8px 32px var(--shadow); }
+    .auth-logo-img { height:40px; margin-bottom:1.25rem; filter:var(--logo-filter); }
+    .auth-box h2 { font-size:1.1rem; margin-bottom:.35rem; }
+    .auth-box p  { color:var(--text2); font-size:.83rem; margin-bottom:1.5rem; }
+    .auth-box input[type=password] { width:100%; padding:.75rem 1rem; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:1rem; margin-bottom:.75rem; outline:none; transition:border-color .15s; }
+    .auth-box input[type=password]:focus { border-color:var(--accent); }
+    .btn-primary { width:100%; padding:.75rem; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:.95rem; font-weight:700; cursor:pointer; transition:opacity .15s; }
+    .btn-primary:hover { opacity:.88; }
+    #auth-error { color:var(--red); font-size:.82rem; margin-top:.6rem; display:none; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg); color: var(--text);
-      font-family: var(--font); min-height: 100vh;
-      transition: background 0.2s, color 0.2s;
-    }
+    /* ── Shell ──────────────────────────────────────────────────────────── */
+    #app { display:none; }
+    header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1rem; position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; height:52px; box-shadow:0 1px 4px var(--shadow); transition:background .2s; }
+    .header-logo { height:28px; filter:var(--logo-filter); }
+    .header-right { display:flex; align-items:center; gap:.75rem; }
+    #header-date { font-size:.72rem; color:var(--text2); }
+    .theme-btn { background:var(--surface2); border:1px solid var(--border); border-radius:99px; width:36px; height:20px; cursor:pointer; position:relative; flex-shrink:0; display:flex; align-items:center; padding:2px; }
+    .theme-btn::after { content:""; width:14px; height:14px; border-radius:50%; background:var(--accent); transition:transform .2s; flex-shrink:0; }
+    [data-theme="light"] .theme-btn::after { transform:translateX(16px); }
+    .theme-icon { font-size:.8rem; position:absolute; }
+    .theme-icon.moon { left:3px; }
+    .theme-icon.sun  { right:3px; }
 
-    /* ── Auth overlay ───────────────────────────────────────────────────── */
-    #auth-overlay {
-      display: none; position: fixed; inset: 0; background: var(--bg);
-      z-index: 1000; align-items: center; justify-content: center;
-      transition: background 0.2s;
-    }
-    .auth-box {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 2rem; width: min(360px, 90vw);
-      text-align: center; box-shadow: 0 8px 32px var(--shadow);
-    }
-    .auth-logo-img {
-      height: 40px; margin-bottom: 1.25rem;
-      filter: var(--logo-filter);
-    }
-    .auth-box h2 { font-size: 1.1rem; margin-bottom: 0.35rem; color: var(--text); }
-    .auth-box p  { color: var(--text2); font-size: 0.83rem; margin-bottom: 1.5rem; }
-    .auth-box input[type="password"] {
-      width: 100%; padding: 0.75rem 1rem; background: var(--bg);
-      border: 1px solid var(--border); border-radius: var(--radius);
-      color: var(--text); font-size: 1rem; margin-bottom: 0.75rem;
-      outline: none; transition: border-color 0.15s;
-    }
-    .auth-box input[type="password"]:focus { border-color: var(--accent); }
-    .auth-box button.btn-primary {
-      width: 100%; padding: 0.75rem; background: var(--accent);
-      color: #fff; border: none; border-radius: var(--radius);
-      font-size: 0.95rem; font-weight: 700; cursor: pointer;
-      letter-spacing: 0.02em; transition: opacity 0.15s;
-    }
-    .auth-box button.btn-primary:hover { opacity: 0.88; }
-    #auth-error {
-      color: var(--red); font-size: 0.82rem; margin-top: 0.6rem; display: none;
-    }
+    /* ── Tabs ───────────────────────────────────────────────────────────── */
+    .tab-bar { background:var(--surface); border-bottom:1px solid var(--border); display:flex; overflow-x:auto; scrollbar-width:none; position:sticky; top:52px; z-index:99; }
+    .tab-bar::-webkit-scrollbar { display:none; }
+    .tab-btn { padding:.75rem 1.25rem; background:none; border:none; color:var(--text2); font-size:.875rem; font-weight:500; cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; transition:color .15s,border-color .15s; }
+    .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .tab-btn:hover:not(.active) { color:var(--text); }
 
-    /* ── App shell ─────────────────────────────────────────────────────── */
-    #app { display: none; }
+    /* ── Main ───────────────────────────────────────────────────────────── */
+    main { padding:1rem; max-width:960px; margin:0 auto; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
 
-    header {
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      padding: 0 1rem; position: sticky; top: 0; z-index: 100;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 52px; box-shadow: 0 1px 4px var(--shadow);
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .header-logo { height: 28px; display: block; filter: var(--logo-filter); }
-    .header-right { display: flex; align-items: center; gap: 0.75rem; }
-    #header-date { font-size: 0.72rem; color: var(--text2); }
+    /* ── Country grid ───────────────────────────────────────────────────── */
+    .country-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.75rem; }
+    .country-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem 1rem; text-align:center; cursor:pointer; transition:border-color .15s,background .15s,box-shadow .15s; }
+    .country-card:hover { border-color:var(--accent); background:var(--surface2); box-shadow:0 2px 8px var(--shadow); }
+    .country-card .flag { font-size:2rem; margin-bottom:.4rem; }
+    .country-card .name { font-size:.85rem; font-weight:600; }
+    .country-card .soon { font-size:.65rem; color:var(--text2); margin-top:.3rem; }
+    .back-btn { display:inline-flex; align-items:center; gap:.4rem; background:none; border:none; color:var(--text2); font-size:.875rem; cursor:pointer; margin-bottom:1rem; padding:.25rem 0; }
+    .back-btn:hover { color:var(--accent); }
+    .section-title { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text2); margin:1.5rem 0 .5rem; padding-bottom:.4rem; border-bottom:1px solid var(--border); }
+    .report-list { display:flex; flex-direction:column; gap:.5rem; }
+    .report-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.875rem 1rem; display:flex; align-items:center; justify-content:space-between; text-decoration:none; transition:border-color .15s,background .15s; }
+    .report-card:hover { border-color:var(--accent); background:var(--surface2); }
+    .report-info { flex:1; min-width:0; }
+    .report-name { font-size:.9rem; font-weight:600; color:var(--text); }
+    .report-meta { font-size:.73rem; color:var(--text2); margin-top:.2rem; }
+    .report-arrow { color:var(--accent); font-size:1rem; margin-left:.75rem; }
+    .empty-section { color:var(--text2); font-size:.83rem; padding:.4rem 0; }
 
-    /* Theme toggle */
-    .theme-btn {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 99px; width: 36px; height: 20px; cursor: pointer;
-      position: relative; flex-shrink: 0; transition: background 0.2s;
-      display: flex; align-items: center; padding: 2px;
-    }
-    .theme-btn::after {
-      content: "";
-      width: 14px; height: 14px; border-radius: 50%;
-      background: var(--accent); transition: transform 0.2s;
-      flex-shrink: 0;
-    }
-    [data-theme="light"] .theme-btn::after { transform: translateX(16px); }
-    .theme-icon { font-size: 0.8rem; position: absolute; }
-    .theme-icon.moon { left: 3px; }
-    .theme-icon.sun  { right: 3px; }
+    /* ── CDI Chart ──────────────────────────────────────────────────────── */
+    .cdi-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; margin-bottom:1.25rem; }
+    .cdi-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; gap:.75rem; flex-wrap:wrap; }
+    .cdi-title-info { display:flex; align-items:center; gap:.75rem; }
+    .cdi-flag { font-size:1.5rem; }
+    .cdi-name { font-size:.9rem; font-weight:700; }
+    .cdi-sub  { font-size:.72rem; color:var(--text2); margin-top:.15rem; }
+    .cdi-current { font-size:1.5rem; font-weight:700; color:var(--accent); white-space:nowrap; }
+    .cdi-controls { margin-bottom:.75rem; }
+    .cdi-row { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; margin-bottom:.35rem; }
+    .series-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    .dot-a { background:var(--accent); }
+    .dot-b { background:var(--amber); }
+    .period-btns { display:flex; gap:.2rem; flex-wrap:wrap; }
+    .period-btn { padding:.2rem .55rem; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text2); font-size:.75rem; cursor:pointer; transition:all .15s; }
+    .period-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .period-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+    .btn-compare { padding:.2rem .65rem; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text2); font-size:.75rem; cursor:pointer; transition:all .15s; margin-left:auto; white-space:nowrap; }
+    .btn-compare.active { background:rgba(238,163,32,.12); border-color:var(--amber); color:var(--amber); }
+    .date-label { font-size:.75rem; color:var(--text2); }
+    .date-input { padding:.2rem .5rem; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:.75rem; cursor:pointer; outline:none; }
+    .date-input:focus { border-color:var(--amber); }
+    .cdi-chart-wrap { position:relative; height:260px; margin-top:.5rem; }
 
-    /* ── Tab bar ──────────────────────────────────────────────────────── */
-    .tab-bar {
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      display: flex; overflow-x: auto; scrollbar-width: none;
-      position: sticky; top: 52px; z-index: 99;
-      transition: background 0.2s;
-    }
-    .tab-bar::-webkit-scrollbar { display: none; }
-    .tab-btn {
-      padding: 0.75rem 1.25rem; background: none; border: none;
-      color: var(--text2); font-size: 0.875rem; font-weight: 500;
-      cursor: pointer; white-space: nowrap;
-      border-bottom: 2px solid transparent;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .tab-btn:hover:not(.active) { color: var(--text); }
+    /* ── BCs ────────────────────────────────────────────────────────────── */
+    .bc-list { display:flex; flex-direction:column; gap:.5rem; }
+    .bc-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; display:flex; align-items:center; gap:1rem; }
+    .bc-flag { font-size:1.5rem; flex-shrink:0; }
+    .bc-info { flex:1; min-width:0; }
+    .bc-name { font-size:.9rem; font-weight:600; }
+    .bc-cycle { margin-top:.25rem; }
+    .badge { display:inline-block; padding:.15rem .55rem; border-radius:99px; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+    .badge-tightening { background:rgba(163,20,24,.15); color:var(--red); }
+    .badge-easing     { background:rgba(131,165,64,.15); color:var(--green); }
+    .badge-hold       { background:rgba(238,163,32,.15); color:var(--amber); }
+    .bc-rate { font-size:.85rem; color:var(--text2); font-weight:700; flex-shrink:0; }
 
-    /* ── Main content ─────────────────────────────────────────────────── */
-    main { padding: 1rem; max-width: 960px; margin: 0 auto; }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
+    /* ── PPTs ───────────────────────────────────────────────────────────── */
+    .ppt-list { display:flex; flex-direction:column; gap:.5rem; }
+    .ppt-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.875rem 1rem; display:flex; align-items:center; gap:.75rem; text-decoration:none; transition:border-color .15s,background .15s; }
+    .ppt-card:hover { border-color:var(--accent); background:var(--surface2); }
+    .ppt-icon { font-size:1.5rem; flex-shrink:0; }
+    .ppt-info { flex:1; min-width:0; }
+    .ppt-title { font-size:.9rem; font-weight:600; color:var(--text); }
+    .ppt-meta  { font-size:.73rem; color:var(--text2); margin-top:.2rem; }
 
-    /* ── Country grid ─────────────────────────────────────────────────── */
-    .country-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 0.75rem;
-    }
-    .country-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1.25rem 1rem; text-align: center;
-      cursor: pointer; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-    }
-    .country-card:hover {
-      border-color: var(--accent); background: var(--surface2);
-      box-shadow: 0 2px 8px var(--shadow);
-    }
-    .country-card .flag { font-size: 2rem; margin-bottom: 0.4rem; }
-    .country-card .name { font-size: 0.85rem; font-weight: 600; }
+    /* ── Misc ───────────────────────────────────────────────────────────── */
+    .empty-state { text-align:center; padding:3rem 1rem; color:var(--text2); }
+    .empty-state .icon { font-size:2.5rem; margin-bottom:.75rem; }
+    .empty-state p { font-size:.875rem; }
+    .page-header { margin-bottom:1.25rem; }
+    .page-header h2 { font-size:1.1rem; font-weight:700; }
+    .page-header p  { font-size:.8rem; color:var(--text2); margin-top:.25rem; }
 
-    /* ── Country detail ───────────────────────────────────────────────── */
-    .back-btn {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      background: none; border: none; color: var(--text2);
-      font-size: 0.875rem; cursor: pointer; margin-bottom: 1rem; padding: 0.25rem 0;
-    }
-    .back-btn:hover { color: var(--accent); }
-    .section-title {
-      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.09em; color: var(--text2); margin: 1.5rem 0 0.5rem;
-      padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
-    }
-    .report-list { display: flex; flex-direction: column; gap: 0.5rem; }
-    .report-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 0.875rem 1rem;
-      display: flex; align-items: center; justify-content: space-between;
-      text-decoration: none; transition: border-color 0.15s, background 0.15s;
-    }
-    .report-card:hover { border-color: var(--accent); background: var(--surface2); }
-    .report-info { flex: 1; min-width: 0; }
-    .report-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
-    .report-meta { font-size: 0.73rem; color: var(--text2); margin-top: 0.2rem; }
-    .report-arrow { color: var(--accent); font-size: 1rem; margin-left: 0.75rem; }
-    .empty-section { color: var(--text2); font-size: 0.83rem; padding: 0.4rem 0; }
-
-    /* ── BCs ──────────────────────────────────────────────────────────── */
-    .bc-list { display: flex; flex-direction: column; gap: 0.5rem; }
-    .bc-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1rem;
-      display: flex; align-items: center; gap: 1rem;
-    }
-    .bc-flag { font-size: 1.5rem; flex-shrink: 0; }
-    .bc-info { flex: 1; min-width: 0; }
-    .bc-name { font-size: 0.9rem; font-weight: 600; }
-    .bc-cycle { margin-top: 0.25rem; }
-    .badge {
-      display: inline-block; padding: 0.15rem 0.55rem; border-radius: 99px;
-      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .badge-tightening { background: rgba(163,20,24,0.15);  color: var(--red); }
-    .badge-easing     { background: rgba(131,165,64,0.15); color: var(--green); }
-    .badge-hold       { background: rgba(238,163,32,0.15); color: var(--amber); }
-    .bc-rate { font-size: 0.85rem; color: var(--text2); font-weight: 700; flex-shrink: 0; }
-
-    /* ── Speeches ─────────────────────────────────────────────────────── */
-    .speech-list { display: flex; flex-direction: column; gap: 0.5rem; }
-    .speech-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1rem;
-    }
-    .speech-header {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 1rem; margin-bottom: 0.5rem;
-    }
-    .speech-who  { font-size: 0.9rem; font-weight: 600; }
-    .speech-date { font-size: 0.73rem; color: var(--text2); white-space: nowrap; }
-    .speech-summary { font-size: 0.83rem; color: var(--text2); line-height: 1.55; }
-    .speech-link {
-      display: inline-block; margin-top: 0.5rem; font-size: 0.78rem;
-      color: var(--accent); text-decoration: none;
-    }
-    .speech-link:hover { text-decoration: underline; }
-
-    /* ── PPTs ─────────────────────────────────────────────────────────── */
-    .ppt-list { display: flex; flex-direction: column; gap: 0.5rem; }
-    .ppt-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 0.875rem 1rem;
-      display: flex; align-items: center; gap: 0.75rem;
-      text-decoration: none; transition: border-color 0.15s, background 0.15s;
-    }
-    .ppt-card:hover { border-color: var(--accent); background: var(--surface2); }
-    .ppt-icon { font-size: 1.5rem; flex-shrink: 0; }
-    .ppt-info { flex: 1; min-width: 0; }
-    .ppt-title { font-size: 0.9rem; font-weight: 600; color: var(--text); }
-    .ppt-meta  { font-size: 0.73rem; color: var(--text2); margin-top: 0.2rem; }
-
-    /* ── Empty state ──────────────────────────────────────────────────── */
-    .empty-state {
-      text-align: center; padding: 3rem 1rem; color: var(--text2);
-    }
-    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-    .empty-state p { font-size: 0.875rem; }
-
-    /* ── Page header ──────────────────────────────────────────────────── */
-    .page-header { margin-bottom: 1.25rem; }
-    .page-header h2 { font-size: 1.1rem; font-weight: 700; }
-    .page-header p  { font-size: 0.8rem; color: var(--text2); margin-top: 0.25rem; }
-
-    /* ── Accent stripe on cards ───────────────────────────────────────── */
-    .country-card:hover .flag { transform: scale(1.1); transition: transform 0.15s; }
-
-    @media (min-width: 600px) {
-      main { padding: 1.5rem; }
-      .country-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    @media(min-width:600px) {
+      main { padding:1.5rem; }
+      .country-grid { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
     }
   </style>
 </head>
 <body>
 
-<!-- ── Auth overlay ── -->
+<!-- ── Auth ── -->
 <div id="auth-overlay">
   <div class="auth-box">
     <img class="auth-logo-img" src="assets/truxt_logo.jpg" alt="TRUXT" />
     <h2>Macro Research Portal</h2>
     <p>Acesso restrito. Digite a senha para continuar.</p>
     <form id="auth-form">
-      <input type="password" id="auth-input" placeholder="Senha"
-             autofocus autocomplete="current-password" />
+      <input type="password" id="auth-input" placeholder="Senha" autofocus autocomplete="current-password" />
       <button type="submit" class="btn-primary">Entrar</button>
     </form>
     <div id="auth-error">Senha incorreta. Tente novamente.</div>
@@ -292,8 +160,7 @@
     <img class="header-logo" src="assets/truxt_logo.jpg" alt="TRUXT" />
     <div class="header-right">
       <span id="header-date"></span>
-      <button class="theme-btn" id="theme-btn" title="Alternar tema"
-              aria-label="Alternar tema claro/escuro">
+      <button class="theme-btn" id="theme-btn" aria-label="Alternar tema">
         <span class="theme-icon moon">🌙</span>
         <span class="theme-icon sun">☀️</span>
       </button>
@@ -307,13 +174,11 @@
   </nav>
 
   <main>
-    <!-- Países -->
+
+    <!-- ── Países ── -->
     <div id="tab-paises" class="tab-panel active">
       <div id="country-list-view">
-        <div class="page-header">
-          <h2>Países</h2>
-          <p>Selecione um país para ver os relatórios disponíveis</p>
-        </div>
+        <div class="page-header"><h2>Países</h2><p>Selecione um país para ver os relatórios</p></div>
         <div class="country-grid" id="country-grid"></div>
       </div>
       <div id="country-detail-view" style="display:none;">
@@ -322,32 +187,70 @@
       </div>
     </div>
 
-    <!-- BCs -->
+    <!-- ── BCs ── -->
     <div id="tab-bcs" class="tab-panel">
-      <div class="page-header">
-        <h2>Bancos Centrais</h2>
-        <p>Fase do ciclo e documentos relevantes</p>
+      <div class="page-header"><h2>Bancos Centrais</h2><p>Taxas de referência e ciclos de política monetária</p></div>
+
+      <!-- CDI Section -->
+      <div class="cdi-section">
+        <div class="cdi-header-row">
+          <div class="cdi-title-info">
+            <span class="cdi-flag">🇧🇷</span>
+            <div>
+              <div class="cdi-name">CDI — Banco Central do Brasil</div>
+              <div class="cdi-sub" id="cdi-subtitle">Carregando...</div>
+            </div>
+          </div>
+          <div class="cdi-current" id="cdi-rate-now"></div>
+        </div>
+
+        <div class="cdi-controls">
+          <div class="cdi-row">
+            <span class="series-dot dot-a"></span>
+            <div class="period-btns" id="period-btns-a">
+              <button class="period-btn" data-p="3M">3M</button>
+              <button class="period-btn" data-p="6M">6M</button>
+              <button class="period-btn active" data-p="1A">1A</button>
+              <button class="period-btn" data-p="2A">2A</button>
+              <button class="period-btn" data-p="5A">5A</button>
+              <button class="period-btn" data-p="MAX">MAX</button>
+            </div>
+            <button class="btn-compare" id="btn-compare-toggle">＋ Comparar</button>
+          </div>
+          <div class="cdi-row" id="series-b-row" style="display:none;">
+            <span class="series-dot dot-b"></span>
+            <span class="date-label">De</span>
+            <input type="date" class="date-input" id="series-b-start" />
+            <span class="date-label">até</span>
+            <input type="date" class="date-input" id="series-b-end" />
+          </div>
+        </div>
+
+        <div class="cdi-chart-wrap">
+          <canvas id="cdi-chart"></canvas>
+        </div>
       </div>
+
+      <div class="section-title">Taxas de referência</div>
       <div class="bc-list" id="bc-list"></div>
     </div>
 
-    <!-- PPTs -->
+    <!-- ── PPTs ── -->
     <div id="tab-ppts" class="tab-panel">
-      <div class="page-header">
-        <h2>Apresentações</h2>
-        <p>Decks e slides internos</p>
-      </div>
+      <div class="page-header"><h2>Apresentações</h2><p>Decks e slides internos</p></div>
       <div class="ppt-list" id="ppt-list"></div>
     </div>
+
   </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="auth.js"></script>
 <script>
-// ── Theme ─────────────────────────────────────────────────────────────────
-(function () {
-  const saved = localStorage.getItem("macro_theme") || "dark";
-  document.documentElement.setAttribute("data-theme", saved);
+// ── Theme ──────────────────────────────────────────────────────────────────
+(function(){
+  document.documentElement.setAttribute("data-theme",
+    localStorage.getItem("macro_theme") || "dark");
 })();
 
 document.getElementById("theme-btn").addEventListener("click", () => {
@@ -355,21 +258,241 @@ document.getElementById("theme-btn").addEventListener("click", () => {
   const next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
   html.setAttribute("data-theme", next);
   localStorage.setItem("macro_theme", next);
+  setTimeout(() => { if (cdiChart) updateCDIChart(); }, 50);
 });
 
-// ── Static data ───────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
+function cssVar(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  const [y,m,d] = iso.split("-");
+  const months = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  return `${d} ${months[+m-1]} ${y}`;
+}
+
+function emptyState(msg) {
+  return `<div class="empty-state"><div class="icon">📭</div><p>${msg}</p></div>`;
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+document.querySelectorAll(".tab-btn").forEach(btn =>
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  })
+);
+
+document.getElementById("header-date").textContent =
+  new Date().toLocaleDateString("pt-BR", { day:"2-digit", month:"short", year:"numeric" });
+
+// ── CDI Chart ──────────────────────────────────────────────────────────────
+let allCDI   = [];   // [{data:"DD/MM/YYYY", valor_aa: 13.25}, ...]
+let cdiChart = null;
+let cdiPeriod  = "1A";
+let cdiCompare = false;
+
+// BCB série 12 retorna % ao dia → converter para % ao ano base 252
+function annualizeDaily(pctDia) {
+  return (Math.pow(1 + pctDia / 100, 252) - 1) * 100;
+}
+
+function parseBCBDate(str) {
+  const [d, m, y] = str.split("/");
+  return new Date(+y, +m - 1, +d);
+}
+
+function filterByPeriod(data, period) {
+  if (period === "MAX") return data;
+  const now = new Date();
+  const off = { "3M":-3, "6M":-6, "1A":-12, "2A":-24, "5A":-60 }[period] ?? -12;
+  const start = new Date(now.getFullYear(), now.getMonth() + off, now.getDate());
+  return data.filter(d => parseBCBDate(d.data) >= start);
+}
+
+function filterByRange(data, start, end) {
+  return data.filter(d => {
+    const dt = parseBCBDate(d.data);
+    return dt >= start && dt <= end;
+  });
+}
+
+function buildCDIChart(sA, sB) {
+  const ctx = document.getElementById("cdi-chart");
+  if (!ctx || !sA.length) return;
+  const isCompare = Array.isArray(sB) && sB.length > 0;
+
+  const accent = cssVar("--accent");
+  const amber  = cssVar("--amber");
+  const text2  = cssVar("--text2");
+  const border = cssVar("--border");
+  const surf   = cssVar("--surface");
+
+  if (cdiChart) { cdiChart.destroy(); cdiChart = null; }
+
+  const labels = isCompare
+    ? Array.from({ length: Math.max(sA.length, sB.length) }, (_, i) => `Dia ${i+1}`)
+    : sA.map(d => d.data);
+
+  const datasets = isCompare
+    ? [
+        { label:"Série A", data:sA.map(d=>d.valor_aa), borderColor:accent, backgroundColor:"transparent", tension:.3, pointRadius:0, pointHoverRadius:4, borderWidth:2 },
+        { label:"Série B", data:sB.map(d=>d.valor_aa), borderColor:amber,  backgroundColor:"transparent", tension:.3, pointRadius:0, pointHoverRadius:4, borderWidth:2, borderDash:[5,3] }
+      ]
+    : [{ label:"CDI % a.a.", data:sA.map(d=>d.valor_aa), borderColor:accent, backgroundColor:accent+"18", fill:true, tension:.3, pointRadius:0, pointHoverRadius:4, borderWidth:2 }];
+
+  cdiChart = new Chart(ctx.getContext("2d"), {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect:false, mode:"index" },
+      plugins: {
+        legend: {
+          display: isCompare,
+          labels: { color:text2, font:{ size:11 }, boxWidth:20 }
+        },
+        tooltip: {
+          backgroundColor: surf,
+          borderColor: border, borderWidth:1,
+          titleColor: text2, bodyColor: text2, padding:10,
+          callbacks: {
+            title(items) {
+              if (!isCompare) {
+                const d = sA[items[0].dataIndex];
+                if (!d) return "";
+                return parseBCBDate(d.data)
+                  .toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
+              }
+              return items[0].label;
+            },
+            label(item) {
+              const val = item.parsed.y?.toFixed(2);
+              if (isCompare) {
+                const s  = item.datasetIndex === 0 ? sA : sB;
+                const pt = s[item.dataIndex];
+                return ` ${item.dataset.label}: ${val}% a.a.${pt ? " · "+pt.data : ""}`;
+              }
+              return ` CDI: ${val}% a.a.`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color:text2, maxTicksLimit:8, maxRotation:0,
+            callback(val, i) {
+              if (!isCompare) {
+                const d = sA[i]; if (!d) return "";
+                return parseBCBDate(d.data).toLocaleDateString("pt-BR",{month:"short",year:"2-digit"});
+              }
+              return labels[i];
+            }
+          },
+          grid: { color:border+"33" }
+        },
+        y: {
+          ticks: { color:text2, callback: v => v.toFixed(1)+"%" },
+          grid:  { color:border+"33" }
+        }
+      }
+    }
+  });
+}
+
+function updateCDIChart() {
+  const sA = filterByPeriod(allCDI, cdiPeriod);
+  let sB = null;
+  if (cdiCompare) {
+    const s = document.getElementById("series-b-start")?.value;
+    const e = document.getElementById("series-b-end")?.value;
+    if (s && e) {
+      sB = filterByRange(allCDI, new Date(s+"T00:00:00"), new Date(e+"T23:59:59"));
+    }
+  }
+  buildCDIChart(sA, sB);
+}
+
+async function initCDIChart() {
+  const subEl  = document.getElementById("cdi-subtitle");
+  const rateEl = document.getElementById("cdi-rate-now");
+
+  let raw = null;
+  try {
+    const res = await fetch("data/cdi.json");
+    if (!res.ok) throw new Error();
+    raw = await res.json();
+  } catch {
+    try {
+      subEl.textContent = "Buscando via API...";
+      const today = new Date();
+      const from  = `${String(today.getDate()).padStart(2,"0")}/${String(today.getMonth()+1).padStart(2,"0")}/${today.getFullYear()-10}`;
+      const res   = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados?formato=json&dataInicial=${from}`);
+      raw = await res.json();
+    } catch {
+      subEl.textContent = "Erro ao carregar dados.";
+      return;
+    }
+  }
+
+  // Série 12 = % ao dia → anualizamos
+  allCDI = raw.map(d => ({ data: d.data, valor_aa: annualizeDaily(parseFloat(d.valor)) }));
+
+  const last = allCDI[allCDI.length - 1];
+  if (last) {
+    rateEl.textContent = last.valor_aa.toFixed(2) + "% a.a.";
+    subEl.textContent  = `Último: ${last.data} · ${allCDI.length.toLocaleString("pt-BR")} dias úteis`;
+  }
+
+  // Padrão Série B: ano passado
+  const now = new Date();
+  document.getElementById("series-b-end").value =
+    new Date(now.getFullYear()-1, now.getMonth(), now.getDate()).toISOString().split("T")[0];
+  document.getElementById("series-b-start").value =
+    new Date(now.getFullYear()-2, now.getMonth(), now.getDate()).toISOString().split("T")[0];
+
+  updateCDIChart();
+
+  // Period buttons
+  document.querySelectorAll("#period-btns-a .period-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#period-btns-a .period-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      cdiPeriod = btn.dataset.p;
+      updateCDIChart();
+    })
+  );
+
+  // Compare toggle
+  document.getElementById("btn-compare-toggle").addEventListener("click", () => {
+    cdiCompare = !cdiCompare;
+    const btn  = document.getElementById("btn-compare-toggle");
+    btn.classList.toggle("active", cdiCompare);
+    btn.textContent = cdiCompare ? "✕ Comparar" : "＋ Comparar";
+    document.getElementById("series-b-row").style.display = cdiCompare ? "flex" : "none";
+    updateCDIChart();
+  });
+
+  ["series-b-start","series-b-end"].forEach(id =>
+    document.getElementById(id)?.addEventListener("change", updateCDIChart)
+  );
+}
+
+// ── Static data ────────────────────────────────────────────────────────────
 const COUNTRY_META = {
-  brasil:      { name: "Brasil",       flag: "🇧🇷" },
-  eua:         { name: "EUA",          flag: "🇺🇸" },
-  zona_euro:   { name: "Zona do Euro", flag: "🇪🇺" },
-  china:       { name: "China",        flag: "🇨🇳" },
-  reino_unido: { name: "Reino Unido",  flag: "🇬🇧" },
-  japao:       { name: "Japão",        flag: "🇯🇵" },
+  brasil:      { name:"Brasil",       flag:"🇧🇷" },
+  eua:         { name:"EUA",          flag:"🇺🇸" },
+  zona_euro:   { name:"Zona do Euro", flag:"🇪🇺" },
+  china:       { name:"China",        flag:"🇨🇳" },
+  reino_unido: { name:"Reino Unido",  flag:"🇬🇧" },
+  japao:       { name:"Japão",        flag:"🇯🇵" },
 };
-
-const SECTIONS       = ["atividade", "inflacao", "fiscal"];
-const SECTION_LABELS = { atividade: "Atividade", inflacao: "Inflação", fiscal: "Fiscal" };
-
+const SECTIONS       = ["atividade","inflacao","fiscal"];
+const SECTION_LABELS = { atividade:"Atividade", inflacao:"Inflação", fiscal:"Fiscal" };
 const CENTRAL_BANKS_STATIC = [
   { flag:"🇧🇷", name:"BCB — Banco Central do Brasil", cycle:"hold",       rate:"13,25%"     },
   { flag:"🇺🇸", name:"Fed — Federal Reserve",          cycle:"hold",       rate:"4,25–4,50%" },
@@ -378,69 +501,35 @@ const CENTRAL_BANKS_STATIC = [
   { flag:"🇯🇵", name:"BoJ — Bank of Japan",            cycle:"tightening", rate:"0,50%"      },
   { flag:"🇨🇳", name:"PBoC — People's Bank of China",  cycle:"easing",     rate:"3,10%"      },
 ];
+const CYCLE_LABEL = { tightening:"Alta de juros", easing:"Corte de juros", hold:"Em espera" };
+const CYCLE_BADGE = { tightening:"badge-tightening", easing:"badge-easing", hold:"badge-hold" };
 
-const CYCLE_LABEL = { tightening: "Alta de juros", easing: "Corte de juros", hold: "Em espera" };
-const CYCLE_BADGE = { tightening: "badge-tightening", easing: "badge-easing", hold: "badge-hold" };
-
-// ── Helpers ───────────────────────────────────────────────────────────────
-function fmtDate(iso) {
-  if (!iso) return "";
-  const [y, m, d] = iso.split("-");
-  const months = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-  return `${d} ${months[+m-1]} ${y}`;
-}
-function emptyState(msg) {
-  return `<div class="empty-state"><div class="icon">📭</div><p>${msg}</p></div>`;
-}
-
-// ── Tabs ──────────────────────────────────────────────────────────────────
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
-  });
-});
-
-document.getElementById("header-date").textContent =
-  new Date().toLocaleDateString("pt-BR", { day:"2-digit", month:"short", year:"numeric" });
-
-// ── Config ────────────────────────────────────────────────────────────────
+// ── Config ─────────────────────────────────────────────────────────────────
 async function loadConfig() {
   try {
     const res = await fetch("config.json");
     if (!res.ok) throw new Error();
     return await res.json();
-  } catch {
-    return { reports:[], centralBanks:[], speeches:[], presentations:[] };
-  }
+  } catch { return { countries:[], reports:[], centralBanks:[], presentations:[] }; }
 }
-
 function groupReports(reports) {
-  const byCountry = {};
-  reports.forEach(r => {
-    (byCountry[r.country] ??= {})[r.section] ??= [];
-    byCountry[r.country][r.section].push(r);
-  });
-  return byCountry;
+  const m = {};
+  reports.forEach(r => { (m[r.country]??={})[r.section]??=[]; m[r.country][r.section].push(r); });
+  return m;
 }
 
-// ── Países ────────────────────────────────────────────────────────────────
+// ── Países ─────────────────────────────────────────────────────────────────
 function renderCountryGrid(countries, byCountry) {
   const grid = document.getElementById("country-grid");
-  if (!countries.length) { grid.innerHTML = emptyState("Nenhum país cadastrado ainda."); return; }
-
+  if (!countries.length) { grid.innerHTML = emptyState("Nenhum país cadastrado."); return; }
   grid.innerHTML = countries.map(c => {
-    const m = COUNTRY_META[c] || { name: c, flag: "🌍" };
-    const hasReports = !!byCountry[c];
+    const m = COUNTRY_META[c] || { name:c, flag:"🌍" };
     return `<div class="country-card" data-country="${c}">
       <div class="flag">${m.flag}</div>
       <div class="name">${m.name}</div>
-      ${!hasReports ? `<div style="font-size:0.65rem;color:var(--text2);margin-top:0.3rem;">Em breve</div>` : ""}
+      ${!byCountry[c] ? `<div class="soon">Em breve</div>` : ""}
     </div>`;
   }).join("");
-
   grid.querySelectorAll(".country-card").forEach(card =>
     card.addEventListener("click", () => showCountryDetail(card.dataset.country, byCountry))
   );
@@ -449,7 +538,7 @@ function renderCountryGrid(countries, byCountry) {
 function showCountryDetail(country, byCountry) {
   document.getElementById("country-list-view").style.display = "none";
   document.getElementById("country-detail-view").style.display = "block";
-  const m = COUNTRY_META[country] || { name: country, flag: "🌍" };
+  const m = COUNTRY_META[country] || { name:country, flag:"🌍" };
   const sections = byCountry[country] || {};
   let html = `<div class="page-header"><h2>${m.flag} ${m.name}</h2></div>`;
   SECTIONS.forEach(sec => {
@@ -474,39 +563,22 @@ document.getElementById("back-btn").addEventListener("click", () => {
   document.getElementById("country-list-view").style.display = "block";
 });
 
-// ── BCs ───────────────────────────────────────────────────────────────────
+// ── BCs ────────────────────────────────────────────────────────────────────
 function renderBCs(configBCs) {
   const list = document.getElementById("bc-list");
-  const bcs = configBCs?.length ? configBCs : CENTRAL_BANKS_STATIC;
+  const bcs  = configBCs?.length ? configBCs : CENTRAL_BANKS_STATIC;
   list.innerHTML = bcs.map(bc => `
     <div class="bc-card">
-      <div class="bc-flag">${bc.flag || "🏦"}</div>
+      <div class="bc-flag">${bc.flag||"🏦"}</div>
       <div class="bc-info">
         <div class="bc-name">${bc.name}</div>
-        <div class="bc-cycle">
-          <span class="badge ${CYCLE_BADGE[bc.cycle] || "badge-hold"}">${CYCLE_LABEL[bc.cycle] || bc.cycle}</span>
-        </div>
+        <div class="bc-cycle"><span class="badge ${CYCLE_BADGE[bc.cycle]||"badge-hold"}">${CYCLE_LABEL[bc.cycle]||bc.cycle}</span></div>
       </div>
-      <div class="bc-rate">${bc.rate || ""}</div>
+      <div class="bc-rate">${bc.rate||""}</div>
     </div>`).join("");
 }
 
-// ── Speeches ──────────────────────────────────────────────────────────────
-function renderSpeeches(speeches) {
-  const list = document.getElementById("speech-list");
-  if (!speeches?.length) { list.innerHTML = emptyState("Nenhuma fala cadastrada ainda."); return; }
-  list.innerHTML = speeches.map(s => `
-    <div class="speech-card">
-      <div class="speech-header">
-        <span class="speech-who">${s.who}</span>
-        <span class="speech-date">${fmtDate(s.date)}</span>
-      </div>
-      <div class="speech-summary">${s.summary}</div>
-      ${s.url ? `<a class="speech-link" href="${s.url}" target="_blank" rel="noopener">Ver transcrição ↗</a>` : ""}
-    </div>`).join("");
-}
-
-// ── PPTs ──────────────────────────────────────────────────────────────────
+// ── PPTs ───────────────────────────────────────────────────────────────────
 function renderPPTs(presentations) {
   const list = document.getElementById("ppt-list");
   if (!presentations?.length) { list.innerHTML = emptyState("Nenhuma apresentação cadastrada ainda."); return; }
@@ -515,26 +587,24 @@ function renderPPTs(presentations) {
       <div class="ppt-icon">📑</div>
       <div class="ppt-info">
         <div class="ppt-title">${p.title}</div>
-        <div class="ppt-meta">${fmtDate(p.date)}${p.description ? " · " + p.description : ""}</div>
+        <div class="ppt-meta">${fmtDate(p.date)}${p.description?" · "+p.description:""}</div>
       </div>
     </a>`).join("");
 }
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────
+// ── Bootstrap ──────────────────────────────────────────────────────────────
 async function loadApp() {
-  const config = await loadConfig();
+  const config    = await loadConfig();
   const byCountry = groupReports(config.reports || []);
   const countries = config.countries || Object.keys(byCountry);
   renderCountryGrid(countries, byCountry);
   renderBCs(config.centralBanks);
   renderPPTs(config.presentations);
+  await initCDIChart();
 }
 window.loadApp = loadApp;
 
-async function bootstrap() {
-  initAuth();
-  if (checkAuth()) await loadApp();
-}
+async function bootstrap() { initAuth(); if (checkAuth()) await loadApp(); }
 bootstrap();
 </script>
 </body>

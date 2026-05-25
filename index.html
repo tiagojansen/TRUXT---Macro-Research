@@ -19,7 +19,7 @@
       --shadow:rgba(0,0,0,.08); --logo-filter:none;
     }
     :root { --radius:10px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
-    *  { box-sizing:border-box; margin:0; padding:0; }
+    * { box-sizing:border-box; margin:0; padding:0; }
     body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; transition:background .2s,color .2s; }
 
     /* ── Auth ───────────────────────────────────────────────────────────── */
@@ -36,7 +36,7 @@
 
     /* ── Shell ──────────────────────────────────────────────────────────── */
     #app { display:none; }
-    header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1rem; position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; height:52px; box-shadow:0 1px 4px var(--shadow); transition:background .2s; }
+    header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1rem; position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; height:52px; box-shadow:0 1px 4px var(--shadow); }
     .header-logo { height:28px; filter:var(--logo-filter); }
     .header-right { display:flex; align-items:center; gap:.75rem; }
     #header-date { font-size:.72rem; color:var(--text2); }
@@ -44,8 +44,7 @@
     .theme-btn::after { content:""; width:14px; height:14px; border-radius:50%; background:var(--accent); transition:transform .2s; flex-shrink:0; }
     [data-theme="light"] .theme-btn::after { transform:translateX(16px); }
     .theme-icon { font-size:.8rem; position:absolute; }
-    .theme-icon.moon { left:3px; }
-    .theme-icon.sun  { right:3px; }
+    .theme-icon.moon { left:3px; } .theme-icon.sun { right:3px; }
 
     /* ── Tabs ───────────────────────────────────────────────────────────── */
     .tab-bar { background:var(--surface); border-bottom:1px solid var(--border); display:flex; overflow-x:auto; scrollbar-width:none; position:sticky; top:52px; z-index:99; }
@@ -66,6 +65,8 @@
     .country-card .flag { font-size:2rem; margin-bottom:.4rem; }
     .country-card .name { font-size:.85rem; font-weight:600; }
     .country-card .soon { font-size:.65rem; color:var(--text2); margin-top:.3rem; }
+
+    /* ── Country detail ─────────────────────────────────────────────────── */
     .back-btn { display:inline-flex; align-items:center; gap:.4rem; background:none; border:none; color:var(--text2); font-size:.875rem; cursor:pointer; margin-bottom:1rem; padding:.25rem 0; }
     .back-btn:hover { color:var(--accent); }
     .section-title { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text2); margin:1.5rem 0 .5rem; padding-bottom:.4rem; border-bottom:1px solid var(--border); }
@@ -77,30 +78,6 @@
     .report-meta { font-size:.73rem; color:var(--text2); margin-top:.2rem; }
     .report-arrow { color:var(--accent); font-size:1rem; margin-left:.75rem; }
     .empty-section { color:var(--text2); font-size:.83rem; padding:.4rem 0; }
-
-    /* ── CDI Chart ──────────────────────────────────────────────────────── */
-    .cdi-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; margin-bottom:1.25rem; }
-    .cdi-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; gap:.75rem; flex-wrap:wrap; }
-    .cdi-title-info { display:flex; align-items:center; gap:.75rem; }
-    .cdi-flag { font-size:1.5rem; }
-    .cdi-name { font-size:.9rem; font-weight:700; }
-    .cdi-sub  { font-size:.72rem; color:var(--text2); margin-top:.15rem; }
-    .cdi-current { font-size:1.5rem; font-weight:700; color:var(--accent); white-space:nowrap; }
-    .cdi-controls { margin-bottom:.75rem; }
-    .cdi-row { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; margin-bottom:.35rem; }
-    .series-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
-    .dot-a { background:var(--accent); }
-    .dot-b { background:var(--amber); }
-    .period-btns { display:flex; gap:.2rem; flex-wrap:wrap; }
-    .period-btn { padding:.2rem .55rem; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text2); font-size:.75rem; cursor:pointer; transition:all .15s; }
-    .period-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
-    .period-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
-    .btn-compare { padding:.2rem .65rem; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text2); font-size:.75rem; cursor:pointer; transition:all .15s; margin-left:auto; white-space:nowrap; }
-    .btn-compare.active { background:rgba(238,163,32,.12); border-color:var(--amber); color:var(--amber); }
-    .date-label { font-size:.75rem; color:var(--text2); }
-    .date-input { padding:.2rem .5rem; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:.75rem; cursor:pointer; outline:none; }
-    .date-input:focus { border-color:var(--amber); }
-    .cdi-chart-wrap { position:relative; height:260px; margin-top:.5rem; }
 
     /* ── BCs ────────────────────────────────────────────────────────────── */
     .bc-list { display:flex; flex-direction:column; gap:.5rem; }
@@ -175,7 +152,7 @@
 
   <main>
 
-    <!-- ── Países ── -->
+    <!-- Países -->
     <div id="tab-paises" class="tab-panel active">
       <div id="country-list-view">
         <div class="page-header"><h2>Países</h2><p>Selecione um país para ver os relatórios</p></div>
@@ -187,55 +164,13 @@
       </div>
     </div>
 
-    <!-- ── BCs ── -->
+    <!-- BCs -->
     <div id="tab-bcs" class="tab-panel">
       <div class="page-header"><h2>Bancos Centrais</h2><p>Taxas de referência e ciclos de política monetária</p></div>
-
-      <!-- CDI Section -->
-      <div class="cdi-section">
-        <div class="cdi-header-row">
-          <div class="cdi-title-info">
-            <span class="cdi-flag">🇧🇷</span>
-            <div>
-              <div class="cdi-name">CDI — Banco Central do Brasil</div>
-              <div class="cdi-sub" id="cdi-subtitle">Carregando...</div>
-            </div>
-          </div>
-          <div class="cdi-current" id="cdi-rate-now"></div>
-        </div>
-
-        <div class="cdi-controls">
-          <div class="cdi-row">
-            <span class="series-dot dot-a"></span>
-            <div class="period-btns" id="period-btns-a">
-              <button class="period-btn" data-p="3M">3M</button>
-              <button class="period-btn" data-p="6M">6M</button>
-              <button class="period-btn active" data-p="1A">1A</button>
-              <button class="period-btn" data-p="2A">2A</button>
-              <button class="period-btn" data-p="5A">5A</button>
-              <button class="period-btn" data-p="MAX">MAX</button>
-            </div>
-            <button class="btn-compare" id="btn-compare-toggle">＋ Comparar</button>
-          </div>
-          <div class="cdi-row" id="series-b-row" style="display:none;">
-            <span class="series-dot dot-b"></span>
-            <span class="date-label">De</span>
-            <input type="date" class="date-input" id="series-b-start" />
-            <span class="date-label">até</span>
-            <input type="date" class="date-input" id="series-b-end" />
-          </div>
-        </div>
-
-        <div class="cdi-chart-wrap">
-          <canvas id="cdi-chart"></canvas>
-        </div>
-      </div>
-
-      <div class="section-title">Taxas de referência</div>
       <div class="bc-list" id="bc-list"></div>
     </div>
 
-    <!-- ── PPTs ── -->
+    <!-- PPTs -->
     <div id="tab-ppts" class="tab-panel">
       <div class="page-header"><h2>Apresentações</h2><p>Decks e slides internos</p></div>
       <div class="ppt-list" id="ppt-list"></div>
@@ -244,7 +179,6 @@
   </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="auth.js"></script>
 <script>
 // ── Theme ──────────────────────────────────────────────────────────────────
@@ -252,25 +186,20 @@
   document.documentElement.setAttribute("data-theme",
     localStorage.getItem("macro_theme") || "dark");
 })();
-
 document.getElementById("theme-btn").addEventListener("click", () => {
   const html = document.documentElement;
   const next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
   html.setAttribute("data-theme", next);
   localStorage.setItem("macro_theme", next);
-  setTimeout(() => { if (cdiChart) updateCDIChart(); }, 50);
 });
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-function cssVar(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
-
 function fmtDate(iso) {
   if (!iso) return "";
   const [y,m,d] = iso.split("-");
   const months = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
   return `${d} ${months[+m-1]} ${y}`;
 }
-
 function emptyState(msg) {
   return `<div class="empty-state"><div class="icon">📭</div><p>${msg}</p></div>`;
 }
@@ -284,202 +213,21 @@ document.querySelectorAll(".tab-btn").forEach(btn =>
     document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
   })
 );
-
 document.getElementById("header-date").textContent =
   new Date().toLocaleDateString("pt-BR", { day:"2-digit", month:"short", year:"numeric" });
 
-// ── CDI Chart ──────────────────────────────────────────────────────────────
-let allCDI   = [];   // [{data:"DD/MM/YYYY", valor_aa: 13.25}, ...]
-let cdiChart = null;
-let cdiPeriod  = "1A";
-let cdiCompare = false;
-
-// BCB série 12 retorna % ao dia → converter para % ao ano base 252
-function annualizeDaily(pctDia) {
-  return (Math.pow(1 + pctDia / 100, 252) - 1) * 100;
-}
-
-function parseBCBDate(str) {
-  const [d, m, y] = str.split("/");
-  return new Date(+y, +m - 1, +d);
-}
-
-function filterByPeriod(data, period) {
-  if (period === "MAX") return data;
-  const now = new Date();
-  const off = { "3M":-3, "6M":-6, "1A":-12, "2A":-24, "5A":-60 }[period] ?? -12;
-  const start = new Date(now.getFullYear(), now.getMonth() + off, now.getDate());
-  return data.filter(d => parseBCBDate(d.data) >= start);
-}
-
-function filterByRange(data, start, end) {
-  return data.filter(d => {
-    const dt = parseBCBDate(d.data);
-    return dt >= start && dt <= end;
-  });
-}
-
-function buildCDIChart(sA, sB) {
-  const ctx = document.getElementById("cdi-chart");
-  if (!ctx || !sA.length) return;
-  const isCompare = Array.isArray(sB) && sB.length > 0;
-
-  const accent = cssVar("--accent");
-  const amber  = cssVar("--amber");
-  const text2  = cssVar("--text2");
-  const border = cssVar("--border");
-  const surf   = cssVar("--surface");
-
-  if (cdiChart) { cdiChart.destroy(); cdiChart = null; }
-
-  const labels = isCompare
-    ? Array.from({ length: Math.max(sA.length, sB.length) }, (_, i) => `Dia ${i+1}`)
-    : sA.map(d => d.data);
-
-  const datasets = isCompare
-    ? [
-        { label:"Série A", data:sA.map(d=>d.valor_aa), borderColor:accent, backgroundColor:"transparent", tension:.3, pointRadius:0, pointHoverRadius:4, borderWidth:2 },
-        { label:"Série B", data:sB.map(d=>d.valor_aa), borderColor:amber,  backgroundColor:"transparent", tension:.3, pointRadius:0, pointHoverRadius:4, borderWidth:2, borderDash:[5,3] }
-      ]
-    : [{ label:"CDI % a.a.", data:sA.map(d=>d.valor_aa), borderColor:accent, backgroundColor:accent+"18", fill:true, tension:.3, pointRadius:0, pointHoverRadius:4, borderWidth:2 }];
-
-  cdiChart = new Chart(ctx.getContext("2d"), {
-    type: "line",
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { intersect:false, mode:"index" },
-      plugins: {
-        legend: {
-          display: isCompare,
-          labels: { color:text2, font:{ size:11 }, boxWidth:20 }
-        },
-        tooltip: {
-          backgroundColor: surf,
-          borderColor: border, borderWidth:1,
-          titleColor: text2, bodyColor: text2, padding:10,
-          callbacks: {
-            title(items) {
-              if (!isCompare) {
-                const d = sA[items[0].dataIndex];
-                if (!d) return "";
-                return parseBCBDate(d.data)
-                  .toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
-              }
-              return items[0].label;
-            },
-            label(item) {
-              const val = item.parsed.y?.toFixed(2);
-              if (isCompare) {
-                const s  = item.datasetIndex === 0 ? sA : sB;
-                const pt = s[item.dataIndex];
-                return ` ${item.dataset.label}: ${val}% a.a.${pt ? " · "+pt.data : ""}`;
-              }
-              return ` CDI: ${val}% a.a.`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          ticks: {
-            color:text2, maxTicksLimit:8, maxRotation:0,
-            callback(val, i) {
-              if (!isCompare) {
-                const d = sA[i]; if (!d) return "";
-                return parseBCBDate(d.data).toLocaleDateString("pt-BR",{month:"short",year:"2-digit"});
-              }
-              return labels[i];
-            }
-          },
-          grid: { color:border+"33" }
-        },
-        y: {
-          ticks: { color:text2, callback: v => v.toFixed(1)+"%" },
-          grid:  { color:border+"33" }
-        }
-      }
-    }
-  });
-}
-
-function updateCDIChart() {
-  const sA = filterByPeriod(allCDI, cdiPeriod);
-  let sB = null;
-  if (cdiCompare) {
-    const s = document.getElementById("series-b-start")?.value;
-    const e = document.getElementById("series-b-end")?.value;
-    if (s && e) {
-      sB = filterByRange(allCDI, new Date(s+"T00:00:00"), new Date(e+"T23:59:59"));
-    }
-  }
-  buildCDIChart(sA, sB);
-}
-
-async function initCDIChart() {
-  const subEl  = document.getElementById("cdi-subtitle");
-  const rateEl = document.getElementById("cdi-rate-now");
-
-  let raw = null;
+// ── Config ─────────────────────────────────────────────────────────────────
+async function loadConfig() {
   try {
-    const res = await fetch("data/cdi.json");
+    const res = await fetch("config.json");
     if (!res.ok) throw new Error();
-    raw = await res.json();
-  } catch {
-    try {
-      subEl.textContent = "Buscando via API...";
-      const today = new Date();
-      const from  = `${String(today.getDate()).padStart(2,"0")}/${String(today.getMonth()+1).padStart(2,"0")}/${today.getFullYear()-10}`;
-      const res   = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados?formato=json&dataInicial=${from}`);
-      raw = await res.json();
-    } catch {
-      subEl.textContent = "Erro ao carregar dados.";
-      return;
-    }
-  }
-
-  // Série 12 = % ao dia → anualizamos
-  allCDI = raw.map(d => ({ data: d.data, valor_aa: annualizeDaily(parseFloat(d.valor)) }));
-
-  const last = allCDI[allCDI.length - 1];
-  if (last) {
-    rateEl.textContent = last.valor_aa.toFixed(2) + "% a.a.";
-    subEl.textContent  = `Último: ${last.data} · ${allCDI.length.toLocaleString("pt-BR")} dias úteis`;
-  }
-
-  // Padrão Série B: ano passado
-  const now = new Date();
-  document.getElementById("series-b-end").value =
-    new Date(now.getFullYear()-1, now.getMonth(), now.getDate()).toISOString().split("T")[0];
-  document.getElementById("series-b-start").value =
-    new Date(now.getFullYear()-2, now.getMonth(), now.getDate()).toISOString().split("T")[0];
-
-  updateCDIChart();
-
-  // Period buttons
-  document.querySelectorAll("#period-btns-a .period-btn").forEach(btn =>
-    btn.addEventListener("click", () => {
-      document.querySelectorAll("#period-btns-a .period-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      cdiPeriod = btn.dataset.p;
-      updateCDIChart();
-    })
-  );
-
-  // Compare toggle
-  document.getElementById("btn-compare-toggle").addEventListener("click", () => {
-    cdiCompare = !cdiCompare;
-    const btn  = document.getElementById("btn-compare-toggle");
-    btn.classList.toggle("active", cdiCompare);
-    btn.textContent = cdiCompare ? "✕ Comparar" : "＋ Comparar";
-    document.getElementById("series-b-row").style.display = cdiCompare ? "flex" : "none";
-    updateCDIChart();
-  });
-
-  ["series-b-start","series-b-end"].forEach(id =>
-    document.getElementById(id)?.addEventListener("change", updateCDIChart)
-  );
+    return await res.json();
+  } catch { return { countries:[], reports:[], centralBanks:[], presentations:[] }; }
+}
+function groupReports(reports) {
+  const m = {};
+  reports.forEach(r => { (m[r.country]??={})[r.section]??=[]; m[r.country][r.section].push(r); });
+  return m;
 }
 
 // ── Static data ────────────────────────────────────────────────────────────
@@ -503,20 +251,6 @@ const CENTRAL_BANKS_STATIC = [
 ];
 const CYCLE_LABEL = { tightening:"Alta de juros", easing:"Corte de juros", hold:"Em espera" };
 const CYCLE_BADGE = { tightening:"badge-tightening", easing:"badge-easing", hold:"badge-hold" };
-
-// ── Config ─────────────────────────────────────────────────────────────────
-async function loadConfig() {
-  try {
-    const res = await fetch("config.json");
-    if (!res.ok) throw new Error();
-    return await res.json();
-  } catch { return { countries:[], reports:[], centralBanks:[], presentations:[] }; }
-}
-function groupReports(reports) {
-  const m = {};
-  reports.forEach(r => { (m[r.country]??={})[r.section]??=[]; m[r.country][r.section].push(r); });
-  return m;
-}
 
 // ── Países ─────────────────────────────────────────────────────────────────
 function renderCountryGrid(countries, byCountry) {
@@ -600,7 +334,6 @@ async function loadApp() {
   renderCountryGrid(countries, byCountry);
   renderBCs(config.centralBanks);
   renderPPTs(config.presentations);
-  await initCDIChart();
 }
 window.loadApp = loadApp;
 

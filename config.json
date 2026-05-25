@@ -64,6 +64,14 @@
       "section": "inflacao",
       "file": "reports/brasil/inflacao/IPCA15_Novo_Fluxo.html",
       "updated": "2026-05-22"
+    },
+    {
+      "id": "balanco_pagamentos",
+      "title": "Balanço de Pagamentos",
+      "country": "brasil",
+      "section": "fiscal",
+      "file": "reports/brasil/fiscal/Balanco-de-Pagamentos.html",
+      "updated": "2026-05-22"
     }
   ],
   "centralBanks": [],

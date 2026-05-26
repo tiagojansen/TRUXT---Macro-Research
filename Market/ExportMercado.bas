@@ -30,6 +30,7 @@ Attribute VB_Name = "ExportMercado"
 Option Explicit
 
 Public Const JSON_PATH As String = "S:\Macro\Site\data\market.json"
+Public Const HISTORY_PATH As String = "S:\Macro\Site\data\market_history.json"
 Public Const MAX_SNAPSHOTS As Long = 90   ' ~30 dias x 3
 Public Const EXPORT_SHEET As String = "EXPORT"
 
@@ -257,6 +258,219 @@ NextRow:
 
 ErrHandler:
     MsgBox "Erro ao exportar: " & Err.Description, vbCritical, "ExportMercado"
+End Sub
+
+' ------------------------------------------------------------------
+' ExportHistorico — lê TODA a série BDH e grava market_history.json
+' Rode UMA vez (ou quando quiser atualizar o histórico completo).
+' Cada linha do BDH (row 7+) vira um snapshot com ts = YYYY-MM-DDT18:00:00
+' ------------------------------------------------------------------
+Public Sub ExportHistorico()
+
+    Dim wsDI As Worksheet
+    Dim wsFX As Worksheet
+    Dim wsTR As Worksheet
+
+    On Error GoTo ErrHandler
+
+    ' Verifica sheets
+    On Error Resume Next
+    Set wsDI = ThisWorkbook.Sheets("DI_Futuro")
+    Set wsFX = ThisWorkbook.Sheets("FX")
+    Set wsTR = ThisWorkbook.Sheets("Treasuries")
+    On Error GoTo ErrHandler
+
+    If wsDI Is Nothing Then MsgBox "Sheet 'DI_Futuro' não encontrada.", vbCritical, "ExportHistorico": Exit Sub
+    If wsFX Is Nothing Then MsgBox "Sheet 'FX' não encontrada.", vbCritical, "ExportHistorico": Exit Sub
+    If wsTR Is Nothing Then MsgBox "Sheet 'Treasuries' não encontrada.", vbCritical, "ExportHistorico": Exit Sub
+
+    ' ── 1. Dicionários data→linha para FX e Treasuries ───────────────────────
+    Dim dictFX As Object
+    Dim dictTR As Object
+    Set dictFX = CreateObject("Scripting.Dictionary")
+    Set dictTR = CreateObject("Scripting.Dictionary")
+
+    Dim r As Long
+    r = 7
+    Do While wsFX.Cells(r, 1).Value <> ""
+        If IsDate(wsFX.Cells(r, 1).Value) Then
+            dictFX(Format(CDate(wsFX.Cells(r, 1).Value), "yyyy-mm-dd")) = r
+        End If
+        r = r + 1
+    Loop
+
+    r = 7
+    Do While wsTR.Cells(r, 1).Value <> ""
+        If IsDate(wsTR.Cells(r, 1).Value) Then
+            dictTR(Format(CDate(wsTR.Cells(r, 1).Value), "yyyy-mm-dd")) = r
+        End If
+        r = r + 1
+    Loop
+
+    ' ── 2. Mapeamentos de colunas ─────────────────────────────────────────────
+    ' DI_Futuro: col B=Jun/26, I=Jan/27, S=Jan/28, Y=Jan/29, AI=Jan/31, AM=Jan/32
+    Dim diCols(0 To 5)   As Long
+    Dim diLbls(0 To 5)   As String
+    diCols(0) = 2  : diLbls(0) = "Jun/26"
+    diCols(1) = 9  : diLbls(1) = "Jan/27"
+    diCols(2) = 19 : diLbls(2) = "Jan/28"
+    diCols(3) = 25 : diLbls(3) = "Jan/29"
+    diCols(4) = 35 : diLbls(4) = "Jan/31"
+    diCols(5) = 39 : diLbls(5) = "Jan/32"
+
+    ' FX: col B=eurbrl, C=usdbrl, D=eurusd, E=gbpusd, F=usdjpy, G=usdcny, H=dxy
+    Dim fxKeys(0 To 6) As String
+    Dim fxCols(0 To 6) As Long
+    fxKeys(0) = "eurbrl" : fxCols(0) = 2
+    fxKeys(1) = "usdbrl" : fxCols(1) = 3
+    fxKeys(2) = "eurusd" : fxCols(2) = 4
+    fxKeys(3) = "gbpusd" : fxCols(3) = 5
+    fxKeys(4) = "usdjpy" : fxCols(4) = 6
+    fxKeys(5) = "usdcny" : fxCols(5) = 7
+    fxKeys(6) = "dxy"    : fxCols(6) = 8
+
+    ' Treasuries: col B=2y, C=3y, D=5y, E=7y, F=10y, G=20y, H=30y
+    Dim trLbls(0 To 6) As String
+    Dim trCols(0 To 6) As Long
+    trLbls(0) = "2y"  : trCols(0) = 2
+    trLbls(1) = "3y"  : trCols(1) = 3
+    trLbls(2) = "5y"  : trCols(2) = 4
+    trLbls(3) = "7y"  : trCols(3) = 5
+    trLbls(4) = "10y" : trCols(4) = 6
+    trLbls(5) = "20y" : trCols(5) = 7
+    trLbls(6) = "30y" : trCols(6) = 8
+
+    Dim ptMes2(1 To 12) As String
+    ptMes2(1)="jan":ptMes2(2)="fev":ptMes2(3)="mar":ptMes2(4)="abr"
+    ptMes2(5)="mai":ptMes2(6)="jun":ptMes2(7)="jul":ptMes2(8)="ago"
+    ptMes2(9)="set":ptMes2(10)="out":ptMes2(11)="nov":ptMes2(12)="dez"
+
+    ' ── 3. Grava diretamente no arquivo (evita string gigante em memória) ──────
+    Dim fOut As Integer
+    fOut = FreeFile
+    Open HISTORY_PATH For Output As #fOut
+    Print #fOut, "{""snapshots"":["
+
+    Dim snapCount As Long
+    Dim firstSnap As Boolean
+    snapCount = 0
+    firstSnap = True
+
+    ' Descobre última linha do DI_Futuro
+    Dim lastDIRow As Long
+    lastDIRow = wsDI.Cells(wsDI.Rows.Count, 1).End(xlUp).Row
+
+    ' Loop do mais antigo (row 7) até o mais recente (lastDIRow)
+    Dim dtDI    As Date
+    Dim dateStr As String
+    Dim diJson  As String
+    Dim diCount As Long
+    Dim fxJson  As String
+    Dim trJson  As String
+    Dim tsStr   As String
+    Dim lblStr  As String
+    Dim snap    As String
+    Dim vDI     As Double
+    Dim vFX     As Double
+    Dim vTR     As Double
+    Dim rFX     As Long
+    Dim rTR     As Long
+    Dim k       As Long
+    Dim m       As Long
+
+    For r = 7 To lastDIRow
+        If wsDI.Cells(r, 1).Value = "" Then GoTo NextHistRow
+        If Not IsDate(wsDI.Cells(r, 1).Value) Then GoTo NextHistRow
+
+        dtDI    = CDate(wsDI.Cells(r, 1).Value)
+        dateStr = Format(dtDI, "yyyy-mm-dd")
+
+        ' Monta DI array
+        diJson  = ""
+        diCount = 0
+        For k = 0 To 5
+            vDI = 0
+            If IsNumeric(wsDI.Cells(r, diCols(k)).Value) Then
+                vDI = CDbl(wsDI.Cells(r, diCols(k)).Value)
+            End If
+            If vDI <> 0 Then
+                If diJson <> "" Then diJson = diJson & ","
+                diJson = diJson & "{""label"":""" & diLbls(k) & """,""du"":0,""taxa"":" & Format(vDI, "0.000") & "}"
+                diCount = diCount + 1
+            End If
+        Next k
+
+        If diCount = 0 Then GoTo NextHistRow
+
+        ' Monta FX object
+        fxJson = ""
+        If dictFX.Exists(dateStr) Then
+            rFX = dictFX(dateStr)
+            For m = 0 To 6
+                vFX = 0
+                If IsNumeric(wsFX.Cells(rFX, fxCols(m)).Value) Then
+                    vFX = CDbl(wsFX.Cells(rFX, fxCols(m)).Value)
+                End If
+                If vFX <> 0 Then
+                    If fxJson <> "" Then fxJson = fxJson & ","
+                    fxJson = fxJson & """" & fxKeys(m) & """:" & Format(vFX, "0.0000")
+                End If
+            Next m
+        End If
+
+        ' Monta Treasuries array
+        trJson = ""
+        If dictTR.Exists(dateStr) Then
+            rTR = dictTR(dateStr)
+            For m = 0 To 6
+                vTR = 0
+                If IsNumeric(wsTR.Cells(rTR, trCols(m)).Value) Then
+                    vTR = CDbl(wsTR.Cells(rTR, trCols(m)).Value)
+                End If
+                If vTR <> 0 Then
+                    If trJson <> "" Then trJson = trJson & ","
+                    trJson = trJson & "{""label"":""" & trLbls(m) & """,""yield"":" & Format(vTR, "0.000") & "}"
+                End If
+            Next m
+        End If
+
+        ' Timestamp e label (formato DD/mmm/AA = "22/mai/26")
+        tsStr  = dateStr & "T18:00:00"
+        lblStr = Format(Day(dtDI), "0") & "/" & ptMes2(Month(dtDI)) & "/" & _
+                 Right(CStr(Year(dtDI)), 2)
+
+        ' Snapshot JSON
+        snap = "{""ts"":""" & tsStr & """," & _
+               """label"":""" & lblStr & """," & _
+               """di"":[" & diJson & "]," & _
+               """ntnb"":[]," & _
+               """fx"":{" & fxJson & "}," & _
+               """treasuries"":[" & trJson & "]}"
+
+        If Not firstSnap Then Print #fOut, "  ,"
+        Print #fOut, "  " & snap
+        firstSnap = False
+        snapCount = snapCount + 1
+
+        ' Progresso na status bar a cada 100 snapshots
+        If snapCount Mod 100 = 0 Then
+            Application.StatusBar = "ExportHistorico: " & snapCount & " snapshots..."
+        End If
+
+NextHistRow:
+    Next r
+
+    Print #fOut, "]}"
+    Close #fOut
+
+    Application.StatusBar = "market_history.json: " & snapCount & " snapshots"
+    MsgBox snapCount & " snapshots exportados para:" & vbCrLf & HISTORY_PATH, _
+           vbInformation, "ExportHistorico"
+    Exit Sub
+
+ErrHandler:
+    If fOut > 0 Then Close #fOut
+    MsgBox "Erro ao exportar histórico: " & Err.Description, vbCritical, "ExportHistorico"
 End Sub
 
 ' ------------------------------------------------------------------

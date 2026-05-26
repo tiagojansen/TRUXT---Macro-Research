@@ -4,9 +4,10 @@
 # Pré-requisito: VBA no Excel BBG já salvou data\market.json
 # ============================================================
 
-$SITE_DIR  = "S:\Macro\Site"
-$JSON_FILE = "$SITE_DIR\data\market.json"
-$LOG_FILE  = "$SITE_DIR\scripts\update_log.txt"
+$SITE_DIR    = "S:\Macro\Site"
+$JSON_FILE   = "$SITE_DIR\data\market.json"
+$HIST_FILE   = "$SITE_DIR\data\market_history.json"
+$LOG_FILE    = "$SITE_DIR\scripts\update_log.txt"
 
 function Log($msg) {
     $line = "$(Get-Date -Format 'dd/MM/yyyy HH:mm:ss')  $msg"
@@ -14,28 +15,43 @@ function Log($msg) {
     Add-Content -Path $LOG_FILE -Value $line -Encoding UTF8
 }
 
-Log "=== Iniciando publicação market.json ==="
+Log "=== Iniciando publicação ==="
 
-# Verifica se o arquivo existe
+# Verifica se market.json existe
 if (-not (Test-Path $JSON_FILE)) {
     Log "AVISO: $JSON_FILE não encontrado. VBA ainda não rodou?"
     Log "=== Concluído ===`n"
     exit 0
 }
 
-# Só publica se o arquivo foi modificado nos últimos 10 minutos
-$age = (Get-Date) - (Get-Item $JSON_FILE).LastWriteTime
-if ($age.TotalMinutes -gt 10) {
-    Log "Sem atualização recente ($([int]$age.TotalMinutes) min atrás). Nada a publicar."
+# market.json: publica se modificado nos últimos 10 min
+$ageRecent = (Get-Date) - (Get-Item $JSON_FILE).LastWriteTime
+$publishRecent = $ageRecent.TotalMinutes -le 10
+
+# market_history.json: publica se existe e foi modificado nos últimos 60 min
+$publishHistory = $false
+if (Test-Path $HIST_FILE) {
+    $ageHist = (Get-Date) - (Get-Item $HIST_FILE).LastWriteTime
+    $publishHistory = $ageHist.TotalMinutes -le 60
+}
+
+if (-not $publishRecent -and -not $publishHistory) {
+    Log "Sem atualizações recentes. Nada a publicar."
     Log "=== Concluído ===`n"
     exit 0
 }
 
-Log "market.json atualizado há $([math]::Round($age.TotalMinutes,1)) min. Publicando..."
-
 try {
     Set-Location $SITE_DIR
-    git add "data/market.json"
+
+    if ($publishRecent) {
+        Log "market.json atualizado há $([math]::Round($ageRecent.TotalMinutes,1)) min. Adicionando..."
+        git add "data/market.json"
+    }
+    if ($publishHistory) {
+        Log "market_history.json atualizado. Adicionando..."
+        git add "data/market_history.json"
+    }
 
     $commitMsg = "data: market $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
     $result = git commit -m $commitMsg 2>&1

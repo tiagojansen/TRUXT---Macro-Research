@@ -126,6 +126,12 @@
     .snap-select { background:var(--surface2); border:1px solid var(--border); border-radius:6px;
       color:var(--text); font-size:.78rem; padding:.3rem .6rem; cursor:pointer; outline:none; }
     .snap-select:focus { border-color:var(--accent); }
+    input[type="date"].snap-select { color-scheme:dark; min-width:120px; }
+    [data-theme="light"] input[type="date"].snap-select { color-scheme:light; }
+    .snap-clear-btn { background:none; border:none; color:var(--text2); font-size:1rem;
+      cursor:pointer; padding:0 .2rem; line-height:1; }
+    .snap-clear-btn:hover { color:var(--text); }
+    .mkt-no-data { color:var(--text2); font-size:.82rem; padding:.5rem 0; }
     .curve-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
       padding:1rem 1rem .5rem; overflow:hidden; }
     .curve-svg { width:100%; display:block; }
@@ -219,17 +225,16 @@
         <button class="mkt-sub-btn" data-mkt="treasuries">Treasuries</button>
       </div>
 
-      <!-- Seletores de snapshot (usados por DI / NTN-B / Treasuries) -->
+      <!-- Seletores de data -->
       <div class="snap-selectors" id="mkt-snap-selectors">
         <div class="snap-selector-group">
           <div class="snap-dot snap-dot-a"></div>
-          <select class="snap-select" id="snap-a"></select>
+          <input type="date" class="snap-select" id="snap-a">
         </div>
         <div class="snap-selector-group">
           <div class="snap-dot snap-dot-b"></div>
-          <select class="snap-select" id="snap-b">
-            <option value="">— comparação —</option>
-          </select>
+          <input type="date" class="snap-select" id="snap-b">
+          <button class="snap-clear-btn" id="snap-b-clear" title="Remover comparação">×</button>
         </div>
       </div>
 
@@ -438,7 +443,8 @@ function renderPPTs(presentations) {
 }
 
 // ── Mercado ────────────────────────────────────────────────────────────────
-let mktSnapshots = [];
+let mktByDate = {};   // YYYY-MM-DD → snapshot (latest per day)
+let mktDates  = [];   // sorted newest→oldest
 
 // Sub-tabs
 document.querySelectorAll(".mkt-sub-btn").forEach(btn =>
@@ -447,48 +453,82 @@ document.querySelectorAll(".mkt-sub-btn").forEach(btn =>
     document.querySelectorAll(".mkt-sub-panel").forEach(p => p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("mkt-panel-" + btn.dataset.mkt).classList.add("active");
-    // Oculta seletores no painel FX (não tem curva)
-    document.getElementById("mkt-snap-selectors").style.display =
-      btn.dataset.mkt === "fx" ? "none" : "";
-    if (mktSnapshots.length) renderAllCharts();
+    if (mktDates.length) renderAllCharts();
   })
 );
 
-// Seletores
+// Seletores de data
 ["snap-a","snap-b"].forEach(id =>
   document.getElementById(id).addEventListener("change", () => {
-    if (mktSnapshots.length) renderAllCharts();
+    if (mktDates.length) renderAllCharts();
   })
 );
+document.getElementById("snap-b-clear").addEventListener("click", () => {
+  document.getElementById("snap-b").value = "";
+  if (mktDates.length) renderAllCharts();
+});
 
 async function loadMarket() {
+  const allSnaps = [];
+
+  // Carrega snapshots recentes (intraday)
   try {
     const res = await fetch("data/market.json?t=" + Date.now());
-    if (!res.ok) return;
-    const data = await res.json();
-    mktSnapshots = data.snapshots || [];
-    if (!mktSnapshots.length) return;
-    populateSelectors();
-    renderAllCharts();
+    if (res.ok) { const d = await res.json(); allSnaps.push(...(d.snapshots || [])); }
   } catch(e) { console.warn("market.json:", e); }
+
+  // Carrega histórico (EOD diário exportado pelo VBA)
+  try {
+    const res = await fetch("data/market_history.json?t=" + Date.now());
+    if (res.ok) { const d = await res.json(); allSnaps.push(...(d.snapshots || [])); }
+  } catch { /* arquivo ainda não existe — silencioso */ }
+
+  if (!allSnaps.length) return;
+
+  // Deduplica: mantém o snapshot mais recente por dia
+  const byDate = {};
+  allSnaps.forEach(s => {
+    const date = (s.ts || "").substring(0, 10);
+    if (!date) return;
+    if (!byDate[date] || s.ts > byDate[date].ts) byDate[date] = s;
+  });
+
+  mktByDate = byDate;
+  mktDates  = Object.keys(byDate).sort().reverse(); // newest first
+
+  populateDatePickers();
+  renderAllCharts();
 }
 
-function populateSelectors() {
-  const selA = document.getElementById("snap-a");
-  const selB = document.getElementById("snap-b");
-  const opts = mktSnapshots.map((s,i) =>
-    `<option value="${i}">${s.label}</option>`).join("");
-  selA.innerHTML = opts;
-  selA.value = "0";
-  selB.innerHTML = `<option value="">— comparação —</option>` + opts;
-  selB.value = mktSnapshots.length > 1 ? "3" : ""; // default: ontem fechamento
+function populateDatePickers() {
+  const inpA = document.getElementById("snap-a");
+  const inpB = document.getElementById("snap-b");
+  const newest = mktDates[0];
+  const oldest = mktDates[mktDates.length - 1];
+
+  inpA.min = oldest; inpA.max = newest;
+  inpB.min = oldest; inpB.max = newest;
+
+  // A = hoje (ou data mais recente disponível)
+  inpA.value = newest;
+
+  // B = ~5 dias úteis atrás (índice 5, ou o que tiver)
+  const idxB = Math.min(5, mktDates.length - 1);
+  inpB.value = idxB > 0 ? mktDates[idxB] : "";
+}
+
+// Encontra o snapshot para uma data: exato ou o mais recente anterior
+function findSnap(dateStr) {
+  if (!dateStr) return null;
+  if (mktByDate[dateStr]) return mktByDate[dateStr];
+  // busca o dia mais próximo anterior (mktDates é newest→oldest)
+  const earlier = mktDates.filter(d => d <= dateStr);
+  return earlier.length ? mktByDate[earlier[0]] : null;
 }
 
 function getSelectedSnaps() {
-  const idxA = +document.getElementById("snap-a").value;
-  const valB = document.getElementById("snap-b").value;
-  const snapA = mktSnapshots[idxA] || null;
-  const snapB = valB !== "" ? (mktSnapshots[+valB] || null) : null;
+  const snapA = findSnap(document.getElementById("snap-a").value);
+  const snapB = findSnap(document.getElementById("snap-b").value);
   return { snapA, snapB };
 }
 
@@ -501,9 +541,9 @@ function renderAllCharts() {
             snapA?.treasuries,  snapB?.treasuries,
             snapA?.label,       snapB?.label,         "yield", "%a.a.");
   renderFX(snapA, snapB);
-  const ts = snapA ? "Último snapshot: " + snapA.label : "";
+  const ts = snapA ? snapA.label : "—";
   ["di","treasuries","fx"].forEach(k =>
-    document.getElementById("mkt-updated-" + k).textContent = ts);
+    document.getElementById("mkt-updated-" + k).textContent = snapA ? "Snapshot: " + ts : "");
 }
 
 // ── Gráfico SVG ────────────────────────────────────────────────────────────

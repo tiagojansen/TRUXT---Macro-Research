@@ -74,10 +74,14 @@ Public Sub ExportarMercado()
         Dim v2     As Double
 
         tipo  = LCase(Trim(wsExp.Cells(r, 1).Value))
-        label = Trim(wsExp.Cells(r, 2).Value)
+        label = Trim(wsExp.Cells(r, 2).Text)   ' .Text preserva o texto exato da célula
         v1    = 0 : v2 = 0
         If IsNumeric(wsExp.Cells(r, 3).Value) Then v1 = CDbl(wsExp.Cells(r, 3).Value)
         If IsNumeric(wsExp.Cells(r, 4).Value) Then v2 = CDbl(wsExp.Cells(r, 4).Value)
+        ' Ignora linhas onde o valor principal é zero ou erro (dados ausentes no BBG)
+        If tipo = "di" Or tipo = "ntnb" Or tipo = "treasury" Then
+            If v1 = 0 Then GoTo NextRow
+        End If
 
         Select Case tipo
             Case "di"
@@ -97,14 +101,20 @@ Public Sub ExportarMercado()
                                         """yield"":" & Format(v1, "0.000") & "}"
                 treasCount = treasCount + 1
         End Select
+NextRow:
         r = r + 1
     Loop
 
     ' ── 2. Monta JSON do snapshot atual ──────────────────────────
     Dim ts     As String
     Dim lbl    As String
+    Dim ptMes(1 To 12) As String
+    ptMes(1)="jan":ptMes(2)="fev":ptMes(3)="mar":ptMes(4)="abr"
+    ptMes(5)="mai":ptMes(6)="jun":ptMes(7)="jul":ptMes(8)="ago"
+    ptMes(9)="set":ptMes(10)="out":ptMes(11)="nov":ptMes(12)="dez"
     ts  = Format(Now, "yyyy-mm-ddThh:mm:ss")
-    lbl = Format(Now, "dd/mmm hh:mm")   ' ex: 26/mai 18:00
+    lbl = Format(Day(Now), "00") & "/" & ptMes(Month(Now)) & " " & _
+          Format(Hour(Now), "00") & ":" & Format(Minute(Now), "00")
 
     Dim snapJson As String
     snapJson = "{" & vbCrLf & _

@@ -4,32 +4,22 @@
       "ts": "2026-05-26T18:00:00",
       "label": "26/mai 18:00",
       "di": [
-        {"label":"Jan/26","du":156,"taxa":13.250},
-        {"label":"Jul/26","du":306,"taxa":13.120},
-        {"label":"Jan/27","du":497,"taxa":12.980},
-        {"label":"Jan/28","du":757,"taxa":12.750},
-        {"label":"Jan/29","du":1008,"taxa":12.580},
-        {"label":"Jan/31","du":1518,"taxa":12.450},
-        {"label":"Jan/33","du":2028,"taxa":12.380}
+        {"label":"Jun/26","du":24,"taxa":13.250},
+        {"label":"Jan/27","du":162,"taxa":13.120},
+        {"label":"Jan/28","du":413,"taxa":12.980},
+        {"label":"Jan/29","du":664,"taxa":12.750},
+        {"label":"Jan/31","du":1166,"taxa":12.450},
+        {"label":"Jan/32","du":1417,"taxa":12.380}
       ],
-      "ntnb": [
-        {"label":"Mai/26","yield":7.850},
-        {"label":"Ago/26","yield":7.890},
-        {"label":"Mai/27","yield":7.920},
-        {"label":"Ago/28","yield":7.960},
-        {"label":"Ago/30","yield":7.990},
-        {"label":"Mai/35","yield":8.030},
-        {"label":"Ago/40","yield":8.060},
-        {"label":"Mai/45","yield":8.080},
-        {"label":"Ago/50","yield":8.090}
-      ],
-      "fx": {"usdbrl":5.7812,"eurbrl":6.4253,"eurusd":1.1119},
+      "fx": {
+        "usdbrl":5.7812,"eurbrl":6.4253,"eurusd":1.1119,
+        "gbpusd":1.3445,"usdjpy":144.82,"usdcny":7.2310,"dxy":99.85
+      },
       "treasuries": [
-        {"label":"3m","yield":5.310},
-        {"label":"6m","yield":5.270},
-        {"label":"1y","yield":5.080},
         {"label":"2y","yield":4.850},
+        {"label":"3y","yield":4.720},
         {"label":"5y","yield":4.620},
+        {"label":"7y","yield":4.530},
         {"label":"10y","yield":4.450},
         {"label":"20y","yield":4.720},
         {"label":"30y","yield":4.630}
@@ -39,102 +29,47 @@
       "ts": "2026-05-26T13:00:00",
       "label": "26/mai 13:00",
       "di": [
-        {"label":"Jan/26","du":156,"taxa":13.255},
-        {"label":"Jul/26","du":306,"taxa":13.130},
-        {"label":"Jan/27","du":497,"taxa":12.990},
-        {"label":"Jan/28","du":757,"taxa":12.760},
-        {"label":"Jan/29","du":1008,"taxa":12.590},
-        {"label":"Jan/31","du":1518,"taxa":12.460},
-        {"label":"Jan/33","du":2028,"taxa":12.390}
+        {"label":"Jun/26","du":24,"taxa":13.255},
+        {"label":"Jan/27","du":162,"taxa":13.130},
+        {"label":"Jan/28","du":413,"taxa":12.990},
+        {"label":"Jan/29","du":664,"taxa":12.760},
+        {"label":"Jan/31","du":1166,"taxa":12.460},
+        {"label":"Jan/32","du":1417,"taxa":12.390}
       ],
-      "ntnb": [
-        {"label":"Mai/26","yield":7.860},
-        {"label":"Ago/26","yield":7.900},
-        {"label":"Mai/27","yield":7.930},
-        {"label":"Ago/28","yield":7.970},
-        {"label":"Ago/30","yield":8.000},
-        {"label":"Mai/35","yield":8.040},
-        {"label":"Ago/40","yield":8.070},
-        {"label":"Mai/45","yield":8.090},
-        {"label":"Ago/50","yield":8.100}
-      ],
-      "fx": {"usdbrl":5.7950,"eurbrl":6.4390,"eurusd":1.1111},
+      "fx": {
+        "usdbrl":5.7950,"eurbrl":6.4390,"eurusd":1.1111,
+        "gbpusd":1.3420,"usdjpy":145.10,"usdcny":7.2380,"dxy":100.10
+      },
       "treasuries": [
-        {"label":"3m","yield":5.310},
-        {"label":"6m","yield":5.275},
-        {"label":"1y","yield":5.085},
         {"label":"2y","yield":4.860},
+        {"label":"3y","yield":4.730},
         {"label":"5y","yield":4.630},
+        {"label":"7y","yield":4.540},
         {"label":"10y","yield":4.460},
         {"label":"20y","yield":4.730},
         {"label":"30y","yield":4.640}
       ]
     },
     {
-      "ts": "2026-05-26T09:05:00",
-      "label": "26/mai 09:05",
-      "di": [
-        {"label":"Jan/26","du":156,"taxa":13.260},
-        {"label":"Jul/26","du":306,"taxa":13.140},
-        {"label":"Jan/27","du":497,"taxa":13.000},
-        {"label":"Jan/28","du":757,"taxa":12.770},
-        {"label":"Jan/29","du":1008,"taxa":12.600},
-        {"label":"Jan/31","du":1518,"taxa":12.470},
-        {"label":"Jan/33","du":2028,"taxa":12.400}
-      ],
-      "ntnb": [
-        {"label":"Mai/26","yield":7.870},
-        {"label":"Ago/26","yield":7.910},
-        {"label":"Mai/27","yield":7.940},
-        {"label":"Ago/28","yield":7.980},
-        {"label":"Ago/30","yield":8.010},
-        {"label":"Mai/35","yield":8.050},
-        {"label":"Ago/40","yield":8.080},
-        {"label":"Mai/45","yield":8.100},
-        {"label":"Ago/50","yield":8.110}
-      ],
-      "fx": {"usdbrl":5.8100,"eurbrl":6.4520,"eurusd":1.1104},
-      "treasuries": [
-        {"label":"3m","yield":5.315},
-        {"label":"6m","yield":5.280},
-        {"label":"1y","yield":5.090},
-        {"label":"2y","yield":4.870},
-        {"label":"5y","yield":4.640},
-        {"label":"10y","yield":4.470},
-        {"label":"20y","yield":4.740},
-        {"label":"30y","yield":4.650}
-      ]
-    },
-    {
       "ts": "2026-05-23T18:00:00",
       "label": "23/mai 18:00",
       "di": [
-        {"label":"Jan/26","du":159,"taxa":13.270},
-        {"label":"Jul/26","du":309,"taxa":13.155},
-        {"label":"Jan/27","du":500,"taxa":13.015},
-        {"label":"Jan/28","du":760,"taxa":12.790},
-        {"label":"Jan/29","du":1011,"taxa":12.620},
-        {"label":"Jan/31","du":1521,"taxa":12.490},
-        {"label":"Jan/33","du":2031,"taxa":12.420}
+        {"label":"Jun/26","du":27,"taxa":13.270},
+        {"label":"Jan/27","du":165,"taxa":13.155},
+        {"label":"Jan/28","du":416,"taxa":13.015},
+        {"label":"Jan/29","du":667,"taxa":12.790},
+        {"label":"Jan/31","du":1169,"taxa":12.490},
+        {"label":"Jan/32","du":1420,"taxa":12.420}
       ],
-      "ntnb": [
-        {"label":"Mai/26","yield":7.880},
-        {"label":"Ago/26","yield":7.920},
-        {"label":"Mai/27","yield":7.950},
-        {"label":"Ago/28","yield":7.990},
-        {"label":"Ago/30","yield":8.020},
-        {"label":"Mai/35","yield":8.060},
-        {"label":"Ago/40","yield":8.090},
-        {"label":"Mai/45","yield":8.110},
-        {"label":"Ago/50","yield":8.120}
-      ],
-      "fx": {"usdbrl":5.8250,"eurbrl":6.4680,"eurusd":1.1099},
+      "fx": {
+        "usdbrl":5.8250,"eurbrl":6.4680,"eurusd":1.1099,
+        "gbpusd":1.3390,"usdjpy":145.50,"usdcny":7.2450,"dxy":100.35
+      },
       "treasuries": [
-        {"label":"3m","yield":5.320},
-        {"label":"6m","yield":5.285},
-        {"label":"1y","yield":5.095},
         {"label":"2y","yield":4.880},
+        {"label":"3y","yield":4.750},
         {"label":"5y","yield":4.650},
+        {"label":"7y","yield":4.560},
         {"label":"10y","yield":4.480},
         {"label":"20y","yield":4.750},
         {"label":"30y","yield":4.660}
@@ -144,32 +79,22 @@
       "ts": "2026-05-22T18:00:00",
       "label": "22/mai 18:00",
       "di": [
-        {"label":"Jan/26","du":160,"taxa":13.280},
-        {"label":"Jul/26","du":310,"taxa":13.170},
-        {"label":"Jan/27","du":501,"taxa":13.030},
-        {"label":"Jan/28","du":761,"taxa":12.810},
-        {"label":"Jan/29","du":1012,"taxa":12.640},
-        {"label":"Jan/31","du":1522,"taxa":12.510},
-        {"label":"Jan/33","du":2032,"taxa":12.440}
+        {"label":"Jun/26","du":28,"taxa":13.280},
+        {"label":"Jan/27","du":166,"taxa":13.170},
+        {"label":"Jan/28","du":417,"taxa":13.030},
+        {"label":"Jan/29","du":668,"taxa":12.810},
+        {"label":"Jan/31","du":1170,"taxa":12.510},
+        {"label":"Jan/32","du":1421,"taxa":12.440}
       ],
-      "ntnb": [
-        {"label":"Mai/26","yield":7.900},
-        {"label":"Ago/26","yield":7.940},
-        {"label":"Mai/27","yield":7.970},
-        {"label":"Ago/28","yield":8.010},
-        {"label":"Ago/30","yield":8.040},
-        {"label":"Mai/35","yield":8.080},
-        {"label":"Ago/40","yield":8.110},
-        {"label":"Mai/45","yield":8.130},
-        {"label":"Ago/50","yield":8.140}
-      ],
-      "fx": {"usdbrl":5.8450,"eurbrl":6.4850,"eurusd":1.1095},
+      "fx": {
+        "usdbrl":5.8450,"eurbrl":6.4850,"eurusd":1.1095,
+        "gbpusd":1.3370,"usdjpy":145.80,"usdcny":7.2510,"dxy":100.55
+      },
       "treasuries": [
-        {"label":"3m","yield":5.325},
-        {"label":"6m","yield":5.290},
-        {"label":"1y","yield":5.100},
         {"label":"2y","yield":4.890},
+        {"label":"3y","yield":4.760},
         {"label":"5y","yield":4.660},
+        {"label":"7y","yield":4.570},
         {"label":"10y","yield":4.490},
         {"label":"20y","yield":4.760},
         {"label":"30y","yield":4.670}

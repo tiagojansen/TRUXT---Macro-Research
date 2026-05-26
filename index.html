@@ -215,7 +215,6 @@
       <div class="page-header"><h2>Mercado</h2><p>Curvas de juros, câmbio e renda fixa</p></div>
       <div class="mkt-sub-bar">
         <button class="mkt-sub-btn active" data-mkt="di">DI Futuro</button>
-        <button class="mkt-sub-btn" data-mkt="ntnb">NTN-B</button>
         <button class="mkt-sub-btn" data-mkt="fx">FX</button>
         <button class="mkt-sub-btn" data-mkt="treasuries">Treasuries</button>
       </div>
@@ -241,15 +240,6 @@
           <div class="curve-legend" id="legend-di"></div>
         </div>
         <div class="mkt-updated" id="mkt-updated-di"></div>
-      </div>
-
-      <!-- NTN-B -->
-      <div id="mkt-panel-ntnb" class="mkt-sub-panel">
-        <div class="curve-wrap">
-          <svg id="chart-ntnb" class="curve-svg"></svg>
-          <div class="curve-legend" id="legend-ntnb"></div>
-        </div>
-        <div class="mkt-updated" id="mkt-updated-ntnb"></div>
       </div>
 
       <!-- FX -->
@@ -485,16 +475,12 @@ function renderAllCharts() {
   drawCurve("chart-di",         "legend-di",         "mkt-updated-di",
             snapA?.di,          snapB?.di,
             snapA?.label,       snapB?.label,         "taxa", "%a.a.");
-  drawCurve("chart-ntnb",       "legend-ntnb",        "mkt-updated-ntnb",
-            snapA?.ntnb,        snapB?.ntnb,
-            snapA?.label,       snapB?.label,         "yield", "%a.a. IPCA+");
   drawCurve("chart-treasuries", "legend-treasuries",  "mkt-updated-treasuries",
             snapA?.treasuries,  snapB?.treasuries,
             snapA?.label,       snapB?.label,         "yield", "%a.a.");
   renderFX(snapA, snapB);
-  // timestamps
   const ts = snapA ? "Último snapshot: " + snapA.label : "";
-  ["di","ntnb","treasuries","fx"].forEach(k =>
+  ["di","treasuries","fx"].forEach(k =>
     document.getElementById("mkt-updated-" + k).textContent = ts);
 }
 
@@ -613,9 +599,13 @@ function renderFX(snapA, snapB) {
   if (!snapA?.fx) { el.innerHTML = `<div class="empty-state"><div class="icon">📉</div><p>Sem dados FX.</p></div>`; return; }
 
   const pairs = [
-    { key:"usdbrl", label:"USD/BRL", desc:"Dólar / Real" },
-    { key:"eurbrl", label:"EUR/BRL", desc:"Euro / Real"  },
-    { key:"eurusd", label:"EUR/USD", desc:"Euro / Dólar" },
+    { key:"usdbrl", label:"USD/BRL", desc:"Dólar / Real",    dec:4 },
+    { key:"eurbrl", label:"EUR/BRL", desc:"Euro / Real",     dec:4 },
+    { key:"eurusd", label:"EUR/USD", desc:"Euro / Dólar",    dec:4 },
+    { key:"gbpusd", label:"GBP/USD", desc:"Libra / Dólar",   dec:4 },
+    { key:"usdjpy", label:"USD/JPY", desc:"Dólar / Iene",    dec:2 },
+    { key:"usdcny", label:"USD/CNY", desc:"Dólar / Yuan",    dec:4 },
+    { key:"dxy",    label:"DXY",     desc:"Índice Dólar",    dec:2 },
   ];
 
   let rows = "";
@@ -623,6 +613,7 @@ function renderFX(snapA, snapB) {
     const vA = snapA.fx[p.key];
     if (vA == null) return;
     const vB = snapB?.fx?.[p.key] ?? null;
+    const d  = p.dec ?? 4;
     let chgHtml = "";
     if (vB != null) {
       const diff = vA - vB;
@@ -630,11 +621,11 @@ function renderFX(snapA, snapB) {
       const cls  = Math.abs(pct) < 0.01 ? "neu" : pct > 0 ? "pos" : "neg";
       const sign = pct > 0 ? "+" : "";
       chgHtml = `<span class="fx-chg ${cls}">${sign}${pct.toFixed(2)}%</span>
-                 <span class="fx-chg ${cls}" style="margin-left:.4rem">(${sign}${diff.toFixed(4)})</span>`;
+                 <span class="fx-chg ${cls}" style="margin-left:.4rem">(${sign}${diff.toFixed(d)})</span>`;
     }
     rows += `<tr>
       <td><span class="fx-pair">${p.label}</span><br><span style="font-size:.72rem;color:var(--text2)">${p.desc}</span></td>
-      <td class="fx-val">${vA.toFixed(4)}</td>
+      <td class="fx-val">${vA.toFixed(d)}</td>
       <td>${chgHtml || '<span class="fx-chg neu">—</span>'}</td>
     </tr>`;
   });

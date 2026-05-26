@@ -153,6 +153,19 @@
     .fx-chg.neg { color:var(--green); }
     .fx-chg.neu { color:var(--text2); }
     .mkt-updated { font-size:.7rem; color:var(--text2); margin-top:.75rem; text-align:right; }
+    .di-table { width:100%; border-collapse:collapse; font-size:.875rem; margin-top:.75rem; }
+    .di-table th { text-align:left; color:var(--text2); font-size:.68rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:.07em; padding:.5rem .75rem;
+      border-bottom:1px solid var(--border); }
+    .di-table td { padding:.45rem .75rem; border-bottom:1px solid var(--border);
+      font-variant-numeric:tabular-nums; }
+    .di-table tr:last-child td { border-bottom:none; }
+    .di-vtx   { font-weight:700; font-size:.9rem; }
+    .di-taxa  { font-weight:600; }
+    .di-delta { font-size:.82rem; font-weight:600; }
+    .di-delta.pos { color:var(--red); }
+    .di-delta.neg { color:var(--green); }
+    .di-delta.neu { color:var(--text2); }
 
     @media(min-width:600px) {
       main { padding:1.5rem; }
@@ -245,6 +258,7 @@
           <div class="curve-legend" id="legend-di"></div>
         </div>
         <div class="mkt-updated" id="mkt-updated-di"></div>
+        <div id="di-table-content"></div>
       </div>
 
       <!-- FX -->
@@ -541,6 +555,7 @@ function renderAllCharts() {
             snapA?.treasuries,  snapB?.treasuries,
             snapA?.label,       snapB?.label,         "yield", "%a.a.");
   renderFX(snapA, snapB);
+  renderDITable(snapA, snapB);
   const ts = snapA ? snapA.label : "—";
   ["di","treasuries","fx"].forEach(k =>
     document.getElementById("mkt-updated-" + k).textContent = snapA ? "Snapshot: " + ts : "");
@@ -701,6 +716,47 @@ function renderFX(snapA, snapB) {
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
+}
+
+// ── DI variation table ─────────────────────────────────────────────────────
+function renderDITable(snapA, snapB) {
+  const el = document.getElementById("di-table-content");
+  if (!snapA?.di?.length) { el.innerHTML = ""; return; }
+
+  const bMap = {};
+  snapB?.di?.forEach(v => { bMap[v.label] = v.taxa; });
+  const hasB = !!(snapB?.di?.length);
+
+  let rows = "";
+  snapA.di.forEach(v => {
+    const taxa_A = v.taxa;
+    const taxa_B = hasB ? (bMap[v.label] ?? null) : null;
+    let deltaHtml = "";
+    if (hasB) {
+      if (taxa_B != null) {
+        const delta = (taxa_A - taxa_B) * 100;
+        const cls  = Math.abs(delta) < 0.5 ? "neu" : delta > 0 ? "pos" : "neg";
+        const sign = delta > 0 ? "+" : "";
+        deltaHtml = `<span class="di-delta ${cls}">${sign}${delta.toFixed(1)} bp</span>`;
+      } else {
+        deltaHtml = `<span class="di-delta neu">—</span>`;
+      }
+    }
+    rows += `<tr>
+      <td class="di-vtx">${v.label}</td>
+      <td class="di-taxa">${taxa_A.toFixed(3)}%</td>
+      ${hasB ? `<td>${deltaHtml}</td>` : ""}
+    </tr>`;
+  });
+
+  const thDelta = hasB ? `<th>Δ ${snapA.label} – ${snapB.label}</th>` : "";
+  el.innerHTML = `<div class="curve-wrap" style="margin-top:.75rem">
+    <table class="di-table"><thead><tr>
+      <th>Vértice</th>
+      <th>${snapA.label}</th>
+      ${thDelta}
+    </tr></thead><tbody>${rows}</tbody></table>
+  </div>`;
 }
 
 // ── Bootstrap ──────────────────────────────────────────────────────────────

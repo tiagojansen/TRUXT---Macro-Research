@@ -61,7 +61,7 @@ Public Sub ExportarMercado()
     Dim fxCount     As Long
     Dim treasCount  As Long
 
-    ReDim diArr(0 To 50)
+    ReDim diArr(0 To 100)
     ReDim ntnbArr(0 To 50)
     ReDim fxArr(0 To 20)
     ReDim treasArr(0 To 20)
@@ -85,11 +85,6 @@ Public Sub ExportarMercado()
         End If
 
         Select Case tipo
-            Case "di"
-                diArr(diCount) = "{""label"":""" & label & """," & _
-                                  """du"":" & CLng(v2) & "," & _
-                                  """taxa"":" & Format(v1, "0.000") & "}"
-                diCount = diCount + 1
             Case "ntnb"
                 ntnbArr(ntnbCount) = "{""label"":""" & label & """," & _
                                       """yield"":" & Format(v1, "0.000") & "}"
@@ -105,6 +100,36 @@ Public Sub ExportarMercado()
 NextRow:
         r = r + 1
     Loop
+
+    ' ── 1b. DI: lê DI_Futuro diretamente (todos os vértices) ────
+    Dim wsDI2 As Worksheet
+    On Error Resume Next
+    Set wsDI2 = ThisWorkbook.Sheets("DI_Futuro")
+    On Error GoTo ErrHandler
+    If Not wsDI2 Is Nothing Then
+        Dim lastDIRow2 As Long
+        lastDIRow2 = wsDI2.Cells(wsDI2.Rows.Count, 1).End(xlUp).Row
+        Dim cDI As Long
+        cDI = 2
+        Do While wsDI2.Cells(4, cDI).Value <> ""
+            Dim tickTxt As String
+            tickTxt = Trim(wsDI2.Cells(4, cDI).Text)
+            If Left(tickTxt, 2) = "OD" Then
+                Dim diVal As Double
+                diVal = 0
+                If IsNumeric(wsDI2.Cells(lastDIRow2, cDI).Value) Then
+                    diVal = CDbl(wsDI2.Cells(lastDIRow2, cDI).Value)
+                End If
+                If diVal <> 0 Then
+                    diArr(diCount) = "{""label"":""" & ParseDILabel(tickTxt) & """," & _
+                                      """du"":0," & _
+                                      """taxa"":" & Format(diVal, "0.000") & "}"
+                    diCount = diCount + 1
+                End If
+            End If
+            cDI = cDI + 1
+        Loop
+    End If
 
     ' ── 2. Monta JSON do snapshot atual ──────────────────────────
     Dim ts     As String
@@ -261,9 +286,9 @@ ErrHandler:
 End Sub
 
 ' ------------------------------------------------------------------
-' ExportHistorico — lê TODA a série BDH e grava market_history.json
-' Rode UMA vez (ou quando quiser atualizar o histórico completo).
-' Cada linha do BDH (row 7+) vira um snapshot com ts = YYYY-MM-DDT18:00:00
+' ExportHistorico — exporta série BDH para market_history.json
+' Primeira execução: exporta TUDO (oldest-first).
+' Execuções seguintes: incremental — acrescenta só linhas novas.
 ' ------------------------------------------------------------------
 Public Sub ExportHistorico()
 
@@ -273,7 +298,6 @@ Public Sub ExportHistorico()
 
     On Error GoTo ErrHandler
 
-    ' Verifica sheets
     On Error Resume Next
     Set wsDI = ThisWorkbook.Sheets("DI_Futuro")
     Set wsFX = ThisWorkbook.Sheets("FX")
@@ -307,18 +331,7 @@ Public Sub ExportHistorico()
         r = r + 1
     Loop
 
-    ' ── 2. Mapeamentos de colunas ─────────────────────────────────────────────
-    ' DI_Futuro: col B=Jun/26, I=Jan/27, S=Jan/28, Y=Jan/29, AI=Jan/31, AM=Jan/32
-    Dim diCols(0 To 5)   As Long
-    Dim diLbls(0 To 5)   As String
-    diCols(0) = 2  : diLbls(0) = "Jun/26"
-    diCols(1) = 9  : diLbls(1) = "Jan/27"
-    diCols(2) = 19 : diLbls(2) = "Jan/28"
-    diCols(3) = 25 : diLbls(3) = "Jan/29"
-    diCols(4) = 35 : diLbls(4) = "Jan/31"
-    diCols(5) = 39 : diLbls(5) = "Jan/32"
-
-    ' FX: col B=eurbrl, C=usdbrl, D=eurusd, E=gbpusd, F=usdjpy, G=usdcny, H=dxy
+    ' ── 2. Mapeamentos FX e Treasuries (fixos) ───────────────────────────────
     Dim fxKeys(0 To 6) As String
     Dim fxCols(0 To 6) As Long
     fxKeys(0) = "eurbrl" : fxCols(0) = 2
@@ -329,7 +342,6 @@ Public Sub ExportHistorico()
     fxKeys(5) = "usdcny" : fxCols(5) = 7
     fxKeys(6) = "dxy"    : fxCols(6) = 8
 
-    ' Treasuries: col B=2y, C=3y, D=5y, E=7y, F=10y, G=20y, H=30y
     Dim trLbls(0 To 6) As String
     Dim trCols(0 To 6) As Long
     trLbls(0) = "2y"  : trCols(0) = 2
@@ -340,27 +352,99 @@ Public Sub ExportHistorico()
     trLbls(5) = "20y" : trCols(5) = 7
     trLbls(6) = "30y" : trCols(6) = 8
 
+    ' ── 3. Descobre colunas DI dinamicamente (Row 4 = tickers BDH) ──────────
+    Dim diDynCols(0 To 100) As Long
+    Dim diDynLbls(0 To 100) As String
+    Dim diDynCount As Long
+    diDynCount = 0
+    Dim cScan As Long
+    cScan = 2
+    Dim tTick As String
+    Do While wsDI.Cells(4, cScan).Value <> ""
+        tTick = Trim(wsDI.Cells(4, cScan).Text)
+        If Left(tTick, 2) = "OD" Then
+            diDynCols(diDynCount) = cScan
+            diDynLbls(diDynCount) = ParseDILabel(tTick)
+            diDynCount = diDynCount + 1
+        End If
+        cScan = cScan + 1
+    Loop
+
+    ' ── 4. Detecta última data salva (modo incremental) ──────────────────────
+    Dim lastSavedDate As String
+    Dim histContent   As String
+    lastSavedDate = ""
+    histContent   = ""
+
+    If Dir(HISTORY_PATH) <> "" Then
+        Dim fIn As Integer
+        fIn = FreeFile
+        Open HISTORY_PATH For Input As #fIn
+        histContent = Input(LOF(fIn), fIn)
+        Close #fIn
+        ' Encontra a ÚLTIMA ocorrência de "ts":"YYYY-MM-DD no arquivo
+        Dim sKey As String
+        sKey = """ts"":"""
+        Dim lastPos As Long
+        lastPos = 0
+        Dim pos As Long
+        pos = InStr(1, histContent, sKey)
+        Do While pos > 0
+            lastPos = pos
+            pos = InStr(pos + 1, histContent, sKey)
+        Loop
+        If lastPos > 0 Then
+            lastSavedDate = Mid(histContent, lastPos + Len(sKey), 10)  ' "YYYY-MM-DD"
+        End If
+    End If
+
+    Dim isIncremental As Boolean
+    isIncremental = (lastSavedDate <> "")
+
+    ' ── 5. Abre arquivo para escrita ─────────────────────────────────────────
+    Dim fOut As Integer
+    fOut = FreeFile
+
+    Dim firstSnap As Boolean
+
+    If Not isIncremental Then
+        ' Primeira execução: escreve do zero
+        Open HISTORY_PATH For Output As #fOut
+        Print #fOut, "{""snapshots"":["
+        firstSnap = True
+    Else
+        ' Incremental: remove o fechamento "]}" e reabre para appended entries
+        ' Localiza o "]" de fechamento do array (de trás para frente)
+        Dim endIdx As Long
+        endIdx = Len(histContent)
+        Do While endIdx > 0
+            If Mid(histContent, endIdx, 1) = "}" Then Exit Do
+            endIdx = endIdx - 1
+        Loop
+        Dim arrIdx As Long
+        arrIdx = endIdx - 1
+        Do While arrIdx > 0
+            If Mid(histContent, arrIdx, 1) = "]" Then Exit Do
+            arrIdx = arrIdx - 1
+        Loop
+        ' Regrava sem o fechamento "]}"
+        Open HISTORY_PATH For Output As #fOut
+        Print #fOut, Left(histContent, arrIdx - 1)
+        firstSnap = False  ' próximo entry precisa de ","
+    End If
+
+    ' ── 6. Loop principal ────────────────────────────────────────────────────
     Dim ptMes2(1 To 12) As String
     ptMes2(1)="jan":ptMes2(2)="fev":ptMes2(3)="mar":ptMes2(4)="abr"
     ptMes2(5)="mai":ptMes2(6)="jun":ptMes2(7)="jul":ptMes2(8)="ago"
     ptMes2(9)="set":ptMes2(10)="out":ptMes2(11)="nov":ptMes2(12)="dez"
 
-    ' ── 3. Grava diretamente no arquivo (evita string gigante em memória) ──────
-    Dim fOut As Integer
-    fOut = FreeFile
-    Open HISTORY_PATH For Output As #fOut
-    Print #fOut, "{""snapshots"":["
-
     Dim snapCount As Long
-    Dim firstSnap As Boolean
     snapCount = 0
-    firstSnap = True
 
-    ' Descobre última linha do DI_Futuro
     Dim lastDIRow As Long
     lastDIRow = wsDI.Cells(wsDI.Rows.Count, 1).End(xlUp).Row
 
-    ' Loop do mais antigo (row 7) até o mais recente (lastDIRow)
     Dim dtDI    As Date
     Dim dateStr As String
     Dim diJson  As String
@@ -385,17 +469,20 @@ Public Sub ExportHistorico()
         dtDI    = CDate(wsDI.Cells(r, 1).Value)
         dateStr = Format(dtDI, "yyyy-mm-dd")
 
-        ' Monta DI array
+        ' Pula datas já exportadas (modo incremental)
+        If isIncremental And dateStr <= lastSavedDate Then GoTo NextHistRow
+
+        ' Monta DI array (dinâmico)
         diJson  = ""
         diCount = 0
-        For k = 0 To 5
+        For k = 0 To diDynCount - 1
             vDI = 0
-            If IsNumeric(wsDI.Cells(r, diCols(k)).Value) Then
-                vDI = CDbl(wsDI.Cells(r, diCols(k)).Value)
+            If IsNumeric(wsDI.Cells(r, diDynCols(k)).Value) Then
+                vDI = CDbl(wsDI.Cells(r, diDynCols(k)).Value)
             End If
             If vDI <> 0 Then
                 If diJson <> "" Then diJson = diJson & ","
-                diJson = diJson & "{""label"":""" & diLbls(k) & """,""du"":0,""taxa"":" & Format(vDI, "0.000") & "}"
+                diJson = diJson & "{""label"":""" & diDynLbls(k) & """,""du"":0,""taxa"":" & Format(vDI, "0.000") & "}"
                 diCount = diCount + 1
             End If
         Next k
@@ -434,12 +521,11 @@ Public Sub ExportHistorico()
             Next m
         End If
 
-        ' Timestamp e label (formato DD/mmm/AA = "22/mai/26")
+        ' Timestamp e label (formato "22/mai/26")
         tsStr  = dateStr & "T18:00:00"
         lblStr = Format(Day(dtDI), "0") & "/" & ptMes2(Month(dtDI)) & "/" & _
                  Right(CStr(Year(dtDI)), 2)
 
-        ' Snapshot JSON
         snap = "{""ts"":""" & tsStr & """," & _
                """label"":""" & lblStr & """," & _
                """di"":[" & diJson & "]," & _
@@ -452,9 +538,8 @@ Public Sub ExportHistorico()
         firstSnap = False
         snapCount = snapCount + 1
 
-        ' Progresso na status bar a cada 100 snapshots
         If snapCount Mod 100 = 0 Then
-            Application.StatusBar = "ExportHistorico: " & snapCount & " snapshots..."
+            Application.StatusBar = "ExportHistorico: " & snapCount & " novos snapshots..."
         End If
 
 NextHistRow:
@@ -463,8 +548,10 @@ NextHistRow:
     Print #fOut, "]}"
     Close #fOut
 
-    Application.StatusBar = "market_history.json: " & snapCount & " snapshots"
-    MsgBox snapCount & " snapshots exportados para:" & vbCrLf & HISTORY_PATH, _
+    Dim modeStr As String
+    modeStr = IIf(isIncremental, " (incremental)", " (completo)")
+    Application.StatusBar = "market_history.json: " & snapCount & " snapshots" & modeStr
+    MsgBox snapCount & " snapshots exportados" & modeStr & ":" & vbCrLf & HISTORY_PATH, _
            vbInformation, "ExportHistorico"
     Exit Sub
 
@@ -472,6 +559,39 @@ ErrHandler:
     If fOut > 0 Then Close #fOut
     MsgBox "Erro ao exportar histórico: " & Err.Description, vbCritical, "ExportHistorico"
 End Sub
+
+' ------------------------------------------------------------------
+' ParseDILabel — converte ticker Bloomberg → label legível
+' Ex.: "ODM26 COMB Comdty" → "Jun/26"
+' Códigos de mês BBG: F=Jan G=Feb H=Mar J=Apr K=Mai M=Jun
+'                     N=Jul Q=Ago U=Set V=Out X=Nov Z=Dez
+' ------------------------------------------------------------------
+Public Function ParseDILabel(tickerText As String) As String
+    Dim root      As String
+    Dim monthCode As String
+    Dim yearStr   As String
+    Dim codes     As String
+    Dim idx       As Long
+    Dim names(1 To 12) As String
+
+    root = Split(Trim(tickerText), " ")(0)      ' "ODM26"
+    If Len(root) < 4 Or Left(root, 2) <> "OD" Then
+        ParseDILabel = tickerText : Exit Function
+    End If
+
+    monthCode = Mid(root, 3, 1)                  ' "M"
+    yearStr   = Right(root, 2)                    ' "26"
+    codes     = "FGHJKMNQUVXZ"
+
+    names(1) ="Jan": names(2) ="Fev": names(3) ="Mar": names(4) ="Abr"
+    names(5) ="Mai": names(6) ="Jun": names(7) ="Jul": names(8) ="Ago"
+    names(9) ="Set": names(10)="Out": names(11)="Nov": names(12)="Dez"
+
+    idx = InStr(codes, UCase(monthCode))
+    If idx = 0 Then ParseDILabel = tickerText : Exit Function
+
+    ParseDILabel = names(idx) & "/" & yearStr
+End Function
 
 ' ------------------------------------------------------------------
 ' Cole este código no módulo "EstaPastaDeTrabalho" (ThisWorkbook)

@@ -109,6 +109,45 @@
     .page-header h2 { font-size:1.1rem; font-weight:700; }
     .page-header p  { font-size:.8rem; color:var(--text2); margin-top:.25rem; }
 
+    /* ── Mercado ─────────────────────────────────────────────────────────── */
+    .mkt-sub-bar { display:flex; gap:.4rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+    .mkt-sub-btn { padding:.4rem .9rem; background:var(--surface2); border:1px solid var(--border);
+      border-radius:99px; color:var(--text2); font-size:.78rem; font-weight:600; cursor:pointer;
+      transition:all .15s; }
+    .mkt-sub-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .mkt-sub-btn:hover:not(.active) { border-color:var(--accent); color:var(--text); }
+    .mkt-sub-panel { display:none; }
+    .mkt-sub-panel.active { display:block; }
+    .snap-selectors { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:1rem; }
+    .snap-selector-group { display:flex; align-items:center; gap:.4rem; }
+    .snap-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .snap-dot-a { background:var(--accent); }
+    .snap-dot-b { background:var(--amber); }
+    .snap-select { background:var(--surface2); border:1px solid var(--border); border-radius:6px;
+      color:var(--text); font-size:.78rem; padding:.3rem .6rem; cursor:pointer; outline:none; }
+    .snap-select:focus { border-color:var(--accent); }
+    .curve-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+      padding:1rem 1rem .5rem; overflow:hidden; }
+    .curve-svg { width:100%; display:block; }
+    .curve-legend { display:flex; gap:1rem; margin-top:.6rem; flex-wrap:wrap; }
+    .curve-legend-item { display:flex; align-items:center; gap:.35rem; font-size:.73rem; color:var(--text2); }
+    #mkt-tooltip { position:fixed; pointer-events:none; background:var(--surface);
+      border:1px solid var(--border); border-radius:6px; padding:.35rem .6rem;
+      font-size:.73rem; color:var(--text); box-shadow:0 2px 8px var(--shadow);
+      display:none; z-index:200; white-space:nowrap; }
+    .fx-table { width:100%; border-collapse:collapse; font-size:.875rem; }
+    .fx-table th { text-align:left; color:var(--text2); font-size:.68rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:.07em; padding:.5rem .75rem; border-bottom:1px solid var(--border); }
+    .fx-table td { padding:.6rem .75rem; border-bottom:1px solid var(--border); }
+    .fx-table tr:last-child td { border-bottom:none; }
+    .fx-pair { font-weight:700; font-size:.95rem; }
+    .fx-val  { font-weight:600; font-variant-numeric:tabular-nums; }
+    .fx-chg  { font-size:.82rem; font-weight:600; }
+    .fx-chg.pos { color:var(--red); }
+    .fx-chg.neg { color:var(--green); }
+    .fx-chg.neu { color:var(--text2); }
+    .mkt-updated { font-size:.7rem; color:var(--text2); margin-top:.75rem; text-align:right; }
+
     @media(min-width:600px) {
       main { padding:1.5rem; }
       .country-grid { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
@@ -147,6 +186,7 @@
   <nav class="tab-bar">
     <button class="tab-btn active" data-tab="paises">Países</button>
     <button class="tab-btn" data-tab="bcs">BCs</button>
+    <button class="tab-btn" data-tab="mercado">Mercado</button>
     <button class="tab-btn" data-tab="ppts">PPTs</button>
   </nav>
 
@@ -170,6 +210,64 @@
       <div class="bc-list" id="bc-list"></div>
     </div>
 
+    <!-- Mercado -->
+    <div id="tab-mercado" class="tab-panel">
+      <div class="page-header"><h2>Mercado</h2><p>Curvas de juros, câmbio e renda fixa</p></div>
+      <div class="mkt-sub-bar">
+        <button class="mkt-sub-btn active" data-mkt="di">DI Futuro</button>
+        <button class="mkt-sub-btn" data-mkt="ntnb">NTN-B</button>
+        <button class="mkt-sub-btn" data-mkt="fx">FX</button>
+        <button class="mkt-sub-btn" data-mkt="treasuries">Treasuries</button>
+      </div>
+
+      <!-- Seletores de snapshot (usados por DI / NTN-B / Treasuries) -->
+      <div class="snap-selectors" id="mkt-snap-selectors">
+        <div class="snap-selector-group">
+          <div class="snap-dot snap-dot-a"></div>
+          <select class="snap-select" id="snap-a"></select>
+        </div>
+        <div class="snap-selector-group">
+          <div class="snap-dot snap-dot-b"></div>
+          <select class="snap-select" id="snap-b">
+            <option value="">— comparação —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- DI -->
+      <div id="mkt-panel-di" class="mkt-sub-panel active">
+        <div class="curve-wrap">
+          <svg id="chart-di" class="curve-svg"></svg>
+          <div class="curve-legend" id="legend-di"></div>
+        </div>
+        <div class="mkt-updated" id="mkt-updated-di"></div>
+      </div>
+
+      <!-- NTN-B -->
+      <div id="mkt-panel-ntnb" class="mkt-sub-panel">
+        <div class="curve-wrap">
+          <svg id="chart-ntnb" class="curve-svg"></svg>
+          <div class="curve-legend" id="legend-ntnb"></div>
+        </div>
+        <div class="mkt-updated" id="mkt-updated-ntnb"></div>
+      </div>
+
+      <!-- FX -->
+      <div id="mkt-panel-fx" class="mkt-sub-panel">
+        <div id="fx-content"></div>
+        <div class="mkt-updated" id="mkt-updated-fx"></div>
+      </div>
+
+      <!-- Treasuries -->
+      <div id="mkt-panel-treasuries" class="mkt-sub-panel">
+        <div class="curve-wrap">
+          <svg id="chart-treasuries" class="curve-svg"></svg>
+          <div class="curve-legend" id="legend-treasuries"></div>
+        </div>
+        <div class="mkt-updated" id="mkt-updated-treasuries"></div>
+      </div>
+    </div>
+
     <!-- PPTs -->
     <div id="tab-ppts" class="tab-panel">
       <div class="page-header"><h2>Apresentações</h2><p>Decks e slides internos</p></div>
@@ -179,6 +277,7 @@
   </main>
 </div>
 
+<div id="mkt-tooltip"></div>
 <script src="auth.js"></script>
 <script>
 // ── Theme ──────────────────────────────────────────────────────────────────
@@ -326,6 +425,231 @@ function renderPPTs(presentations) {
     </a>`).join("");
 }
 
+// ── Mercado ────────────────────────────────────────────────────────────────
+let mktSnapshots = [];
+
+// Sub-tabs
+document.querySelectorAll(".mkt-sub-btn").forEach(btn =>
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".mkt-sub-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".mkt-sub-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("mkt-panel-" + btn.dataset.mkt).classList.add("active");
+    // Oculta seletores no painel FX (não tem curva)
+    document.getElementById("mkt-snap-selectors").style.display =
+      btn.dataset.mkt === "fx" ? "none" : "";
+    if (mktSnapshots.length) renderAllCharts();
+  })
+);
+
+// Seletores
+["snap-a","snap-b"].forEach(id =>
+  document.getElementById(id).addEventListener("change", () => {
+    if (mktSnapshots.length) renderAllCharts();
+  })
+);
+
+async function loadMarket() {
+  try {
+    const res = await fetch("data/market.json?t=" + Date.now());
+    if (!res.ok) return;
+    const data = await res.json();
+    mktSnapshots = data.snapshots || [];
+    if (!mktSnapshots.length) return;
+    populateSelectors();
+    renderAllCharts();
+  } catch(e) { console.warn("market.json:", e); }
+}
+
+function populateSelectors() {
+  const selA = document.getElementById("snap-a");
+  const selB = document.getElementById("snap-b");
+  const opts = mktSnapshots.map((s,i) =>
+    `<option value="${i}">${s.label}</option>`).join("");
+  selA.innerHTML = opts;
+  selA.value = "0";
+  selB.innerHTML = `<option value="">— comparação —</option>` + opts;
+  selB.value = mktSnapshots.length > 1 ? "3" : ""; // default: ontem fechamento
+}
+
+function getSelectedSnaps() {
+  const idxA = +document.getElementById("snap-a").value;
+  const valB = document.getElementById("snap-b").value;
+  const snapA = mktSnapshots[idxA] || null;
+  const snapB = valB !== "" ? (mktSnapshots[+valB] || null) : null;
+  return { snapA, snapB };
+}
+
+function renderAllCharts() {
+  const { snapA, snapB } = getSelectedSnaps();
+  drawCurve("chart-di",         "legend-di",         "mkt-updated-di",
+            snapA?.di,          snapB?.di,
+            snapA?.label,       snapB?.label,         "taxa", "%a.a.");
+  drawCurve("chart-ntnb",       "legend-ntnb",        "mkt-updated-ntnb",
+            snapA?.ntnb,        snapB?.ntnb,
+            snapA?.label,       snapB?.label,         "yield", "%a.a. IPCA+");
+  drawCurve("chart-treasuries", "legend-treasuries",  "mkt-updated-treasuries",
+            snapA?.treasuries,  snapB?.treasuries,
+            snapA?.label,       snapB?.label,         "yield", "%a.a.");
+  renderFX(snapA, snapB);
+  // timestamps
+  const ts = snapA ? "Último snapshot: " + snapA.label : "";
+  ["di","ntnb","treasuries","fx"].forEach(k =>
+    document.getElementById("mkt-updated-" + k).textContent = ts);
+}
+
+// ── Gráfico SVG ────────────────────────────────────────────────────────────
+function drawCurve(svgId, legendId, updId, dataA, dataB, labelA, labelB, valueKey, unit) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = "";
+  if (!dataA || !dataA.length) {
+    svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+      fill="var(--text2)" font-size="12">Sem dados</text>`;
+    return;
+  }
+
+  const W = svg.clientWidth || 600;
+  const H = svg.clientHeight || (window.innerWidth >= 600 ? 280 : 220);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.style.height = H + "px";
+
+  const PAD = { top:14, right:16, bottom:32, left:52 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top  - PAD.bottom;
+
+  const ns = "http://www.w3.org/2000/svg";
+  const mkEl = (tag, attrs) => {
+    const el = document.createElementNS(ns, tag);
+    Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+    return el;
+  };
+
+  // Dados
+  const all = [...dataA.map(d => d[valueKey])];
+  if (dataB) dataB.forEach(d => all.push(d[valueKey]));
+  const yMin = Math.min(...all) - 0.2;
+  const yMax = Math.max(...all) + 0.2;
+  const n    = dataA.length;
+
+  const xOf = i => PAD.left + (i / (n - 1)) * cW;
+  const yOf = v => PAD.top + (1 - (v - yMin) / (yMax - yMin)) * cH;
+
+  // Grid linhas horizontais (5 níveis)
+  const step = (yMax - yMin) / 4;
+  for (let k = 0; k <= 4; k++) {
+    const yv = yMin + k * step;
+    const y  = yOf(yv);
+    svg.appendChild(mkEl("line", { x1:PAD.left, y1:y, x2:PAD.left+cW, y2:y,
+      stroke:"var(--border)", "stroke-width":"1" }));
+    const t = mkEl("text", { x:PAD.left-5, y:y+4, "text-anchor":"end",
+      fill:"var(--text2)", "font-size":"9" });
+    t.textContent = yv.toFixed(2);
+    svg.appendChild(t);
+  }
+
+  // Labels eixo X
+  dataA.forEach((d, i) => {
+    const x = xOf(i);
+    const t = mkEl("text", { x, y:H-PAD.bottom+14, "text-anchor":"middle",
+      fill:"var(--text2)", "font-size":"9" });
+    t.textContent = d.label;
+    svg.appendChild(t);
+    // tick
+    svg.appendChild(mkEl("line", { x1:x, y1:PAD.top+cH, x2:x, y2:PAD.top+cH+4,
+      stroke:"var(--border)", "stroke-width":"1" }));
+  });
+
+  // Função para desenhar uma curva com pontos clicáveis
+  function drawLine(data, colorClass, dotClass, label) {
+    if (!data || !data.length) return;
+    const pts = data.map((d,i) => `${xOf(i)},${yOf(d[valueKey])}`).join(" ");
+    const poly = mkEl("polyline", { points:pts, fill:"none",
+      stroke: colorClass === "a" ? "var(--accent)" : "var(--amber)",
+      "stroke-width":"2.2", "stroke-linecap":"round", "stroke-linejoin":"round" });
+    if (colorClass === "b") poly.setAttribute("stroke-dasharray","5 3");
+    svg.appendChild(poly);
+
+    // Pontos interativos
+    data.forEach((d,i) => {
+      const cx = xOf(i), cy = yOf(d[valueKey]);
+      const circle = mkEl("circle", { cx, cy, r:"4",
+        fill: colorClass === "a" ? "var(--accent)" : "var(--amber)",
+        stroke:"var(--surface)", "stroke-width":"1.5", style:"cursor:pointer" });
+      circle.addEventListener("mousemove", e => {
+        const tt = document.getElementById("mkt-tooltip");
+        tt.style.display = "block";
+        tt.style.left = (e.clientX + 12) + "px";
+        tt.style.top  = (e.clientY - 28) + "px";
+        tt.textContent = `${d.label}  ${d[valueKey].toFixed(3)} ${unit}  [${label}]`;
+      });
+      circle.addEventListener("mouseleave", () => {
+        document.getElementById("mkt-tooltip").style.display = "none";
+      });
+      svg.appendChild(circle);
+    });
+  }
+
+  drawLine(dataA, "a", "dot-a", labelA || "A");
+  if (dataB) drawLine(dataB, "b", "dot-b", labelB || "B");
+
+  // Legenda
+  const leg = document.getElementById(legendId);
+  leg.innerHTML = `
+    <div class="curve-legend-item">
+      <svg width="18" height="4"><line x1="0" y1="2" x2="18" y2="2"
+        stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/></svg>
+      ${labelA || "Snapshot A"}
+    </div>` +
+    (dataB ? `<div class="curve-legend-item">
+      <svg width="18" height="4"><line x1="0" y1="2" x2="18" y2="2"
+        stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="5 3"/></svg>
+      ${labelB || "Snapshot B"}
+    </div>` : "");
+}
+
+// ── FX ─────────────────────────────────────────────────────────────────────
+function renderFX(snapA, snapB) {
+  const el = document.getElementById("fx-content");
+  if (!snapA?.fx) { el.innerHTML = `<div class="empty-state"><div class="icon">📉</div><p>Sem dados FX.</p></div>`; return; }
+
+  const pairs = [
+    { key:"usdbrl", label:"USD/BRL", desc:"Dólar / Real" },
+    { key:"eurbrl", label:"EUR/BRL", desc:"Euro / Real"  },
+    { key:"eurusd", label:"EUR/USD", desc:"Euro / Dólar" },
+  ];
+
+  let rows = "";
+  pairs.forEach(p => {
+    const vA = snapA.fx[p.key];
+    if (vA == null) return;
+    const vB = snapB?.fx?.[p.key] ?? null;
+    let chgHtml = "";
+    if (vB != null) {
+      const diff = vA - vB;
+      const pct  = (diff / vB) * 100;
+      const cls  = Math.abs(pct) < 0.01 ? "neu" : pct > 0 ? "pos" : "neg";
+      const sign = pct > 0 ? "+" : "";
+      chgHtml = `<span class="fx-chg ${cls}">${sign}${pct.toFixed(2)}%</span>
+                 <span class="fx-chg ${cls}" style="margin-left:.4rem">(${sign}${diff.toFixed(4)})</span>`;
+    }
+    rows += `<tr>
+      <td><span class="fx-pair">${p.label}</span><br><span style="font-size:.72rem;color:var(--text2)">${p.desc}</span></td>
+      <td class="fx-val">${vA.toFixed(4)}</td>
+      <td>${chgHtml || '<span class="fx-chg neu">—</span>'}</td>
+    </tr>`;
+  });
+
+  const compLabel = snapB ? `vs. ${snapB.label}` : "";
+  el.innerHTML = `<div class="curve-wrap"><table class="fx-table">
+    <thead><tr>
+      <th>Par</th>
+      <th>${snapA.label}</th>
+      <th>Var. ${compLabel}</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
 // ── Bootstrap ──────────────────────────────────────────────────────────────
 async function loadApp() {
   const config    = await loadConfig();
@@ -334,6 +658,7 @@ async function loadApp() {
   renderCountryGrid(countries, byCountry);
   renderBCs(config.centralBanks);
   renderPPTs(config.presentations);
+  await loadMarket();
 }
 window.loadApp = loadApp;
 

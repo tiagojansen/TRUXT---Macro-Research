@@ -402,17 +402,39 @@ function renderBCs(configBCs) {
 }
 
 // ── PPTs ───────────────────────────────────────────────────────────────────
+const PT_MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+                   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
 function renderPPTs(presentations) {
   const list = document.getElementById("ppt-list");
   if (!presentations?.length) { list.innerHTML = emptyState("Nenhuma apresentação cadastrada ainda."); return; }
-  list.innerHTML = presentations.map(p => `
-    <a class="ppt-card" href="${p.file}" target="_blank" rel="noopener">
-      <div class="ppt-icon">📑</div>
-      <div class="ppt-info">
-        <div class="ppt-title">${p.title}</div>
-        <div class="ppt-meta">${fmtDate(p.date)}${p.description?" · "+p.description:""}</div>
-      </div>
-    </a>`).join("");
+
+  // Agrupa por mês (YYYY-MM)
+  const byMonth = {};
+  presentations.forEach(p => {
+    const key = p.date ? p.date.substring(0,7) : "0000-00";
+    (byMonth[key] = byMonth[key] || []).push(p);
+  });
+
+  // Ordena meses decrescente
+  const months = Object.keys(byMonth).sort().reverse();
+
+  list.innerHTML = months.map(key => {
+    const [y, m] = key.split("-");
+    const monthName = (PT_MONTHS[+m - 1] || "—") + " " + y;
+    const cards = byMonth[key]
+      .sort((a,b) => (b.date||"") > (a.date||"") ? 1 : -1)
+      .map(p => `
+        <a class="ppt-card" href="${p.file}" target="_blank" rel="noopener">
+          <div class="ppt-icon">📑</div>
+          <div class="ppt-info">
+            <div class="ppt-title">${p.title}</div>
+            <div class="ppt-meta">${fmtDate(p.date)}${p.description?" · "+p.description:""}</div>
+          </div>
+        </a>`).join("");
+    return `<div class="section-title">${monthName}</div>
+            <div class="ppt-list">${cards}</div>`;
+  }).join("");
 }
 
 // ── Mercado ────────────────────────────────────────────────────────────────

@@ -78,6 +78,13 @@
   "speeches": [],
   "presentations": [
     {
+      "id": "ipca15_mai26",
+      "title": "IPCA-15 — Pré-divulgação Maio 2026",
+      "file": "presentations/IPCA-15 - Mai26 - Pré-Divulgação.pdf",
+      "date": "2026-05-26",
+      "description": "Buy Side · Brasil"
+    },
+    {
       "id": "copom_abr26",
       "title": "Pré-Copom — Abril 2026",
       "file": "presentations/Brasil 2026.04.29 Copom.pdf",

@@ -172,6 +172,28 @@
     .di-delta.pos { color:var(--red); }
     .di-delta.neg { color:var(--green); }
     .di-delta.neu { color:var(--text2); }
+    /* ── FX Histórico ───────────────────────────────────────────────────── */
+    .fx-view-bar { display:flex; gap:.3rem; margin-bottom:.85rem; }
+    .fx-view-btn { padding:.3rem .85rem; background:var(--surface2); border:1px solid var(--border);
+      border-radius:99px; color:var(--text2); font-size:.76rem; font-weight:600; cursor:pointer;
+      transition:all .15s; }
+    .fx-view-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .fx-view-btn:hover:not(.active) { border-color:var(--accent); color:var(--text); }
+    .fx-hist-controls { display:flex; flex-direction:column; gap:.55rem; margin-bottom:.75rem; }
+    .fx-pair-bar { display:flex; gap:.35rem; flex-wrap:wrap; }
+    .fx-pair-pill { padding:.25rem .7rem; background:var(--surface2); border:2px solid var(--border);
+      border-radius:99px; color:var(--text); font-size:.73rem; font-weight:600; cursor:pointer;
+      transition:all .15s; }
+    .fx-pair-pill.active { color:#fff; border-color:transparent; }
+    .fx-hist-toolbar { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+    .fx-mode-bar, .fx-range-bar { display:flex; gap:.3rem; }
+    .fx-mode-btn, .fx-range-btn { padding:.22rem .6rem; background:var(--surface2);
+      border:1px solid var(--border); border-radius:5px; color:var(--text2);
+      font-size:.72rem; font-weight:600; cursor:pointer; transition:all .15s; }
+    .fx-mode-btn.active, .fx-range-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .fx-mode-btn:hover:not(.active), .fx-range-btn:hover:not(.active) { border-color:var(--accent); color:var(--text); }
+    .fx-date-bar { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+    .fx-date-bar label { font-size:.72rem; color:var(--text2); display:flex; align-items:center; gap:.35rem; }
 
     @media(min-width:600px) {
       main { padding:1.5rem; }
@@ -274,8 +296,40 @@
 
       <!-- FX -->
       <div id="mkt-panel-fx" class="mkt-sub-panel">
-        <div id="fx-content"></div>
-        <div class="mkt-updated" id="mkt-updated-fx"></div>
+        <div class="fx-view-bar">
+          <button class="fx-view-btn active" data-fxview="table">Tabela</button>
+          <button class="fx-view-btn" data-fxview="hist">Histórico</button>
+        </div>
+        <div id="fx-view-table">
+          <div id="fx-content"></div>
+          <div class="mkt-updated" id="mkt-updated-fx"></div>
+        </div>
+        <div id="fx-view-hist" style="display:none">
+          <div class="fx-hist-controls">
+            <div class="fx-pair-bar" id="fx-pair-bar"></div>
+            <div class="fx-hist-toolbar">
+              <div class="fx-mode-bar">
+                <button class="fx-mode-btn active" data-fxmode="abs">Valor</button>
+                <button class="fx-mode-btn" data-fxmode="pct">Var. %</button>
+              </div>
+              <div class="fx-range-bar">
+                <button class="fx-range-btn" data-range="1m">1M</button>
+                <button class="fx-range-btn" data-range="3m">3M</button>
+                <button class="fx-range-btn" data-range="6m">6M</button>
+                <button class="fx-range-btn active" data-range="1a">1A</button>
+                <button class="fx-range-btn" data-range="all">Tudo</button>
+              </div>
+            </div>
+            <div class="fx-date-bar">
+              <label>De: <input type="date" id="fx-hist-from" class="snap-select"></label>
+              <label>Até: <input type="date" id="fx-hist-to" class="snap-select"></label>
+            </div>
+          </div>
+          <div class="curve-wrap">
+            <svg id="chart-fx-hist" class="curve-svg"></svg>
+            <div class="curve-legend" id="legend-fx-hist"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Treasuries -->
@@ -470,7 +524,11 @@ function renderPPTs(presentations) {
 // ── Mercado ────────────────────────────────────────────────────────────────
 let mktByDate  = {};   // YYYY-MM-DD → snapshot (latest per day)
 let mktDates   = [];   // sorted newest→oldest
-let mktDIFilter = "all";
+let mktDIFilter  = "all";
+let fxHistView   = "table";
+let fxHistMode   = "abs";
+let fxSelPairs   = new Set(["usdbrl"]);
+let fxActiveRange = "1a";
 
 const DI_PT_MONTHS = {Jan:0,Fev:1,Mar:2,Abr:3,Mai:4,Jun:5,Jul:6,Ago:7,Set:8,Out:9,Nov:10,Dez:11};
 
@@ -522,6 +580,21 @@ document.getElementById("snap-b-clear").addEventListener("click", () => {
   if (mktDates.length) renderAllCharts();
 });
 
+document.querySelectorAll(".fx-view-btn").forEach(btn =>
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".fx-view-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    fxHistView = btn.dataset.fxview;
+    document.getElementById("fx-view-table").style.display = fxHistView === "table" ? "" : "none";
+    document.getElementById("fx-view-hist").style.display  = fxHistView === "hist"  ? "" : "none";
+    if (fxHistView === "hist" && mktDates.length) renderFXHistory();
+    else if (fxHistView === "table" && mktDates.length) {
+      const { snapA, snapB } = getSelectedSnaps();
+      renderFX(snapA, snapB);
+    }
+  })
+);
+
 async function loadMarket() {
   const allSnaps = [];
 
@@ -551,6 +624,7 @@ async function loadMarket() {
   mktDates  = Object.keys(byDate).sort().reverse(); // newest first
 
   populateDatePickers();
+  initFXHistory();
   renderAllCharts();
 }
 
@@ -596,11 +670,14 @@ function renderAllCharts() {
   drawCurve("chart-treasuries", "legend-treasuries",  "mkt-updated-treasuries",
             snapA?.treasuries,  snapB?.treasuries,
             snapA?.label,       snapB?.label,         "yield", "%a.a.");
-  renderFX(snapA, snapB);
+  if (fxHistView === "hist") { renderFXHistory(); }
+  else { renderFX(snapA, snapB); }
   renderDITable(snapA, snapB, diA, diB);
   const ts = snapA ? snapA.label : "—";
-  ["di","treasuries","fx"].forEach(k =>
+  ["di","treasuries"].forEach(k =>
     document.getElementById("mkt-updated-" + k).textContent = snapA ? "Snapshot: " + ts : "");
+  if (fxHistView === "table")
+    document.getElementById("mkt-updated-fx").textContent = snapA ? "Snapshot: " + ts : "";
 }
 
 // ── Gráfico SVG ────────────────────────────────────────────────────────────
@@ -712,23 +789,291 @@ function drawCurve(svgId, legendId, updId, dataA, dataB, labelA, labelB, valueKe
     </div>` : "");
 }
 
+// ── FX Pairs metadata ──────────────────────────────────────────────────────
+const FX_PAIRS = [
+  { key:"usdbrl", label:"USD/BRL", desc:"Dólar / Real",  dec:4, color:"var(--accent)"  },
+  { key:"eurbrl", label:"EUR/BRL", desc:"Euro / Real",   dec:4, color:"var(--amber)"   },
+  { key:"eurusd", label:"EUR/USD", desc:"Euro / Dólar",  dec:4, color:"var(--green)"   },
+  { key:"gbpusd", label:"GBP/USD", desc:"Libra / Dólar", dec:4, color:"var(--purple)"  },
+  { key:"usdjpy", label:"USD/JPY", desc:"Dólar / Iene",  dec:2, color:"var(--red)"     },
+  { key:"usdcny", label:"USD/CNY", desc:"Dólar / Yuan",  dec:4, color:"#e06c9b"        },
+  { key:"dxy",    label:"DXY",     desc:"Índice Dólar",  dec:2, color:"var(--text2)"   },
+];
+
+// ── FX Histórico ───────────────────────────────────────────────────────────
+function initFXHistory() {
+  const bar = document.getElementById("fx-pair-bar");
+  bar.innerHTML = FX_PAIRS.map(p => {
+    const on = fxSelPairs.has(p.key);
+    return `<button class="fx-pair-pill${on ? " active" : ""}" data-fxpair="${p.key}"
+      ${on ? `style="background:${p.color}"` : ""}>${p.label}</button>`;
+  }).join("");
+
+  bar.querySelectorAll(".fx-pair-pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.fxpair;
+      const p   = FX_PAIRS.find(x => x.key === key);
+      if (fxSelPairs.has(key)) {
+        if (fxSelPairs.size > 1) {
+          fxSelPairs.delete(key);
+          btn.classList.remove("active");
+          btn.style.background = "";
+        }
+      } else {
+        fxSelPairs.add(key);
+        btn.classList.add("active");
+        btn.style.background = p.color;
+      }
+      if (fxHistView === "hist") renderFXHistory();
+    });
+  });
+
+  document.querySelectorAll(".fx-mode-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".fx-mode-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      fxHistMode = btn.dataset.fxmode;
+      if (fxHistView === "hist") renderFXHistory();
+    })
+  );
+
+  document.querySelectorAll(".fx-range-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".fx-range-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      fxActiveRange = btn.dataset.range;
+      applyFXRange(fxActiveRange);
+      if (fxHistView === "hist") renderFXHistory();
+    })
+  );
+
+  ["fx-hist-from","fx-hist-to"].forEach(id =>
+    document.getElementById(id).addEventListener("change", () => {
+      fxActiveRange = null;
+      document.querySelectorAll(".fx-range-btn").forEach(b => b.classList.remove("active"));
+      if (fxHistView === "hist") renderFXHistory();
+    })
+  );
+
+  initFXDateRange();
+}
+
+function initFXDateRange() {
+  if (!mktDates.length) return;
+  const oldest = mktDates[mktDates.length - 1];
+  const newest = mktDates[0];
+  ["fx-hist-from","fx-hist-to"].forEach(id => {
+    document.getElementById(id).min = oldest;
+    document.getElementById(id).max = newest;
+  });
+  document.getElementById("fx-hist-to").value = newest;
+  applyFXRange("1a");
+}
+
+function applyFXRange(range) {
+  if (!mktDates.length) return;
+  const newest   = mktDates[0];
+  let fromDate   = new Date(newest);
+  if      (range === "1m")  fromDate.setMonth(fromDate.getMonth() - 1);
+  else if (range === "3m")  fromDate.setMonth(fromDate.getMonth() - 3);
+  else if (range === "6m")  fromDate.setMonth(fromDate.getMonth() - 6);
+  else if (range === "1a")  fromDate.setFullYear(fromDate.getFullYear() - 1);
+  else if (range === "all") fromDate = new Date(mktDates[mktDates.length - 1]);
+  document.getElementById("fx-hist-from").value = fromDate.toISOString().substring(0, 10);
+  document.getElementById("fx-hist-to").value   = newest;
+}
+
+function renderFXHistory() {
+  if (!mktDates.length) return;
+  const fromStr = document.getElementById("fx-hist-from").value || mktDates[mktDates.length - 1];
+  const toStr   = document.getElementById("fx-hist-to").value   || mktDates[0];
+  // dates in ascending order
+  const dates   = mktDates.filter(d => d >= fromStr && d <= toStr).reverse();
+  if (!dates.length) return;
+
+  const seriesData = [];
+  FX_PAIRS.forEach(p => {
+    if (!fxSelPairs.has(p.key)) return;
+    const values = dates.map(d => mktByDate[d]?.fx?.[p.key] ?? null);
+    if (values.some(v => v != null)) seriesData.push({ ...p, values });
+  });
+
+  drawFXSeries("chart-fx-hist", "legend-fx-hist", dates, seriesData, fxHistMode);
+}
+
+function drawFXSeries(svgId, legendId, dates, seriesData, mode) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = "";
+  if (!dates.length || !seriesData.length) {
+    svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+      fill="var(--text2)" font-size="12">Sem dados</text>`;
+    return;
+  }
+
+  const W   = svg.clientWidth || 640;
+  const H   = window.innerWidth >= 600 ? 280 : 220;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.style.height = H + "px";
+
+  const PAD = { top:14, right:16, bottom:34, left:52 };
+  const cW  = W - PAD.left - PAD.right;
+  const cH  = H - PAD.top  - PAD.bottom;
+  const n   = dates.length;
+  const ns  = "http://www.w3.org/2000/svg";
+  const mk  = (tag, attrs) => {
+    const el = document.createElementNS(ns, tag);
+    Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+    return el;
+  };
+
+  // Normalise to % from first valid value in pct mode
+  const processed = seriesData.map(s => {
+    if (mode !== "pct") return { ...s, plotValues: s.values };
+    const baseIdx = s.values.findIndex(v => v != null);
+    const base    = baseIdx >= 0 ? s.values[baseIdx] : null;
+    return { ...s, plotValues: base != null
+      ? s.values.map(v => v != null ? ((v - base) / base) * 100 : null)
+      : s.values.map(() => null) };
+  });
+
+  // Y range
+  const allVals = processed.flatMap(s => s.plotValues.filter(v => v != null));
+  if (!allVals.length) return;
+  const rawMin = Math.min(...allVals);
+  const rawMax = Math.max(...allVals);
+  const padY   = Math.max(Math.abs(rawMax - rawMin) * 0.08, mode === "pct" ? 0.3 : 0.005);
+  const yMin   = rawMin - padY;
+  const yMax   = rawMax + padY;
+
+  const xOf = i => PAD.left + (n > 1 ? (i / (n - 1)) * cW : cW / 2);
+  const yOf = v => PAD.top  + (1 - (v - yMin) / (yMax - yMin)) * cH;
+
+  const MONTHS = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+
+  // Grid
+  const gridStep = (yMax - yMin) / 4;
+  for (let k = 0; k <= 4; k++) {
+    const yv  = yMin + k * gridStep;
+    const y   = yOf(yv);
+    svg.appendChild(mk("line", { x1:PAD.left, y1:y, x2:PAD.left+cW, y2:y,
+      stroke:"var(--border)", "stroke-width":"1" }));
+    const lbl = mode === "pct"
+      ? (yv >= 0 ? "+" : "") + yv.toFixed(1) + "%"
+      : Math.abs(yv) >= 10 ? yv.toFixed(2) : yv.toFixed(3);
+    const t = mk("text", { x:PAD.left-5, y:y+4, "text-anchor":"end",
+      fill:"var(--text2)", "font-size":"9" });
+    t.textContent = lbl;
+    svg.appendChild(t);
+  }
+
+  // Zero line in pct mode
+  if (mode === "pct" && 0 >= yMin && 0 <= yMax) {
+    const y0 = yOf(0);
+    svg.appendChild(mk("line", { x1:PAD.left, y1:y0, x2:PAD.left+cW, y2:y0,
+      stroke:"var(--text2)", "stroke-width":"1", "stroke-dasharray":"4 2", opacity:".45" }));
+  }
+
+  // X axis labels (max ~8)
+  const maxLbls = 8;
+  const step    = Math.max(1, Math.ceil(n / maxLbls));
+  dates.forEach((d, i) => {
+    if (i % step !== 0 && i !== n - 1) return;
+    const [y, mo, dd] = d.split("-");
+    const x   = xOf(i);
+    const lbl = n <= 90
+      ? `${+dd} ${MONTHS[+mo-1]}`
+      : `${MONTHS[+mo-1]}/${y.slice(2)}`;
+    const t = mk("text", { x, y:H-PAD.bottom+13, "text-anchor":"middle",
+      fill:"var(--text2)", "font-size":"9" });
+    t.textContent = lbl;
+    svg.appendChild(t);
+    svg.appendChild(mk("line", { x1:x, y1:PAD.top+cH, x2:x, y2:PAD.top+cH+4,
+      stroke:"var(--border)", "stroke-width":"1" }));
+  });
+
+  // Polylines (segment on null gaps)
+  processed.forEach(s => {
+    let seg = "";
+    for (let i = 0; i < n; i++) {
+      const v = s.plotValues[i];
+      if (v == null) {
+        if (seg) {
+          svg.appendChild(mk("polyline", { points:seg.trim(), fill:"none",
+            style:`stroke:${s.color};stroke-width:2;stroke-linecap:round;stroke-linejoin:round` }));
+          seg = "";
+        }
+      } else {
+        seg += ` ${xOf(i)},${yOf(v)}`;
+      }
+    }
+    if (seg) svg.appendChild(mk("polyline", { points:seg.trim(), fill:"none",
+      style:`stroke:${s.color};stroke-width:2;stroke-linecap:round;stroke-linejoin:round` }));
+  });
+
+  // Vertical cursor
+  const cursor = mk("line", { x1:0, y1:PAD.top, x2:0, y2:PAD.top+cH,
+    stroke:"var(--text2)", "stroke-width":"1", "stroke-dasharray":"3 3",
+    display:"none", "pointer-events":"none" });
+  svg.appendChild(cursor);
+
+  // Hover overlay
+  const overlay = mk("rect", { x:PAD.left, y:PAD.top, width:cW, height:cH,
+    fill:"transparent", style:"cursor:crosshair" });
+  svg.appendChild(overlay);
+
+  const tt = document.getElementById("mkt-tooltip");
+
+  overlay.addEventListener("mousemove", e => {
+    const rect = svg.getBoundingClientRect();
+    const idx  = Math.round(Math.max(0, Math.min(n-1,
+      (e.clientX - rect.left - PAD.left) / cW * (n - 1))));
+    const cx   = xOf(idx);
+    cursor.setAttribute("x1", cx); cursor.setAttribute("x2", cx);
+    cursor.setAttribute("display", "");
+
+    const [y, mo, dd] = dates[idx].split("-");
+    let html = `<strong>${+dd} ${MONTHS[+mo-1]} ${y}</strong>`;
+    processed.forEach(s => {
+      const pv = s.plotValues[idx];
+      const rv = s.values[idx];
+      if (pv == null) return;
+      const fmt = mode === "pct"
+        ? `${pv >= 0 ? "+" : ""}${pv.toFixed(2)}%`
+        : rv != null ? rv.toFixed(s.dec) : "—";
+      html += `<br><span style="color:${s.color};font-weight:700">${s.label}</span>: ${fmt}`;
+    });
+
+    const tipW = 160;
+    let left = e.clientX + 14;
+    if (left + tipW > window.innerWidth - 10) left = e.clientX - tipW - 14;
+    tt.style.display = "block";
+    tt.style.left    = left + "px";
+    tt.style.top     = (e.clientY - 44) + "px";
+    tt.innerHTML     = html;
+  });
+
+  overlay.addEventListener("mouseleave", () => {
+    cursor.setAttribute("display", "none");
+    tt.style.display = "none";
+  });
+
+  // Legend
+  const leg = document.getElementById(legendId);
+  leg.innerHTML = processed.map(s =>
+    `<div class="curve-legend-item"><svg width="18" height="4">
+      <line x1="0" y1="2" x2="18" y2="2"
+        style="stroke:${s.color};stroke-width:2.2;stroke-linecap:round"/></svg>
+      ${s.label}</div>`
+  ).join("");
+}
+
 // ── FX ─────────────────────────────────────────────────────────────────────
 function renderFX(snapA, snapB) {
   const el = document.getElementById("fx-content");
   if (!snapA?.fx) { el.innerHTML = `<div class="empty-state"><div class="icon">📉</div><p>Sem dados FX.</p></div>`; return; }
 
-  const pairs = [
-    { key:"usdbrl", label:"USD/BRL", desc:"Dólar / Real",    dec:4 },
-    { key:"eurbrl", label:"EUR/BRL", desc:"Euro / Real",     dec:4 },
-    { key:"eurusd", label:"EUR/USD", desc:"Euro / Dólar",    dec:4 },
-    { key:"gbpusd", label:"GBP/USD", desc:"Libra / Dólar",   dec:4 },
-    { key:"usdjpy", label:"USD/JPY", desc:"Dólar / Iene",    dec:2 },
-    { key:"usdcny", label:"USD/CNY", desc:"Dólar / Yuan",    dec:4 },
-    { key:"dxy",    label:"DXY",     desc:"Índice Dólar",    dec:2 },
-  ];
-
   let rows = "";
-  pairs.forEach(p => {
+  FX_PAIRS.forEach(p => {
     const vA = snapA.fx[p.key];
     if (vA == null) return;
     const vB = snapB?.fx?.[p.key] ?? null;

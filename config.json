@@ -50,6 +50,14 @@
       "updated": "2026-05-22"
     },
     {
+      "id": "caged",
+      "title": "CAGED — Novo CAGED",
+      "country": "brasil",
+      "section": "atividade",
+      "file": "reports/brasil/atividade/Caged_novo.html",
+      "updated": "2026-05-27"
+    },
+    {
       "id": "ipca",
       "title": "IPCA — Novo Fluxo",
       "country": "brasil",

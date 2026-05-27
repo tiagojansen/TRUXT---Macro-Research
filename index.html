@@ -153,6 +153,12 @@
     .fx-chg.neg { color:var(--green); }
     .fx-chg.neu { color:var(--text2); }
     .mkt-updated { font-size:.7rem; color:var(--text2); margin-top:.75rem; text-align:right; }
+    .di-filter-bar { display:flex; gap:.35rem; margin-bottom:.75rem; flex-wrap:wrap; }
+    .di-filter-btn { padding:.25rem .7rem; background:var(--surface2); border:1px solid var(--border);
+      border-radius:99px; color:var(--text2); font-size:.73rem; font-weight:600; cursor:pointer;
+      transition:all .15s; }
+    .di-filter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .di-filter-btn:hover:not(.active) { border-color:var(--accent); color:var(--text); }
     .di-table { width:100%; border-collapse:collapse; font-size:.875rem; margin-top:.75rem; }
     .di-table th { text-align:left; color:var(--text2); font-size:.68rem; font-weight:700;
       text-transform:uppercase; letter-spacing:.07em; padding:.5rem .75rem;
@@ -253,6 +259,11 @@
 
       <!-- DI -->
       <div id="mkt-panel-di" class="mkt-sub-panel active">
+        <div class="di-filter-bar">
+          <button class="di-filter-btn active" data-difilter="all">Todos</button>
+          <button class="di-filter-btn" data-difilter="short">≤ 2 anos</button>
+          <button class="di-filter-btn" data-difilter="jan">Só Jan</button>
+        </div>
         <div class="curve-wrap">
           <svg id="chart-di" class="curve-svg"></svg>
           <div class="curve-legend" id="legend-di"></div>
@@ -457,8 +468,37 @@ function renderPPTs(presentations) {
 }
 
 // ── Mercado ────────────────────────────────────────────────────────────────
-let mktByDate = {};   // YYYY-MM-DD → snapshot (latest per day)
-let mktDates  = [];   // sorted newest→oldest
+let mktByDate  = {};   // YYYY-MM-DD → snapshot (latest per day)
+let mktDates   = [];   // sorted newest→oldest
+let mktDIFilter = "all";
+
+const DI_PT_MONTHS = {Jan:0,Fev:1,Mar:2,Abr:3,Mai:4,Jun:5,Jul:6,Ago:7,Set:8,Out:9,Nov:10,Dez:11};
+
+function filterDI(data, snapTs) {
+  if (!data) return data;
+  if (mktDIFilter === "jan")
+    return data.filter(v => v.label.startsWith("Jan/"));
+  if (mktDIFilter === "short") {
+    const ref = snapTs ? new Date(snapTs.substring(0,10)) : new Date();
+    const cutoff = new Date(ref);
+    cutoff.setFullYear(cutoff.getFullYear() + 2);
+    return data.filter(v => {
+      const [m, y] = v.label.split("/");
+      if (DI_PT_MONTHS[m] == null || !y) return true;
+      return new Date(2000 + +y, DI_PT_MONTHS[m], 15) <= cutoff;
+    });
+  }
+  return data;
+}
+
+document.querySelectorAll(".di-filter-btn").forEach(btn =>
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".di-filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    mktDIFilter = btn.dataset.difilter;
+    if (mktDates.length) renderAllCharts();
+  })
+);
 
 // Sub-tabs
 document.querySelectorAll(".mkt-sub-btn").forEach(btn =>
@@ -548,14 +588,16 @@ function getSelectedSnaps() {
 
 function renderAllCharts() {
   const { snapA, snapB } = getSelectedSnaps();
+  const diA = filterDI(snapA?.di, snapA?.ts);
+  const diB = filterDI(snapB?.di, snapA?.ts);
   drawCurve("chart-di",         "legend-di",         "mkt-updated-di",
-            snapA?.di,          snapB?.di,
+            diA,                diB,
             snapA?.label,       snapB?.label,         "taxa", "%a.a.");
   drawCurve("chart-treasuries", "legend-treasuries",  "mkt-updated-treasuries",
             snapA?.treasuries,  snapB?.treasuries,
             snapA?.label,       snapB?.label,         "yield", "%a.a.");
   renderFX(snapA, snapB);
-  renderDITable(snapA, snapB);
+  renderDITable(snapA, snapB, diA, diB);
   const ts = snapA ? snapA.label : "—";
   ["di","treasuries","fx"].forEach(k =>
     document.getElementById("mkt-updated-" + k).textContent = snapA ? "Snapshot: " + ts : "");
@@ -719,16 +761,18 @@ function renderFX(snapA, snapB) {
 }
 
 // ── DI variation table ─────────────────────────────────────────────────────
-function renderDITable(snapA, snapB) {
+function renderDITable(snapA, snapB, diA, diB) {
   const el = document.getElementById("di-table-content");
-  if (!snapA?.di?.length) { el.innerHTML = ""; return; }
+  const dataA = diA || snapA?.di;
+  const dataB = diB || snapB?.di;
+  if (!dataA?.length) { el.innerHTML = ""; return; }
 
   const bMap = {};
-  snapB?.di?.forEach(v => { bMap[v.label] = v.taxa; });
+  dataB?.forEach(v => { bMap[v.label] = v.taxa; });
   const hasB = !!(snapB?.di?.length);
 
   let rows = "";
-  snapA.di.forEach(v => {
+  dataA.forEach(v => {
     const taxa_A = v.taxa;
     const taxa_B = hasB ? (bMap[v.label] ?? null) : null;
     let deltaHtml = "";

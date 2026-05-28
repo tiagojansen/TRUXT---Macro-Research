@@ -1,6 +1,7 @@
 # ============================================================
 # TRUXT Macro — Setup do Task Scheduler para o watcher
 # Rodar UMA vez como Administrador no Main PC:
+#   Clique direito no PowerShell → "Executar como administrador"
 #   powershell -ExecutionPolicy Bypass -File "S:\Macro\Site\scripts\setup_watcher_task.ps1"
 # ============================================================
 
@@ -14,14 +15,9 @@ $action = New-ScheduledTaskAction `
     -Execute "powershell.exe" `
     -Argument "-WindowStyle Hidden -NonInteractive -ExecutionPolicy Bypass -File `"$scriptPath`""
 
-# Dispara ao fazer logon do usuário atual
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 
-$settings = New-ScheduledTaskSettingsSet `
-    -ExecutionTimeLimit (New-TimeSpan -Seconds 0) `   # sem limite de tempo
-    -RestartCount 3 `
-    -RestartInterval (New-TimeSpan -Minutes 1) `       # reinicia se travar
-    -StartWhenAvailable
+$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Seconds 0)
 
 Register-ScheduledTask `
     -TaskName $taskName `
@@ -31,9 +27,12 @@ Register-ScheduledTask `
     -RunLevel Highest `
     -Force
 
-Write-Host ""
-Write-Host "Tarefa '$taskName' registrada com sucesso!" -ForegroundColor Green
-Write-Host "O watcher vai iniciar automaticamente ao fazer login no Windows."
-Write-Host ""
-Write-Host "Para iniciar agora sem reiniciar:" -ForegroundColor Yellow
-Write-Host "  Start-ScheduledTask -TaskName '$taskName'"
+if ($?) {
+    Write-Host ""
+    Write-Host "OK — Tarefa '$taskName' registrada!" -ForegroundColor Green
+    Write-Host "Iniciando agora..."
+    Start-ScheduledTask -TaskName $taskName
+    Write-Host "Watcher rodando em background. Site vai atualizar sozinho a partir de agora." -ForegroundColor Green
+} else {
+    Write-Host "ERRO ao registrar tarefa." -ForegroundColor Red
+}

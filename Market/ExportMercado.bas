@@ -277,8 +277,11 @@ NextRow:
     Print #fOut, finalJson
     Close #fOut
 
-    ' Debug: confirma no rodapé do Excel
-    Application.StatusBar = "market.json exportado em " & Format(Now, "hh:mm:ss")
+    ' Atualiza histórico incremental em silêncio (1 linha nova = rápido)
+    Application.StatusBar = "Atualizando histórico..."
+    ExportHistorico silencioso:=True
+
+    Application.StatusBar = "Exportado em " & Format(Now, "hh:mm:ss") & " — site atualizará em segundos"
     Exit Sub
 
 ErrHandler:
@@ -290,7 +293,7 @@ End Sub
 ' Primeira execução: exporta TUDO (oldest-first).
 ' Execuções seguintes: incremental — acrescenta só linhas novas.
 ' ------------------------------------------------------------------
-Public Sub ExportHistorico()
+Public Sub ExportHistorico(Optional silencioso As Boolean = False)
 
     Dim wsDI As Worksheet
     Dim wsFX As Worksheet
@@ -370,7 +373,7 @@ Public Sub ExportHistorico()
         cScan = cScan + 1
     Loop
 
-    ' ── 4. Detecta última data salva (modo incremental) ──────────────────────
+    ' ── 4. Detecta última data salva — lê só os últimos 2 KB (rápido) ─────────
     Dim lastSavedDate As String
     Dim histContent   As String
     lastSavedDate = ""
@@ -379,22 +382,32 @@ Public Sub ExportHistorico()
     If Dir(HISTORY_PATH) <> "" Then
         Dim fIn As Integer
         fIn = FreeFile
-        Open HISTORY_PATH For Input As #fIn
-        histContent = Input(LOF(fIn), fIn)
+        Dim fileLen As Long
+        Open HISTORY_PATH For Binary As #fIn
+        fileLen = LOF(fIn)
+        Dim readLen As Long
+        readLen = IIf(fileLen > 2048, 2048, fileLen)
+        Dim tail As String
+        tail = Space(readLen)
+        Seek #fIn, fileLen - readLen + 1
+        Get #fIn, , tail
         Close #fIn
-        ' Encontra a ÚLTIMA ocorrência de "ts":"YYYY-MM-DD no arquivo
+
+        ' InStrRev encontra a última ocorrência de "ts":"YYYY-MM-DD na cauda
         Dim sKey As String
         sKey = """ts"":"""
         Dim lastPos As Long
-        lastPos = 0
-        Dim pos As Long
-        pos = InStr(1, histContent, sKey)
-        Do While pos > 0
-            lastPos = pos
-            pos = InStr(pos + 1, histContent, sKey)
-        Loop
+        lastPos = InStrRev(tail, sKey)
         If lastPos > 0 Then
-            lastSavedDate = Mid(histContent, lastPos + Len(sKey), 10)  ' "YYYY-MM-DD"
+            lastSavedDate = Mid(tail, lastPos + Len(sKey), 10)  ' "YYYY-MM-DD"
+        End If
+
+        ' Para o modo incremental precisamos do conteúdo completo (para truncar o "]}")
+        If lastSavedDate <> "" Then
+            fIn = FreeFile
+            Open HISTORY_PATH For Input As #fIn
+            histContent = Input(LOF(fIn), fIn)
+            Close #fIn
         End If
     End If
 
@@ -551,13 +564,20 @@ NextHistRow:
     Dim modeStr As String
     modeStr = IIf(isIncremental, " (incremental)", " (completo)")
     Application.StatusBar = "market_history.json: " & snapCount & " snapshots" & modeStr
-    MsgBox snapCount & " snapshots exportados" & modeStr & ":" & vbCrLf & HISTORY_PATH, _
-           vbInformation, "ExportHistorico"
+
+    If Not silencioso Then
+        MsgBox snapCount & " snapshots exportados" & modeStr & ":" & vbCrLf & HISTORY_PATH, _
+               vbInformation, "ExportHistorico"
+    End If
     Exit Sub
 
 ErrHandler:
     If fOut > 0 Then Close #fOut
-    MsgBox "Erro ao exportar histórico: " & Err.Description, vbCritical, "ExportHistorico"
+    If Not silencioso Then
+        MsgBox "Erro ao exportar histórico: " & Err.Description, vbCritical, "ExportHistorico"
+    Else
+        Application.StatusBar = "ERRO no histórico: " & Err.Description
+    End If
 End Sub
 
 ' ------------------------------------------------------------------

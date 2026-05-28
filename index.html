@@ -172,6 +172,18 @@
     .di-delta.pos { color:var(--red); }
     .di-delta.neg { color:var(--green); }
     .di-delta.neu { color:var(--text2); }
+    /* ── Bolsas & Commodities ───────────────────────────────────────────────── */
+    .bolsas-region { margin-bottom:1rem; }
+    .comm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.65rem; margin-bottom:1rem; }
+    .comm-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.875rem 1rem; transition:border-color .15s; }
+    .comm-card:hover { border-color:var(--accent); }
+    .comm-card-label { font-size:.82rem; font-weight:700; color:var(--text2); margin-bottom:.3rem; }
+    .comm-card-value { font-size:1.05rem; font-weight:600; font-variant-numeric:tabular-nums; }
+    .comm-card-unit { font-size:.68rem; color:var(--text2); margin-left:.25rem; }
+    .comm-card-chg { font-size:.8rem; font-weight:600; margin-top:.2rem; }
+    .comm-card-chg.pos { color:var(--red); }
+    .comm-card-chg.neg { color:var(--green); }
+    .comm-card-chg.neu { color:var(--text2); }
     /* ── FX Histórico ───────────────────────────────────────────────────── */
     .fx-view-bar { display:flex; gap:.3rem; margin-bottom:.85rem; }
     .fx-view-btn { padding:.3rem .85rem; background:var(--surface2); border:1px solid var(--border);
@@ -264,6 +276,8 @@
         <button class="mkt-sub-btn active" data-mkt="di">DI Futuro</button>
         <button class="mkt-sub-btn" data-mkt="fx">FX</button>
         <button class="mkt-sub-btn" data-mkt="treasuries">Treasuries</button>
+        <button class="mkt-sub-btn" data-mkt="bolsas">Bolsas</button>
+        <button class="mkt-sub-btn" data-mkt="commodities">Commodities</button>
       </div>
 
       <!-- Seletores de data -->
@@ -339,6 +353,18 @@
           <div class="curve-legend" id="legend-treasuries"></div>
         </div>
         <div class="mkt-updated" id="mkt-updated-treasuries"></div>
+      </div>
+
+      <!-- Bolsas -->
+      <div id="mkt-panel-bolsas" class="mkt-sub-panel">
+        <div id="bolsas-content"></div>
+        <div class="mkt-updated" id="mkt-updated-bolsas"></div>
+      </div>
+
+      <!-- Commodities -->
+      <div id="mkt-panel-commodities" class="mkt-sub-panel">
+        <div id="comm-content"></div>
+        <div class="mkt-updated" id="mkt-updated-comm"></div>
       </div>
     </div>
 
@@ -673,6 +699,8 @@ function renderAllCharts() {
   if (fxHistView === "hist") { renderFXHistory(); }
   else { renderFX(snapA, snapB); }
   renderDITable(snapA, snapB, diA, diB);
+  renderBolsas(snapA, snapB);
+  renderCommodities(snapA, snapB);
   const ts = snapA ? snapA.label : "—";
   ["di","treasuries"].forEach(k =>
     document.getElementById("mkt-updated-" + k).textContent = snapA ? "Snapshot: " + ts : "");
@@ -787,6 +815,120 @@ function drawCurve(svgId, legendId, updId, dataA, dataB, labelA, labelB, valueKe
         stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="5 3"/></svg>
       ${labelB || "Snapshot B"}
     </div>` : "");
+}
+
+// ── Bolsas & Commodities metadata ─────────────────────────────────────────
+const BOLSAS_META = [
+  { ticker:"IBOV",    label:"Ibovespa",      grupo:"América",      dec:0 },
+  { ticker:"SPX",     label:"S&P 500",        grupo:"América",      dec:2 },
+  { ticker:"ES1",     label:"S&P 500 Fut.",   grupo:"América",      dec:2 },
+  { ticker:"NQ1",     label:"Nasdaq Fut.",    grupo:"América",      dec:2 },
+  { ticker:"INDU",    label:"Dow Jones",      grupo:"América",      dec:2 },
+  { ticker:"SX5E",    label:"Euro Stoxx 50",  grupo:"Europa",       dec:2 },
+  { ticker:"NKY",     label:"Nikkei 225",     grupo:"Ásia",         dec:2 },
+  { ticker:"HSI",     label:"Hang Seng",      grupo:"Ásia",         dec:2 },
+  { ticker:"SHSZ300", label:"CSI 300",        grupo:"Ásia",         dec:2 },
+  { ticker:"KOSPI",   label:"KOSPI",          grupo:"Ásia",         dec:2 },
+  { ticker:"VIX",     label:"VIX",            grupo:"Volatilidade", dec:2 },
+  { ticker:"MOVE",    label:"MOVE",           grupo:"Volatilidade", dec:2 },
+];
+const BOLSAS_GRUPOS = ["América","Europa","Ásia","Volatilidade"];
+
+const COMMODITIES_META = [
+  { ticker:"CL1",  label:"WTI Crude",  grupo:"Energia",   unit:"USD/bbl",   dec:2 },
+  { ticker:"CO1",  label:"Brent",      grupo:"Energia",   unit:"USD/bbl",   dec:2 },
+  { ticker:"NG1",  label:"Nat. Gas",   grupo:"Energia",   unit:"USD/MMBtu", dec:3 },
+  { ticker:"GC1",  label:"Ouro",       grupo:"Metais",    unit:"USD/oz",    dec:2 },
+  { ticker:"SI1",  label:"Prata",      grupo:"Metais",    unit:"USD/oz",    dec:3 },
+  { ticker:"HG1",  label:"Cobre",      grupo:"Metais",    unit:"USD/lb",    dec:4 },
+  { ticker:"S 1",  label:"Soja",       grupo:"Agrícolas", unit:"USD/bu",    dec:2 },
+  { ticker:"C 1",  label:"Milho",      grupo:"Agrícolas", unit:"USD/bu",    dec:2 },
+  { ticker:"LC1",  label:"Boi Gordo",  grupo:"Agrícolas", unit:"USD/lb",    dec:3 },
+];
+const COMMODITIES_GRUPOS = ["Energia","Metais","Agrícolas"];
+
+function renderBolsas(snapA, snapB) {
+  const el  = document.getElementById("bolsas-content");
+  const upd = document.getElementById("mkt-updated-bolsas");
+  if (!snapA?.bolsas?.length) {
+    el.innerHTML = `<div class="mkt-no-data">Sem dados de bolsas.</div>`;
+    upd.textContent = ""; return;
+  }
+  const aMap = {}, bMap = {};
+  snapA.bolsas.forEach(v => { aMap[v.ticker] = v; });
+  snapB?.bolsas?.forEach(v => { bMap[v.ticker] = v; });
+  const hasB = !!(snapB?.bolsas?.length);
+
+  let html = "";
+  BOLSAS_GRUPOS.forEach(grupo => {
+    const items = BOLSAS_META.filter(m => m.grupo === grupo && aMap[m.ticker]);
+    if (!items.length) return;
+    html += `<div class="section-title" style="margin:1rem 0 .4rem">${grupo}</div>
+      <div class="curve-wrap" style="padding:0;overflow:hidden"><table class="fx-table">
+      <thead><tr><th>Índice</th><th>${snapA.label}</th>${hasB?`<th>Var. vs ${snapB.label}</th>`:""}</tr></thead>
+      <tbody>`;
+    items.forEach(m => {
+      const vA = aMap[m.ticker]?.value;
+      if (vA == null) return;
+      const vB = hasB ? (bMap[m.ticker]?.value ?? null) : null;
+      let chg = "";
+      if (hasB) {
+        if (vB != null) {
+          const pct = ((vA - vB) / vB) * 100;
+          const cls = Math.abs(pct) < 0.01 ? "neu" : pct > 0 ? "pos" : "neg";
+          chg = `<span class="fx-chg ${cls}">${pct>0?"+":""}${pct.toFixed(2)}%</span>`;
+        } else { chg = `<span class="fx-chg neu">—</span>`; }
+      }
+      html += `<tr>
+        <td><span class="fx-pair">${m.label}</span></td>
+        <td class="fx-val">${vA.toLocaleString("pt-BR",{minimumFractionDigits:m.dec,maximumFractionDigits:m.dec})}</td>
+        ${hasB?`<td>${chg}</td>`:""}
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  });
+  el.innerHTML = html;
+  upd.textContent = "Snapshot: " + snapA.label;
+}
+
+function renderCommodities(snapA, snapB) {
+  const el  = document.getElementById("comm-content");
+  const upd = document.getElementById("mkt-updated-comm");
+  if (!snapA?.commodities?.length) {
+    el.innerHTML = `<div class="mkt-no-data">Sem dados de commodities.</div>`;
+    upd.textContent = ""; return;
+  }
+  const aMap = {}, bMap = {};
+  snapA.commodities.forEach(v => { aMap[v.ticker] = v; });
+  snapB?.commodities?.forEach(v => { bMap[v.ticker] = v; });
+  const hasB = !!(snapB?.commodities?.length);
+
+  let html = "";
+  COMMODITIES_GRUPOS.forEach(grupo => {
+    const items = COMMODITIES_META.filter(m => m.grupo === grupo && aMap[m.ticker]);
+    if (!items.length) return;
+    html += `<div class="section-title" style="margin:1rem 0 .4rem">${grupo}</div>
+      <div class="comm-grid">`;
+    items.forEach(m => {
+      const vA = aMap[m.ticker]?.value;
+      if (vA == null) return;
+      const vB = hasB ? (bMap[m.ticker]?.value ?? null) : null;
+      let chg = "";
+      if (hasB && vB != null) {
+        const pct = ((vA - vB) / vB) * 100;
+        const cls = Math.abs(pct) < 0.01 ? "neu" : pct > 0 ? "pos" : "neg";
+        chg = `<div class="comm-card-chg ${cls}">${pct>0?"+":""}${pct.toFixed(2)}%</div>`;
+      }
+      html += `<div class="comm-card">
+        <div class="comm-card-label">${m.label}</div>
+        <div><span class="comm-card-value">${vA.toFixed(m.dec)}</span><span class="comm-card-unit">${m.unit}</span></div>
+        ${chg}
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+  upd.textContent = "Snapshot: " + snapA.label;
 }
 
 // ── FX Pairs metadata ──────────────────────────────────────────────────────

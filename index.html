@@ -818,21 +818,26 @@ function drawCurve(svgId, legendId, updId, dataA, dataB, labelA, labelB, valueKe
 }
 
 // ── Bolsas & Commodities metadata ─────────────────────────────────────────
+// grupos usam ASCII (para bater com o VBA que salva em ANSI)
+// GRUPO_LABEL mapeia para o display bonito no site
+const GRUPO_LABEL = { America:"América", Asia:"Ásia", Agricolas:"Agrícolas" };
+const gLabel = g => GRUPO_LABEL[g] || g;
+
 const BOLSAS_META = [
-  { ticker:"IBOV",    label:"Ibovespa",      grupo:"América",      dec:0 },
-  { ticker:"SPX",     label:"S&P 500",        grupo:"América",      dec:2 },
-  { ticker:"ES1",     label:"S&P 500 Fut.",   grupo:"América",      dec:2 },
-  { ticker:"NQ1",     label:"Nasdaq Fut.",    grupo:"América",      dec:2 },
-  { ticker:"INDU",    label:"Dow Jones",      grupo:"América",      dec:2 },
+  { ticker:"IBOV",    label:"Ibovespa",      grupo:"America",      dec:0 },
+  { ticker:"SPX",     label:"S&P 500",        grupo:"America",      dec:2 },
+  { ticker:"ES1",     label:"S&P 500 Fut.",   grupo:"America",      dec:2 },
+  { ticker:"NQ1",     label:"Nasdaq Fut.",    grupo:"America",      dec:2 },
+  { ticker:"INDU",    label:"Dow Jones",      grupo:"America",      dec:2 },
   { ticker:"SX5E",    label:"Euro Stoxx 50",  grupo:"Europa",       dec:2 },
-  { ticker:"NKY",     label:"Nikkei 225",     grupo:"Ásia",         dec:2 },
-  { ticker:"HSI",     label:"Hang Seng",      grupo:"Ásia",         dec:2 },
-  { ticker:"SHSZ300", label:"CSI 300",        grupo:"Ásia",         dec:2 },
-  { ticker:"KOSPI",   label:"KOSPI",          grupo:"Ásia",         dec:2 },
+  { ticker:"NKY",     label:"Nikkei 225",     grupo:"Asia",         dec:2 },
+  { ticker:"HSI",     label:"Hang Seng",      grupo:"Asia",         dec:2 },
+  { ticker:"SHSZ300", label:"CSI 300",        grupo:"Asia",         dec:2 },
+  { ticker:"KOSPI",   label:"KOSPI",          grupo:"Asia",         dec:2 },
   { ticker:"VIX",     label:"VIX",            grupo:"Volatilidade", dec:2 },
   { ticker:"MOVE",    label:"MOVE",           grupo:"Volatilidade", dec:2 },
 ];
-const BOLSAS_GRUPOS = ["América","Europa","Ásia","Volatilidade"];
+const BOLSAS_GRUPOS = ["America","Europa","Asia","Volatilidade"];
 
 const COMMODITIES_META = [
   { ticker:"CL1",  label:"WTI Crude",  grupo:"Energia",   unit:"USD/bbl",   dec:2 },
@@ -841,11 +846,11 @@ const COMMODITIES_META = [
   { ticker:"GC1",  label:"Ouro",       grupo:"Metais",    unit:"USD/oz",    dec:2 },
   { ticker:"SI1",  label:"Prata",      grupo:"Metais",    unit:"USD/oz",    dec:3 },
   { ticker:"HG1",  label:"Cobre",      grupo:"Metais",    unit:"USD/lb",    dec:4 },
-  { ticker:"S 1",  label:"Soja",       grupo:"Agrícolas", unit:"USD/bu",    dec:2 },
-  { ticker:"C 1",  label:"Milho",      grupo:"Agrícolas", unit:"USD/bu",    dec:2 },
-  { ticker:"LC1",  label:"Boi Gordo",  grupo:"Agrícolas", unit:"USD/lb",    dec:3 },
+  { ticker:"S 1",  label:"Soja",       grupo:"Agricolas", unit:"USD/bu",    dec:2 },
+  { ticker:"C 1",  label:"Milho",      grupo:"Agricolas", unit:"USD/bu",    dec:2 },
+  { ticker:"LC1",  label:"Boi Gordo",  grupo:"Agricolas", unit:"USD/lb",    dec:3 },
 ];
-const COMMODITIES_GRUPOS = ["Energia","Metais","Agrícolas"];
+const COMMODITIES_GRUPOS = ["Energia","Metais","Agricolas"];
 
 function renderBolsas(snapA, snapB) {
   const el  = document.getElementById("bolsas-content");
@@ -863,7 +868,7 @@ function renderBolsas(snapA, snapB) {
   BOLSAS_GRUPOS.forEach(grupo => {
     const items = BOLSAS_META.filter(m => m.grupo === grupo && aMap[m.ticker]);
     if (!items.length) return;
-    html += `<div class="section-title" style="margin:1rem 0 .4rem">${grupo}</div>
+    html += `<div class="section-title" style="margin:1rem 0 .4rem">${gLabel(grupo)}</div>
       <div class="curve-wrap" style="padding:0;overflow:hidden"><table class="fx-table">
       <thead><tr><th>Índice</th><th>${snapA.label}</th>${hasB?`<th>Var. vs ${snapB.label}</th>`:""}</tr></thead>
       <tbody>`;
@@ -907,7 +912,7 @@ function renderCommodities(snapA, snapB) {
   COMMODITIES_GRUPOS.forEach(grupo => {
     const items = COMMODITIES_META.filter(m => m.grupo === grupo && aMap[m.ticker]);
     if (!items.length) return;
-    html += `<div class="section-title" style="margin:1rem 0 .4rem">${grupo}</div>
+    html += `<div class="section-title" style="margin:1rem 0 .4rem">${gLabel(grupo)}</div>
       <div class="comm-grid">`;
     items.forEach(m => {
       const vA = aMap[m.ticker]?.value;

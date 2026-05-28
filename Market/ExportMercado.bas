@@ -810,41 +810,66 @@ ErrHandler:
 End Sub
 
 ' ------------------------------------------------------------------
-' BolsasMeta — retorna label e grupo para ticker de bolsa BBG
+' BolsasMeta - retorna label e grupo para ticker de bolsa BBG
+' Grupos (ASCII): America, Europa, Asia, Volatilidade
 ' ------------------------------------------------------------------
 Private Sub BolsasMeta(tickerFull As String, ByRef outLabel As String, ByRef outGrupo As String)
     Dim t As String : t = UCase(tickerFull)
-    If      InStr(t, "IBOV ")   = 1 Then outLabel = "Ibovespa"     : outGrupo = "América"
-    ElseIf  InStr(t, "SPX ")    = 1 Then outLabel = "S&P 500"       : outGrupo = "América"
-    ElseIf  InStr(t, "ES1 ")    = 1 Then outLabel = "S&P 500 Fut."  : outGrupo = "América"
-    ElseIf  InStr(t, "NQ1 ")    = 1 Then outLabel = "Nasdaq Fut."   : outGrupo = "América"
-    ElseIf  InStr(t, "INDU ")   = 1 Then outLabel = "Dow Jones"     : outGrupo = "América"
-    ElseIf  InStr(t, "SX5E ")   = 1 Then outLabel = "Euro Stoxx 50" : outGrupo = "Europa"
-    ElseIf  InStr(t, "NKY ")    = 1 Then outLabel = "Nikkei 225"    : outGrupo = "Ásia"
-    ElseIf  InStr(t, "HSI ")    = 1 Then outLabel = "Hang Seng"     : outGrupo = "Ásia"
-    ElseIf  InStr(t, "SHSZ300") = 1 Then outLabel = "CSI 300"       : outGrupo = "Ásia"
-    ElseIf  InStr(t, "KOSPI")   = 1 Then outLabel = "KOSPI"         : outGrupo = "Ásia"
-    ElseIf  InStr(t, "VIX ")    = 1 Then outLabel = "VIX"           : outGrupo = "Volatilidade"
-    ElseIf  InStr(t, "MOVE ")   = 1 Then outLabel = "MOVE"          : outGrupo = "Volatilidade"
-    Else                                  outLabel = ""              : outGrupo = ""
+    If InStr(t, "IBOV ") = 1 Then
+        outLabel = "Ibovespa" : outGrupo = "America"
+    ElseIf InStr(t, "SPX ") = 1 Then
+        outLabel = "S&P 500" : outGrupo = "America"
+    ElseIf InStr(t, "ES1 ") = 1 Then
+        outLabel = "S&P 500 Fut." : outGrupo = "America"
+    ElseIf InStr(t, "NQ1 ") = 1 Then
+        outLabel = "Nasdaq Fut." : outGrupo = "America"
+    ElseIf InStr(t, "INDU ") = 1 Then
+        outLabel = "Dow Jones" : outGrupo = "America"
+    ElseIf InStr(t, "SX5E ") = 1 Then
+        outLabel = "Euro Stoxx 50" : outGrupo = "Europa"
+    ElseIf InStr(t, "NKY ") = 1 Then
+        outLabel = "Nikkei 225" : outGrupo = "Asia"
+    ElseIf InStr(t, "HSI ") = 1 Then
+        outLabel = "Hang Seng" : outGrupo = "Asia"
+    ElseIf InStr(t, "SHSZ300") = 1 Then
+        outLabel = "CSI 300" : outGrupo = "Asia"
+    ElseIf InStr(t, "KOSPI") = 1 Then
+        outLabel = "KOSPI" : outGrupo = "Asia"
+    ElseIf InStr(t, "VIX ") = 1 Then
+        outLabel = "VIX" : outGrupo = "Volatilidade"
+    ElseIf InStr(t, "MOVE ") = 1 Then
+        outLabel = "MOVE" : outGrupo = "Volatilidade"
+    Else
+        outLabel = "" : outGrupo = ""
     End If
 End Sub
 
 ' ------------------------------------------------------------------
-' CommMeta — retorna label, grupo, unit e ticker para commodity BBG
+' CommMeta - retorna label, grupo, unit e ticker para commodity BBG
+' Grupos (ASCII): Energia, Metais, Agricolas
 ' ------------------------------------------------------------------
 Private Sub CommMeta(tickerFull As String, ByRef outLabel As String, ByRef outGrupo As String, ByRef outUnit As String, ByRef outTicker As String)
     Dim t As String : t = UCase(tickerFull)
-    If      InStr(t, "CL1 ") = 1 Then outLabel = "WTI Crude" : outGrupo = "Energia"   : outUnit = "USD/bbl"   : outTicker = "CL1"
-    ElseIf  InStr(t, "CO1 ") = 1 Then outLabel = "Brent"      : outGrupo = "Energia"   : outUnit = "USD/bbl"   : outTicker = "CO1"
-    ElseIf  InStr(t, "NG1 ") = 1 Then outLabel = "Nat. Gas"   : outGrupo = "Energia"   : outUnit = "USD/MMBtu" : outTicker = "NG1"
-    ElseIf  InStr(t, "GC1 ") = 1 Then outLabel = "Ouro"       : outGrupo = "Metais"    : outUnit = "USD/oz"    : outTicker = "GC1"
-    ElseIf  InStr(t, "SI1 ") = 1 Then outLabel = "Prata"      : outGrupo = "Metais"    : outUnit = "USD/oz"    : outTicker = "SI1"
-    ElseIf  InStr(t, "HG1 ") = 1 Then outLabel = "Cobre"      : outGrupo = "Metais"    : outUnit = "USD/lb"    : outTicker = "HG1"
-    ElseIf  InStr(t, "S 1 ") = 1 Then outLabel = "Soja"       : outGrupo = "Agrícolas" : outUnit = "USD/bu"    : outTicker = "S 1"
-    ElseIf  InStr(t, "C 1 ") = 1 Then outLabel = "Milho"      : outGrupo = "Agrícolas" : outUnit = "USD/bu"    : outTicker = "C 1"
-    ElseIf  InStr(t, "LC1 ") = 1 Then outLabel = "Boi Gordo"  : outGrupo = "Agrícolas" : outUnit = "USD/lb"    : outTicker = "LC1"
-    Else                               outLabel = ""           : outGrupo = ""          : outUnit = ""          : outTicker = ""
+    If InStr(t, "CL1 ") = 1 Then
+        outLabel = "WTI Crude" : outGrupo = "Energia" : outUnit = "USD/bbl" : outTicker = "CL1"
+    ElseIf InStr(t, "CO1 ") = 1 Then
+        outLabel = "Brent" : outGrupo = "Energia" : outUnit = "USD/bbl" : outTicker = "CO1"
+    ElseIf InStr(t, "NG1 ") = 1 Then
+        outLabel = "Nat. Gas" : outGrupo = "Energia" : outUnit = "USD/MMBtu" : outTicker = "NG1"
+    ElseIf InStr(t, "GC1 ") = 1 Then
+        outLabel = "Ouro" : outGrupo = "Metais" : outUnit = "USD/oz" : outTicker = "GC1"
+    ElseIf InStr(t, "SI1 ") = 1 Then
+        outLabel = "Prata" : outGrupo = "Metais" : outUnit = "USD/oz" : outTicker = "SI1"
+    ElseIf InStr(t, "HG1 ") = 1 Then
+        outLabel = "Cobre" : outGrupo = "Metais" : outUnit = "USD/lb" : outTicker = "HG1"
+    ElseIf InStr(t, "S 1 ") = 1 Then
+        outLabel = "Soja" : outGrupo = "Agricolas" : outUnit = "USD/bu" : outTicker = "S 1"
+    ElseIf InStr(t, "C 1 ") = 1 Then
+        outLabel = "Milho" : outGrupo = "Agricolas" : outUnit = "USD/bu" : outTicker = "C 1"
+    ElseIf InStr(t, "LC1 ") = 1 Then
+        outLabel = "Boi Gordo" : outGrupo = "Agricolas" : outUnit = "USD/lb" : outTicker = "LC1"
+    Else
+        outLabel = "" : outGrupo = "" : outUnit = "" : outTicker = ""
     End If
 End Sub
 

@@ -357,14 +357,78 @@
 
       <!-- Bolsas -->
       <div id="mkt-panel-bolsas" class="mkt-sub-panel">
-        <div id="bolsas-content"></div>
-        <div class="mkt-updated" id="mkt-updated-bolsas"></div>
+        <div class="fx-view-bar">
+          <button class="bolsas-view-btn active" data-view="table">Tabela</button>
+          <button class="bolsas-view-btn" data-view="hist">Histórico</button>
+        </div>
+        <div id="bolsas-view-table">
+          <div id="bolsas-content"></div>
+          <div class="mkt-updated" id="mkt-updated-bolsas"></div>
+        </div>
+        <div id="bolsas-view-hist" style="display:none">
+          <div class="fx-hist-controls">
+            <div class="fx-pair-bar" id="bolsas-pair-bar"></div>
+            <div class="fx-hist-toolbar">
+              <div class="fx-mode-bar">
+                <button class="bolsas-mode-btn" data-mode="abs">Valor</button>
+                <button class="bolsas-mode-btn active" data-mode="pct">Var. %</button>
+              </div>
+              <div class="fx-range-bar">
+                <button class="bolsas-range-btn" data-range="1m">1M</button>
+                <button class="bolsas-range-btn" data-range="3m">3M</button>
+                <button class="bolsas-range-btn" data-range="6m">6M</button>
+                <button class="bolsas-range-btn active" data-range="1a">1A</button>
+                <button class="bolsas-range-btn" data-range="all">Tudo</button>
+              </div>
+            </div>
+            <div class="fx-date-bar">
+              <label>De: <input type="date" id="bolsas-hist-from" class="snap-select"></label>
+              <label>Até: <input type="date" id="bolsas-hist-to" class="snap-select"></label>
+            </div>
+          </div>
+          <div class="curve-wrap">
+            <svg id="chart-bolsas-hist" class="curve-svg"></svg>
+            <div class="curve-legend" id="legend-bolsas-hist"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Commodities -->
       <div id="mkt-panel-commodities" class="mkt-sub-panel">
-        <div id="comm-content"></div>
-        <div class="mkt-updated" id="mkt-updated-comm"></div>
+        <div class="fx-view-bar">
+          <button class="comm-view-btn active" data-view="table">Tabela</button>
+          <button class="comm-view-btn" data-view="hist">Histórico</button>
+        </div>
+        <div id="comm-view-table">
+          <div id="comm-content"></div>
+          <div class="mkt-updated" id="mkt-updated-comm"></div>
+        </div>
+        <div id="comm-view-hist" style="display:none">
+          <div class="fx-hist-controls">
+            <div class="fx-pair-bar" id="comm-pair-bar"></div>
+            <div class="fx-hist-toolbar">
+              <div class="fx-mode-bar">
+                <button class="comm-mode-btn" data-mode="abs">Valor</button>
+                <button class="comm-mode-btn active" data-mode="pct">Var. %</button>
+              </div>
+              <div class="fx-range-bar">
+                <button class="comm-range-btn" data-range="1m">1M</button>
+                <button class="comm-range-btn" data-range="3m">3M</button>
+                <button class="comm-range-btn" data-range="6m">6M</button>
+                <button class="comm-range-btn active" data-range="1a">1A</button>
+                <button class="comm-range-btn" data-range="all">Tudo</button>
+              </div>
+            </div>
+            <div class="fx-date-bar">
+              <label>De: <input type="date" id="comm-hist-from" class="snap-select"></label>
+              <label>Até: <input type="date" id="comm-hist-to" class="snap-select"></label>
+            </div>
+          </div>
+          <div class="curve-wrap">
+            <svg id="chart-comm-hist" class="curve-svg"></svg>
+            <div class="curve-legend" id="legend-comm-hist"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -556,6 +620,18 @@ let fxHistMode   = "abs";
 let fxSelPairs   = new Set(["usdbrl"]);
 let fxActiveRange = "1a";
 
+// Bolsas histórico
+let bolsasHistView    = "table";
+let bolsasHistMode    = "pct";
+let bolsasSelItems    = new Set(["IBOV","SPX","SX5E","NKY"]);
+let bolsasActiveRange = "1a";
+
+// Commodities histórico
+let commHistView    = "table";
+let commHistMode    = "pct";
+let commSelItems    = new Set(["CL1","GC1","S 1"]);
+let commActiveRange = "1a";
+
 const DI_PT_MONTHS = {Jan:0,Fev:1,Mar:2,Abr:3,Mai:4,Jun:5,Jul:6,Ago:7,Set:8,Out:9,Nov:10,Dez:11};
 
 function filterDI(data, snapTs) {
@@ -621,6 +697,162 @@ document.querySelectorAll(".fx-view-btn").forEach(btn =>
   })
 );
 
+// ── Bolsas Histórico ──────────────────────────────────────────────────────
+function initBolsasHistory() {
+  const bar = document.getElementById("bolsas-pair-bar");
+  bar.innerHTML = BOLSAS_META.map(m => {
+    const on = bolsasSelItems.has(m.ticker);
+    return `<button class="fx-pair-pill${on?" active":""}" data-ticker="${m.ticker}"
+      ${on?`style="background:${m.color}"`:""}>${m.label}</button>`;
+  }).join("");
+  bar.querySelectorAll(".fx-pair-pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.ticker;
+      const m = BOLSAS_META.find(x => x.ticker === t);
+      if (bolsasSelItems.has(t)) {
+        if (bolsasSelItems.size > 1) {
+          bolsasSelItems.delete(t);
+          btn.classList.remove("active"); btn.style.background = "";
+        }
+      } else {
+        bolsasSelItems.add(t);
+        btn.classList.add("active"); btn.style.background = m.color;
+      }
+      if (bolsasHistView === "hist") renderBolsasHistory();
+    });
+  });
+  document.querySelectorAll(".bolsas-view-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".bolsas-view-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      bolsasHistView = btn.dataset.view;
+      document.getElementById("bolsas-view-table").style.display = bolsasHistView === "table" ? "" : "none";
+      document.getElementById("bolsas-view-hist").style.display  = bolsasHistView === "hist"  ? "" : "none";
+      if (bolsasHistView === "hist") renderBolsasHistory();
+    })
+  );
+  document.querySelectorAll(".bolsas-mode-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".bolsas-mode-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active"); bolsasHistMode = btn.dataset.mode;
+      if (bolsasHistView === "hist") renderBolsasHistory();
+    })
+  );
+  document.querySelectorAll(".bolsas-range-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".bolsas-range-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active"); bolsasActiveRange = btn.dataset.range;
+      applyHistRange("bolsas-hist-from", "bolsas-hist-to", bolsasActiveRange);
+      if (bolsasHistView === "hist") renderBolsasHistory();
+    })
+  );
+  ["bolsas-hist-from","bolsas-hist-to"].forEach(id =>
+    document.getElementById(id).addEventListener("change", () => {
+      bolsasActiveRange = null;
+      document.querySelectorAll(".bolsas-range-btn").forEach(b => b.classList.remove("active"));
+      if (bolsasHistView === "hist") renderBolsasHistory();
+    })
+  );
+  applyHistRange("bolsas-hist-from", "bolsas-hist-to", bolsasActiveRange);
+}
+
+function renderBolsasHistory() {
+  if (!mktDates.length) return;
+  const fromStr = document.getElementById("bolsas-hist-from").value || mktDates[mktDates.length-1];
+  const toStr   = document.getElementById("bolsas-hist-to").value   || mktDates[0];
+  const dates   = mktDates.filter(d => d >= fromStr && d <= toStr).reverse();
+  if (!dates.length) return;
+  const seriesData = [];
+  BOLSAS_META.forEach(m => {
+    if (!bolsasSelItems.has(m.ticker)) return;
+    const values = dates.map(d => {
+      const s = mktByDate[d]?.bolsas?.find(v => v.ticker === m.ticker);
+      return s?.value ?? null;
+    });
+    if (values.some(v => v != null))
+      seriesData.push({ key:m.ticker, label:m.label, color:m.color, dec:m.dec, values });
+  });
+  drawFXSeries("chart-bolsas-hist", "legend-bolsas-hist", dates, seriesData, bolsasHistMode);
+}
+
+// ── Commodities Histórico ─────────────────────────────────────────────────
+function initCommHistory() {
+  const bar = document.getElementById("comm-pair-bar");
+  bar.innerHTML = COMMODITIES_META.map(m => {
+    const on = commSelItems.has(m.ticker);
+    return `<button class="fx-pair-pill${on?" active":""}" data-ticker="${m.ticker}"
+      ${on?`style="background:${m.color}"`:""}>${m.label}</button>`;
+  }).join("");
+  bar.querySelectorAll(".fx-pair-pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.ticker;
+      const m = COMMODITIES_META.find(x => x.ticker === t);
+      if (commSelItems.has(t)) {
+        if (commSelItems.size > 1) {
+          commSelItems.delete(t);
+          btn.classList.remove("active"); btn.style.background = "";
+        }
+      } else {
+        commSelItems.add(t);
+        btn.classList.add("active"); btn.style.background = m.color;
+      }
+      if (commHistView === "hist") renderCommHistory();
+    });
+  });
+  document.querySelectorAll(".comm-view-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".comm-view-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      commHistView = btn.dataset.view;
+      document.getElementById("comm-view-table").style.display = commHistView === "table" ? "" : "none";
+      document.getElementById("comm-view-hist").style.display  = commHistView === "hist"  ? "" : "none";
+      if (commHistView === "hist") renderCommHistory();
+    })
+  );
+  document.querySelectorAll(".comm-mode-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".comm-mode-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active"); commHistMode = btn.dataset.mode;
+      if (commHistView === "hist") renderCommHistory();
+    })
+  );
+  document.querySelectorAll(".comm-range-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".comm-range-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active"); commActiveRange = btn.dataset.range;
+      applyHistRange("comm-hist-from", "comm-hist-to", commActiveRange);
+      if (commHistView === "hist") renderCommHistory();
+    })
+  );
+  ["comm-hist-from","comm-hist-to"].forEach(id =>
+    document.getElementById(id).addEventListener("change", () => {
+      commActiveRange = null;
+      document.querySelectorAll(".comm-range-btn").forEach(b => b.classList.remove("active"));
+      if (commHistView === "hist") renderCommHistory();
+    })
+  );
+  applyHistRange("comm-hist-from", "comm-hist-to", commActiveRange);
+}
+
+function renderCommHistory() {
+  if (!mktDates.length) return;
+  const fromStr = document.getElementById("comm-hist-from").value || mktDates[mktDates.length-1];
+  const toStr   = document.getElementById("comm-hist-to").value   || mktDates[0];
+  const dates   = mktDates.filter(d => d >= fromStr && d <= toStr).reverse();
+  if (!dates.length) return;
+  const seriesData = [];
+  COMMODITIES_META.forEach(m => {
+    if (!commSelItems.has(m.ticker)) return;
+    const values = dates.map(d => {
+      const s = mktByDate[d]?.commodities?.find(v => v.ticker === m.ticker);
+      return s?.value ?? null;
+    });
+    if (values.some(v => v != null))
+      seriesData.push({ key:m.ticker, label:m.label, color:m.color, dec:m.dec, values });
+  });
+  drawFXSeries("chart-comm-hist", "legend-comm-hist", dates, seriesData, commHistMode);
+}
+
 async function loadMarket() {
   const histSnaps = [];
   const liveSnaps = [];
@@ -662,6 +894,8 @@ async function loadMarket() {
 
   populateDatePickers();
   initFXHistory();
+  initBolsasHistory();
+  initCommHistory();
   renderAllCharts();
 }
 
@@ -710,8 +944,8 @@ function renderAllCharts() {
   if (fxHistView === "hist") { renderFXHistory(); }
   else { renderFX(snapA, snapB); }
   renderDITable(snapA, snapB, diA, diB);
-  renderBolsas(snapA, snapB);
-  renderCommodities(snapA, snapB);
+  if (bolsasHistView === "hist") renderBolsasHistory(); else renderBolsas(snapA, snapB);
+  if (commHistView   === "hist") renderCommHistory();   else renderCommodities(snapA, snapB);
   const ts = snapA ? snapA.label : "—";
   ["di","treasuries"].forEach(k =>
     document.getElementById("mkt-updated-" + k).textContent = snapA ? "Snapshot: " + ts : "");
@@ -835,31 +1069,31 @@ const GRUPO_LABEL = { America:"América", Asia:"Ásia", Agricolas:"Agrícolas" }
 const gLabel = g => GRUPO_LABEL[g] || g;
 
 const BOLSAS_META = [
-  { ticker:"IBOV",    label:"Ibovespa",      grupo:"America",      dec:0 },
-  { ticker:"SPX",     label:"S&P 500",        grupo:"America",      dec:2 },
-  { ticker:"ES1",     label:"S&P 500 Fut.",   grupo:"America",      dec:2 },
-  { ticker:"NQ1",     label:"Nasdaq Fut.",    grupo:"America",      dec:2 },
-  { ticker:"INDU",    label:"Dow Jones",      grupo:"America",      dec:2 },
-  { ticker:"SX5E",    label:"Euro Stoxx 50",  grupo:"Europa",       dec:2 },
-  { ticker:"NKY",     label:"Nikkei 225",     grupo:"Asia",         dec:2 },
-  { ticker:"HSI",     label:"Hang Seng",      grupo:"Asia",         dec:2 },
-  { ticker:"SHSZ300", label:"CSI 300",        grupo:"Asia",         dec:2 },
-  { ticker:"KOSPI",   label:"KOSPI",          grupo:"Asia",         dec:2 },
-  { ticker:"VIX",     label:"VIX",            grupo:"Volatilidade", dec:2 },
-  { ticker:"MOVE",    label:"MOVE",           grupo:"Volatilidade", dec:2 },
+  { ticker:"IBOV",    label:"Ibovespa",      grupo:"America",      dec:0, color:"var(--accent)"  },
+  { ticker:"SPX",     label:"S&P 500",        grupo:"America",      dec:2, color:"var(--green)"   },
+  { ticker:"ES1",     label:"S&P 500 Fut.",   grupo:"America",      dec:2, color:"#5da0c4"        },
+  { ticker:"NQ1",     label:"Nasdaq Fut.",    grupo:"America",      dec:2, color:"var(--purple)"  },
+  { ticker:"INDU",    label:"Dow Jones",      grupo:"America",      dec:2, color:"var(--amber)"   },
+  { ticker:"SX5E",    label:"Euro Stoxx 50",  grupo:"Europa",       dec:2, color:"var(--red)"     },
+  { ticker:"NKY",     label:"Nikkei 225",     grupo:"Asia",         dec:2, color:"#e06c9b"        },
+  { ticker:"HSI",     label:"Hang Seng",      grupo:"Asia",         dec:2, color:"#69b8d4"        },
+  { ticker:"SHSZ300", label:"CSI 300",        grupo:"Asia",         dec:2, color:"#d4956a"        },
+  { ticker:"KOSPI",   label:"KOSPI",          grupo:"Asia",         dec:2, color:"#a0d48b"        },
+  { ticker:"VIX",     label:"VIX",            grupo:"Volatilidade", dec:2, color:"var(--text2)"   },
+  { ticker:"MOVE",    label:"MOVE",           grupo:"Volatilidade", dec:2, color:"#d4a86a"        },
 ];
 const BOLSAS_GRUPOS = ["America","Europa","Asia","Volatilidade"];
 
 const COMMODITIES_META = [
-  { ticker:"CL1",  label:"WTI Crude",  grupo:"Energia",   unit:"USD/bbl",   dec:2 },
-  { ticker:"CO1",  label:"Brent",      grupo:"Energia",   unit:"USD/bbl",   dec:2 },
-  { ticker:"NG1",  label:"Nat. Gas",   grupo:"Energia",   unit:"USD/MMBtu", dec:3 },
-  { ticker:"GC1",  label:"Ouro",       grupo:"Metais",    unit:"USD/oz",    dec:2 },
-  { ticker:"SI1",  label:"Prata",      grupo:"Metais",    unit:"USD/oz",    dec:3 },
-  { ticker:"HG1",  label:"Cobre",      grupo:"Metais",    unit:"USD/lb",    dec:4 },
-  { ticker:"S 1",  label:"Soja",       grupo:"Agricolas", unit:"USD/bu",    dec:2 },
-  { ticker:"C 1",  label:"Milho",      grupo:"Agricolas", unit:"USD/bu",    dec:2 },
-  { ticker:"LC1",  label:"Boi Gordo",  grupo:"Agricolas", unit:"USD/lb",    dec:3 },
+  { ticker:"CL1",  label:"WTI Crude",  grupo:"Energia",   unit:"USD/bbl",   dec:2, color:"#c97a3a"       },
+  { ticker:"CO1",  label:"Brent",      grupo:"Energia",   unit:"USD/bbl",   dec:2, color:"#d4956a"       },
+  { ticker:"NG1",  label:"Nat. Gas",   grupo:"Energia",   unit:"USD/MMBtu", dec:3, color:"#69b8d4"       },
+  { ticker:"GC1",  label:"Ouro",       grupo:"Metais",    unit:"USD/oz",    dec:2, color:"var(--amber)"  },
+  { ticker:"SI1",  label:"Prata",      grupo:"Metais",    unit:"USD/oz",    dec:3, color:"var(--text2)"  },
+  { ticker:"HG1",  label:"Cobre",      grupo:"Metais",    unit:"USD/lb",    dec:4, color:"#c97a3a"       },
+  { ticker:"S 1",  label:"Soja",       grupo:"Agricolas", unit:"USD/bu",    dec:2, color:"var(--green)"  },
+  { ticker:"C 1",  label:"Milho",      grupo:"Agricolas", unit:"USD/bu",    dec:2, color:"#d4c56a"       },
+  { ticker:"LC1",  label:"Boi Gordo",  grupo:"Agricolas", unit:"USD/lb",    dec:3, color:"#a0d48b"       },
 ];
 const COMMODITIES_GRUPOS = ["Energia","Metais","Agricolas"];
 
@@ -1028,18 +1262,19 @@ function initFXDateRange() {
   applyFXRange("1a");
 }
 
-function applyFXRange(range) {
+function applyHistRange(fromId, toId, range) {
   if (!mktDates.length) return;
-  const newest   = mktDates[0];
-  let fromDate   = new Date(newest);
+  const newest = mktDates[0];
+  document.getElementById(toId).value = newest;
+  let fromDate = new Date(newest);
   if      (range === "1m")  fromDate.setMonth(fromDate.getMonth() - 1);
   else if (range === "3m")  fromDate.setMonth(fromDate.getMonth() - 3);
   else if (range === "6m")  fromDate.setMonth(fromDate.getMonth() - 6);
   else if (range === "1a")  fromDate.setFullYear(fromDate.getFullYear() - 1);
   else if (range === "all") fromDate = new Date(mktDates[mktDates.length - 1]);
-  document.getElementById("fx-hist-from").value = fromDate.toISOString().substring(0, 10);
-  document.getElementById("fx-hist-to").value   = newest;
+  document.getElementById(fromId).value = fromDate.toISOString().substring(0, 10);
 }
+function applyFXRange(range) { applyHistRange("fx-hist-from", "fx-hist-to", range); }
 
 function renderFXHistory() {
   if (!mktDates.length) return;

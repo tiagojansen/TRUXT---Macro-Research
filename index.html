@@ -622,29 +622,40 @@ document.querySelectorAll(".fx-view-btn").forEach(btn =>
 );
 
 async function loadMarket() {
-  const allSnaps = [];
+  const histSnaps = [];
+  const liveSnaps = [];
 
-  // Carrega snapshots recentes (intraday)
-  try {
-    const res = await fetch("data/market.json?t=" + Date.now());
-    if (res.ok) { const d = await res.json(); allSnaps.push(...(d.snapshots || [])); }
-  } catch(e) { console.warn("market.json:", e); }
-
-  // Carrega histórico (EOD diário exportado pelo VBA)
+  // Carrega histórico EOD (baseline)
   try {
     const res = await fetch("data/market_history.json?t=" + Date.now());
-    if (res.ok) { const d = await res.json(); allSnaps.push(...(d.snapshots || [])); }
+    if (res.ok) { const d = await res.json(); histSnaps.push(...(d.snapshots || [])); }
   } catch { /* arquivo ainda não existe — silencioso */ }
 
-  if (!allSnaps.length) return;
+  // Carrega snapshots intraday (market.json)
+  try {
+    const res = await fetch("data/market.json?t=" + Date.now());
+    if (res.ok) { const d = await res.json(); liveSnaps.push(...(d.snapshots || [])); }
+  } catch(e) { console.warn("market.json:", e); }
 
-  // Deduplica: mantém o snapshot mais recente por dia
+  if (!histSnaps.length && !liveSnaps.length) return;
+
+  // 1. Constrói base com histórico (mantém mais recente por data)
   const byDate = {};
-  allSnaps.forEach(s => {
+  histSnaps.forEach(s => {
     const date = (s.ts || "").substring(0, 10);
     if (!date) return;
     if (!byDate[date] || s.ts > byDate[date].ts) byDate[date] = s;
   });
+
+  // 2. Live (market.json) sempre sobrepõe histórico para a mesma data
+  //    O history usa timestamp T18:00 fixo; o live tem dados mais completos
+  const liveByDate = {};
+  liveSnaps.forEach(s => {
+    const date = (s.ts || "").substring(0, 10);
+    if (!date) return;
+    if (!liveByDate[date] || s.ts > liveByDate[date].ts) liveByDate[date] = s;
+  });
+  Object.assign(byDate, liveByDate);
 
   mktByDate = byDate;
   mktDates  = Object.keys(byDate).sort().reverse(); // newest first

@@ -12,7 +12,7 @@
                         "country":  "brasil",
                         "section":  "atividade",
                         "file":  "reports/brasil/atividade/PIB.html",
-                        "updated":  "2026-05-29"
+                        "updated":  "2026-05-29 09:55"
                     },
                     {
                         "id":  "ibc_br",
@@ -20,7 +20,7 @@
                         "country":  "brasil",
                         "section":  "atividade",
                         "file":  "reports/brasil/atividade/IBC_Br.html",
-                        "updated":  "2026-05-22"
+                        "updated":  "2026-05-22 17:19"
                     },
                     {
                         "id":  "pim",
@@ -28,7 +28,7 @@
                         "country":  "brasil",
                         "section":  "atividade",
                         "file":  "reports/brasil/atividade/PIM.html",
-                        "updated":  "2026-05-22"
+                        "updated":  "2026-05-22 17:12"
                     },
                     {
                         "id":  "pmc",
@@ -36,7 +36,7 @@
                         "country":  "brasil",
                         "section":  "atividade",
                         "file":  "reports/brasil/atividade/pmc.html",
-                        "updated":  "2026-05-22"
+                        "updated":  "2026-05-22 17:01"
                     },
                     {
                         "id":  "pms",
@@ -44,7 +44,7 @@
                         "country":  "brasil",
                         "section":  "atividade",
                         "file":  "reports/brasil/atividade/PMS.html",
-                        "updated":  "2026-05-22"
+                        "updated":  "2026-05-22 17:04"
                     },
                     {
                         "id":  "pnad",
@@ -52,7 +52,7 @@
                         "country":  "brasil",
                         "section":  "atividade",
                         "file":  "reports/brasil/atividade/PNAD.html",
-                        "updated":  "2026-05-28"
+                        "updated":  "2026-05-28 09:01"
                     },
                     {
                         "id":  "caged",
@@ -60,7 +60,7 @@
                         "country":  "brasil",
                         "section":  "atividade",
                         "file":  "reports/brasil/atividade/Caged_novo.html",
-                        "updated":  "2026-05-28"
+                        "updated":  "2026-05-28 15:27"
                     },
                     {
                         "id":  "ipca",
@@ -68,7 +68,7 @@
                         "country":  "brasil",
                         "section":  "inflacao",
                         "file":  "reports/brasil/inflacao/IPCA_Novo_Fluxo.html",
-                        "updated":  "2026-05-22"
+                        "updated":  "2026-05-22 17:49"
                     },
                     {
                         "id":  "ipca15",
@@ -76,7 +76,7 @@
                         "country":  "brasil",
                         "section":  "inflacao",
                         "file":  "reports/brasil/inflacao/IPCA15_Novo_Fluxo.html",
-                        "updated":  "2026-05-27"
+                        "updated":  "2026-05-27 09:11"
                     },
                     {
                         "id":  "prim_setor_publico",
@@ -84,7 +84,7 @@
                         "country":  "brasil",
                         "section":  "fiscal",
                         "file":  "reports/brasil/fiscal/primario_setor_publico.html",
-                        "updated":  "2026-05-29"
+                        "updated":  "2026-05-29 17:33"
                     },
                     {
                         "id":  "prim_governo_central",
@@ -92,7 +92,7 @@
                         "country":  "brasil",
                         "section":  "fiscal",
                         "file":  "reports/brasil/fiscal/prim_governo_central.html",
-                        "updated":  "2026-05-29"
+                        "updated":  "2026-05-29 16:21"
                     },
                     {
                         "id":  "balanco_pagamentos",
@@ -100,7 +100,7 @@
                         "country":  "brasil",
                         "section":  "fiscal",
                         "file":  "reports/brasil/fiscal/Balanco-de-Pagamentos.html",
-                        "updated":  "2026-05-26"
+                        "updated":  "2026-05-26 08:33"
                     }
                 ],
     "centralBanks":  [

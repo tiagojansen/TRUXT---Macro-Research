@@ -469,7 +469,7 @@ document.getElementById("theme-btn").addEventListener("click", () => {
 // ── Helpers ────────────────────────────────────────────────────────────────
 function fmtDate(iso) {
   if (!iso) return "";
-  const [y,m,d] = iso.split("-");
+  const [y,m,d] = iso.substring(0,10).split("-");
   const months = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
   return `${d} ${months[+m-1]} ${y}`;
 }

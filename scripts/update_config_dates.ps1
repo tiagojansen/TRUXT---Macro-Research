@@ -20,7 +20,7 @@ $changed = $false
 foreach ($r in $config.reports) {
     $filePath = Join-Path $SiteDir $r.file
     if (Test-Path $filePath) {
-        $fileDate = (Get-Item $filePath).LastWriteTime.ToString("yyyy-MM-dd")
+        $fileDate = (Get-Item $filePath).LastWriteTime.ToString("yyyy-MM-dd HH:mm")
         if ($r.updated -ne $fileDate) {
             Write-Host "  $($r.id): $($r.updated) -> $fileDate"
             $r.updated = $fileDate

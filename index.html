@@ -492,7 +492,7 @@ document.getElementById("header-date").textContent =
 // ── Config ─────────────────────────────────────────────────────────────────
 async function loadConfig() {
   try {
-    const res = await fetch("config.json");
+    const res = await fetch("config.json?t=" + Date.now());
     if (!res.ok) throw new Error();
     return await res.json();
   } catch { return { countries:[], reports:[], centralBanks:[], presentations:[] }; }
@@ -1588,6 +1588,13 @@ window.loadApp = loadApp;
 
 async function bootstrap() { initAuth(); if (checkAuth()) await loadApp(); }
 bootstrap();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => { window.addEventListener('focus', () => reg.update()); })
+      .catch(() => {});
+  }
 </script>
 </body>
 </html>

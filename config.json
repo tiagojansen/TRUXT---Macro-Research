@@ -1,110 +1,119 @@
-{
-  "countries": ["brasil", "eua", "zona_euro", "china"],
-  "reports": [
-    {
-      "id": "pib",
-      "title": "PIB — Produto Interno Bruto",
-      "country": "brasil",
-      "section": "atividade",
-      "file": "reports/brasil/atividade/PIB.html",
-      "updated": "2026-05-22"
-    },
-    {
-      "id": "ibc_br",
-      "title": "IBC-Br — Índice de Atividade Econômica do BCB",
-      "country": "brasil",
-      "section": "atividade",
-      "file": "reports/brasil/atividade/IBC_Br.html",
-      "updated": "2026-05-22"
-    },
-    {
-      "id": "pim",
-      "title": "PIM — Pesquisa Industrial Mensal",
-      "country": "brasil",
-      "section": "atividade",
-      "file": "reports/brasil/atividade/PIM.html",
-      "updated": "2026-05-22"
-    },
-    {
-      "id": "pmc",
-      "title": "PMC — Pesquisa Mensal de Comércio",
-      "country": "brasil",
-      "section": "atividade",
-      "file": "reports/brasil/atividade/pmc.html",
-      "updated": "2026-05-22"
-    },
-    {
-      "id": "pms",
-      "title": "PMS — Pesquisa Mensal de Serviços",
-      "country": "brasil",
-      "section": "atividade",
-      "file": "reports/brasil/atividade/PMS.html",
-      "updated": "2026-05-22"
-    },
-    {
-      "id": "pnad",
-      "title": "PNAD — Pesquisa Nacional por Amostra de Domicílios",
-      "country": "brasil",
-      "section": "atividade",
-      "file": "reports/brasil/atividade/PNAD.html",
-      "updated": "2026-05-22"
-    },
-    {
-      "id": "caged",
-      "title": "CAGED — Novo CAGED",
-      "country": "brasil",
-      "section": "atividade",
-      "file": "reports/brasil/atividade/Caged_novo.html",
-      "updated": "2026-05-27"
-    },
-    {
-      "id": "ipca",
-      "title": "IPCA — Novo Fluxo",
-      "country": "brasil",
-      "section": "inflacao",
-      "file": "reports/brasil/inflacao/IPCA_Novo_Fluxo.html",
-      "updated": "2026-05-22"
-    },
-    {
-      "id": "ipca15",
-      "title": "IPCA-15 — Novo Fluxo",
-      "country": "brasil",
-      "section": "inflacao",
-      "file": "reports/brasil/inflacao/IPCA15_Novo_Fluxo.html",
-      "updated": "2026-05-22"
-    },
-    {
-      "id": "balanco_pagamentos",
-      "title": "Balanço de Pagamentos",
-      "country": "brasil",
-      "section": "fiscal",
-      "file": "reports/brasil/fiscal/Balanco-de-Pagamentos.html",
-      "updated": "2026-05-22"
-    }
-  ],
-  "centralBanks": [],
-  "speeches": [],
-  "presentations": [
-    {
-      "id": "ipca15_mai26",
-      "title": "IPCA-15 — Pré-divulgação Maio 2026",
-      "file": "presentations/IPCA-15 - Mai26 - Pré-Divulgação.pdf",
-      "date": "2026-05-26",
-      "description": "Buy Side · Brasil"
-    },
-    {
-      "id": "copom_abr26",
-      "title": "Pré-Copom — Abril 2026",
-      "file": "presentations/Brasil 2026.04.29 Copom.pdf",
-      "date": "2026-04-29",
-      "description": "Buy Side · Brasil"
-    },
-    {
-      "id": "ipca_abr26",
-      "title": "IPCA — Pré-divulgação Abril 2026",
-      "file": "presentations/IPCA_Abr26_Pre-divulgacao.pdf",
-      "date": "2026-04-22",
-      "description": "Buy Side · Brasil"
-    }
-  ]
+﻿{
+    "countries":  [
+                      "brasil",
+                      "eua",
+                      "zona_euro",
+                      "china"
+                  ],
+    "reports":  [
+                    {
+                        "id":  "pib",
+                        "title":  "PIB — Produto Interno Bruto",
+                        "country":  "brasil",
+                        "section":  "atividade",
+                        "file":  "reports/brasil/atividade/PIB.html",
+                        "updated":  "2026-05-29"
+                    },
+                    {
+                        "id":  "ibc_br",
+                        "title":  "IBC-Br — Índice de Atividade Econômica do BCB",
+                        "country":  "brasil",
+                        "section":  "atividade",
+                        "file":  "reports/brasil/atividade/IBC_Br.html",
+                        "updated":  "2026-05-22"
+                    },
+                    {
+                        "id":  "pim",
+                        "title":  "PIM — Pesquisa Industrial Mensal",
+                        "country":  "brasil",
+                        "section":  "atividade",
+                        "file":  "reports/brasil/atividade/PIM.html",
+                        "updated":  "2026-05-22"
+                    },
+                    {
+                        "id":  "pmc",
+                        "title":  "PMC — Pesquisa Mensal de Comércio",
+                        "country":  "brasil",
+                        "section":  "atividade",
+                        "file":  "reports/brasil/atividade/pmc.html",
+                        "updated":  "2026-05-22"
+                    },
+                    {
+                        "id":  "pms",
+                        "title":  "PMS — Pesquisa Mensal de Serviços",
+                        "country":  "brasil",
+                        "section":  "atividade",
+                        "file":  "reports/brasil/atividade/PMS.html",
+                        "updated":  "2026-05-22"
+                    },
+                    {
+                        "id":  "pnad",
+                        "title":  "PNAD — Pesquisa Nacional por Amostra de Domicílios",
+                        "country":  "brasil",
+                        "section":  "atividade",
+                        "file":  "reports/brasil/atividade/PNAD.html",
+                        "updated":  "2026-05-28"
+                    },
+                    {
+                        "id":  "caged",
+                        "title":  "CAGED — Novo CAGED",
+                        "country":  "brasil",
+                        "section":  "atividade",
+                        "file":  "reports/brasil/atividade/Caged_novo.html",
+                        "updated":  "2026-05-28"
+                    },
+                    {
+                        "id":  "ipca",
+                        "title":  "IPCA — Novo Fluxo",
+                        "country":  "brasil",
+                        "section":  "inflacao",
+                        "file":  "reports/brasil/inflacao/IPCA_Novo_Fluxo.html",
+                        "updated":  "2026-05-22"
+                    },
+                    {
+                        "id":  "ipca15",
+                        "title":  "IPCA-15 — Novo Fluxo",
+                        "country":  "brasil",
+                        "section":  "inflacao",
+                        "file":  "reports/brasil/inflacao/IPCA15_Novo_Fluxo.html",
+                        "updated":  "2026-05-27"
+                    },
+                    {
+                        "id":  "balanco_pagamentos",
+                        "title":  "Balanço de Pagamentos",
+                        "country":  "brasil",
+                        "section":  "fiscal",
+                        "file":  "reports/brasil/fiscal/Balanco-de-Pagamentos.html",
+                        "updated":  "2026-05-26"
+                    }
+                ],
+    "centralBanks":  [
+
+                     ],
+    "speeches":  [
+
+                 ],
+    "presentations":  [
+                          {
+                              "id":  "ipca15_mai26",
+                              "title":  "IPCA-15 — Pré-divulgação Maio 2026",
+                              "file":  "presentations/IPCA-15 - Mai26 - Pré-Divulgação.pdf",
+                              "date":  "2026-05-26",
+                              "description":  "Buy Side · Brasil"
+                          },
+                          {
+                              "id":  "copom_abr26",
+                              "title":  "Pré-Copom — Abril 2026",
+                              "file":  "presentations/Brasil 2026.04.29 Copom.pdf",
+                              "date":  "2026-04-29",
+                              "description":  "Buy Side · Brasil"
+                          },
+                          {
+                              "id":  "ipca_abr26",
+                              "title":  "IPCA — Pré-divulgação Abril 2026",
+                              "file":  "presentations/IPCA_Abr26_Pre-divulgacao.pdf",
+                              "date":  "2026-04-22",
+                              "description":  "Buy Side · Brasil"
+                          }
+                      ]
 }

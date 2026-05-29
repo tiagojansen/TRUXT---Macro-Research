@@ -63,6 +63,14 @@
                         "updated":  "2026-05-28 15:27"
                     },
                     {
+                        "id":  "coleta_fgv",
+                        "title":  "Coleta FGV",
+                        "country":  "brasil",
+                        "section":  "inflacao",
+                        "file":  "reports/brasil/inflacao/ColetaFGV.html",
+                        "updated":  "2026-05-29 14:12"
+                    },
+                    {
                         "id":  "ipca",
                         "title":  "IPCA — Novo Fluxo",
                         "country":  "brasil",

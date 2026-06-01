@@ -14,8 +14,8 @@ Public Const CAL_SHEET    As String = "CALENDARIO"
 Public Const CFG_SHEET    As String = "CONFIG"
 Public Const CAL_PATH     As String = "S:\Macro\Site\data\calendar.json"
 
-Private Function Navy() As Long:   Navy   = RGB(31, 56, 100):  End Function
-Private Function NavyMid() As Long: NavyMid = RGB(31, 73, 125): End Function
+Private Function Navy() As Long:    Navy    = RGB(31, 56, 100):   End Function
+Private Function NavyMid() As Long: NavyMid = RGB(31, 73, 125):   End Function
 Private Function RowAlt() As Long:  RowAlt  = RGB(235, 243, 255): End Function
 
 ' -----------------------------------------------------------------------
@@ -129,7 +129,8 @@ Public Sub CriarSheetCalendario()
 
     ' Linha 3: cabecalhos
     Dim hdrs As Variant
-    hdrs = Array("Data / Hora", "Pais", "Evento / Indicador", "Relevancia", "Anterior", "Estimativa", "Realizado", "Surpresa")
+    hdrs = Array("Data / Hora", "Pais", "Evento / Indicador", "Relevancia", _
+                 "Anterior", "Estimativa", "Realizado", "Surpresa")
     Dim wids As Variant
     wids = Array(20, 7, 42, 12, 13, 13, 13, 11)
 
@@ -146,8 +147,7 @@ Public Sub CriarSheetCalendario()
     Next i
     wsCal.Rows(3).RowHeight = 22
 
-    ' Linha 4: formulas BDS
-    ' Usa concatenacao com CONFIG para data range dinamico
+    ' Linha 4: formulas BDS (concatenacao dinamica com sheet CONFIG)
     Dim ov As String
     ov = """cols=1;rows=200;startDate=""&CONFIG!C3&"";endDate=""&CONFIG!C4&"";country=""&CONFIG!C5"
     Dim flds As Variant
@@ -172,7 +172,7 @@ Public Sub CriarSheetCalendario()
     Set cf = cfRng.FormatConditions.Add(Type:=xlExpression, Formula1:="=MOD(ROW()-3,2)=0")
     cf.Interior.Color = RowAlt()
 
-    ' Borda interna leve
+    ' Bordas internas leves
     With wsCal.Range("A3:H203").Borders(xlInsideHorizontal)
         .LineStyle = xlContinuous
         .Weight = xlHairline
@@ -184,10 +184,8 @@ Public Sub CriarSheetCalendario()
         .Color = RGB(200, 215, 240)
     End With
 
-    ' Coluna A: formato de data/hora
+    ' Coluna A: formato data/hora; colunas numericas: alinhar direita
     wsCal.Range("A4:A203").NumberFormat = "dd/mm/yyyy hh:mm"
-
-    ' Alinhamento numerico
     wsCal.Range("E4:H203").HorizontalAlignment = xlRight
 
     ' ── Sheet INSTRUCOES ────────────────────────────────────────────────
@@ -206,58 +204,37 @@ Public Sub CriarSheetCalendario()
         .RowHeight = 26
     End With
 
-    Dim instrLines As Variant
-    instrLines = Array( _
-        Array("CONFIGURACAO INICIAL", True), _
-        Array("1. Certifique-se de que o Bloomberg Add-In esta instalado e ativo (aba Bloomberg no menu).", False), _
-        Array("2. Abra o market_data.xlsm com o Bloomberg Terminal aberto e conectado.", False), _
-        Array("3. Execute a macro CriarSheetCalendario() uma unica vez para criar as sheets.", False), _
-        Array("4. Va para a sheet CALENDARIO e aguarde os dados carregarem (5-30 segundos).", False), _
-        Array("", False), _
-        Array("COMO ATUALIZAR OS DADOS", True), _
-        Array("5. Para forcar atualizacao: Bloomberg (menu) > Refresh Worksheets (ou F9).", False), _
-        Array("6. A macro ExportCalendario() exporta os dados para o site automaticamente.", False), _
-        Array("7. O ExportarMercado ja chama ExportCalendario ao rodar -- nao precisa fazer manualmente.", False), _
-        Array("", False), _
-        Array("CONFIGURACAO DE PAISES E DATAS (sheet CONFIG)", True), _
-        Array("8. Paises aceitos: BZ=Brasil, US=EUA, EC=Zona Euro, CH=China (separados por virgula).", False), _
-        Array("9. Data Inicio e Data Fim sao calculadas automaticamente para o mes atual.", False), _
-        Array("10. Para ver outro mes: altere as formulas em C3 e C4 na sheet CONFIG.", False), _
-        Array("", False), _
-        Array("RELEVANCIA DOS EVENTOS", True), _
-        Array("HIGH   = evento de alta importancia (ex: IPCA, PIB, Payroll, decisao de juros).", False), _
-        Array("MEDIUM = relevancia moderada.", False), _
-        Array("LOW    = baixa relevancia.", False), _
-        Array("", False), _
-        Array("CAMPOS DO CALENDARIO", True), _
-        Array("Data/Hora  : data e horario previsto de divulgacao.", False), _
-        Array("Pais       : codigo do pais (BZ, US, EC, CH).", False), _
-        Array("Evento     : nome do indicador economico.", False), _
-        Array("Anterior   : valor da divulgacao anterior (revisado).", False), _
-        Array("Estimativa : mediana das expectativas de mercado.", False), _
-        Array("Realizado  : valor efetivamente divulgado.", False), _
-        Array("Surpresa   : Realizado menos Estimativa.", False) _
-    )
-
-    Dim row As Integer: row = 2
-    For i = 0 To UBound(instrLines)
-        If instrLines(i)(0) = "" Then
-            row = row + 1
-        ElseIf instrLines(i)(1) Then
-            With wsInst.Cells(row, 1)
-                .Value = instrLines(i)(0)
-                .Font.Bold = True: .Font.Name = "Arial": .Font.Size = 10
-                .Interior.Color = RGB(198, 224, 180)
-                .Font.Color = RGB(0, 97, 0)
-            End With
-            row = row + 1
-        Else
-            wsInst.Cells(row, 1).Value = instrLines(i)(0)
-            wsInst.Cells(row, 1).Font.Name = "Arial"
-            wsInst.Cells(row, 1).Font.Size = 10
-            row = row + 1
-        End If
-    Next i
+    ' Escreve linhas sem array grande (evita limite de 24 continuacoes do VBA)
+    Dim iRow As Integer: iRow = 2
+    Call AddInstTitle(wsInst, iRow, "CONFIGURACAO INICIAL")
+    Call AddInstLine(wsInst, iRow, "1. Certifique-se de que o Bloomberg Add-In esta instalado e ativo (aba Bloomberg no menu).")
+    Call AddInstLine(wsInst, iRow, "2. Abra o market_data.xlsm com o Bloomberg Terminal aberto e conectado.")
+    Call AddInstLine(wsInst, iRow, "3. Execute a macro CriarSheetCalendario() uma unica vez para criar as sheets.")
+    Call AddInstLine(wsInst, iRow, "4. Va para a sheet CALENDARIO e aguarde os dados carregarem (5-30 segundos).")
+    Call AddInstLine(wsInst, iRow, "")
+    Call AddInstTitle(wsInst, iRow, "COMO ATUALIZAR OS DADOS")
+    Call AddInstLine(wsInst, iRow, "5. Para forcar atualizacao: Bloomberg (menu) > Refresh Worksheets (ou F9).")
+    Call AddInstLine(wsInst, iRow, "6. A macro ExportCalendario() exporta os dados para o site automaticamente.")
+    Call AddInstLine(wsInst, iRow, "7. O ExportarMercado ja chama ExportCalendario ao rodar -- nao precisa fazer manualmente.")
+    Call AddInstLine(wsInst, iRow, "")
+    Call AddInstTitle(wsInst, iRow, "CONFIGURACAO DE PAISES E DATAS (sheet CONFIG)")
+    Call AddInstLine(wsInst, iRow, "8. Paises aceitos: BZ=Brasil, US=EUA, EC=Zona Euro, CH=China (separados por virgula).")
+    Call AddInstLine(wsInst, iRow, "9. Data Inicio e Data Fim sao calculadas automaticamente para o mes atual.")
+    Call AddInstLine(wsInst, iRow, "10. Para ver outro mes: altere as formulas em C3 e C4 na sheet CONFIG.")
+    Call AddInstLine(wsInst, iRow, "")
+    Call AddInstTitle(wsInst, iRow, "RELEVANCIA DOS EVENTOS")
+    Call AddInstLine(wsInst, iRow, "HIGH   = evento de alta importancia (ex: IPCA, PIB, Payroll, decisao de juros).")
+    Call AddInstLine(wsInst, iRow, "MEDIUM = relevancia moderada.")
+    Call AddInstLine(wsInst, iRow, "LOW    = baixa relevancia.")
+    Call AddInstLine(wsInst, iRow, "")
+    Call AddInstTitle(wsInst, iRow, "CAMPOS DO CALENDARIO")
+    Call AddInstLine(wsInst, iRow, "Data/Hora  : data e horario previsto de divulgacao.")
+    Call AddInstLine(wsInst, iRow, "Pais       : codigo do pais (BZ, US, EC, CH).")
+    Call AddInstLine(wsInst, iRow, "Evento     : nome do indicador economico.")
+    Call AddInstLine(wsInst, iRow, "Anterior   : valor da divulgacao anterior (revisado).")
+    Call AddInstLine(wsInst, iRow, "Estimativa : mediana das expectativas de mercado.")
+    Call AddInstLine(wsInst, iRow, "Realizado  : valor efetivamente divulgado.")
+    Call AddInstLine(wsInst, iRow, "Surpresa   : Realizado menos Estimativa.")
 
     wsInst.Columns("A").ColumnWidth = 90
     wsInst.Range("A1:A50").WrapText = False
@@ -379,6 +356,30 @@ ErrHandler:
     Else
         Application.StatusBar = "ERRO calendario: " & Err.Description
     End If
+End Sub
+
+' -----------------------------------------------------------------------
+' Auxiliares para sheet INSTRUCOES
+' -----------------------------------------------------------------------
+Private Sub AddInstTitle(ws As Worksheet, ByRef rw As Integer, txt As String)
+    With ws.Cells(rw, 1)
+        .Value = txt
+        .Font.Bold = True: .Font.Name = "Arial": .Font.Size = 10
+        .Interior.Color = RGB(198, 224, 180)
+        .Font.Color = RGB(0, 97, 0)
+    End With
+    rw = rw + 1
+End Sub
+
+Private Sub AddInstLine(ws As Worksheet, ByRef rw As Integer, txt As String)
+    If txt = "" Then
+        rw = rw + 1
+        Exit Sub
+    End If
+    ws.Cells(rw, 1).Value = txt
+    ws.Cells(rw, 1).Font.Name = "Arial"
+    ws.Cells(rw, 1).Font.Size = 10
+    rw = rw + 1
 End Sub
 
 ' Auxiliar: retorna string limpa ou "" se vazio/N.A./erro

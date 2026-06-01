@@ -72,7 +72,7 @@
                     },
                     {
                         "id":  "coleta_fgv",
-                        "title":  "Coleta FGV",
+                        "title":  "Coleta FGV — Monitor de Inflação",
                         "country":  "brasil",
                         "section":  "alta_frequencia",
                         "file":  "reports/brasil/alta_frequencia/ColetaFGV.html",

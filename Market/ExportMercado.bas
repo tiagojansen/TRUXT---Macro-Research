@@ -688,8 +688,6 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
             End If
         Next k
 
-        If diCount = 0 Then GoTo NextHistRow
-
         ' Monta FX object
         fxJson = ""
         If dictFX.Exists(dateStr) Then
@@ -760,6 +758,9 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
                 End If
             Next k
         End If
+
+        ' Pula apenas se nenhuma serie tem dado (fim de semana / feriado completo)
+        If diCount = 0 And fxJson = "" And bolsasJson = "" And commodJson = "" Then GoTo NextHistRow
 
         ' Timestamp e label (formato "22/mai/26")
         tsStr  = dateStr & "T18:00:00"

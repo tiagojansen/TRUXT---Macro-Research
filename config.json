@@ -7,6 +7,14 @@
                   ],
     "reports":  [
                     {
+                        "id":  "focus",
+                        "title":  "Focus — Expectativas de Mercado",
+                        "country":  "brasil",
+                        "section":  "alta_frequencia",
+                        "file":  "reports/brasil/alta_frequencia/Focus.html",
+                        "updated":  "2026-06-01 14:40"
+                    },
+                    {
                         "id":  "pib",
                         "title":  "PIB — Produto Interno Bruto",
                         "country":  "brasil",

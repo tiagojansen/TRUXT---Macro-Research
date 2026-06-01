@@ -236,6 +236,16 @@
     .cal-bold td { font-weight:700; }
     .cal-empty { text-align:center; color:var(--text2); padding:3rem 1rem; font-size:.9rem; }
     .cal-num { text-align:right; font-variant-numeric:tabular-nums; }
+    .cal-day-row td { cursor:pointer; user-select:none; }
+    .cal-day-row:hover td { background:var(--surface2) !important; }
+    .cal-day-arrow { display:inline-block; width:1rem; opacity:.55; font-style:normal; }
+    .cal-hide-cell { width:28px; padding:.2rem .25rem !important; text-align:center; }
+    .cal-hide-btn { background:none; border:none; color:var(--text2); cursor:pointer;
+      font-size:.9rem; line-height:1; opacity:.35; padding:1px 4px; border-radius:3px; }
+    .cal-hide-btn:hover { opacity:1; color:var(--red); background:var(--surface2); }
+    .cal-reset-btn { padding:.38rem .9rem; background:var(--surface2); border:1px solid var(--border);
+      border-radius:99px; color:var(--text2); font-size:.78rem; font-weight:600; cursor:pointer; display:none; }
+    .cal-reset-btn:hover { color:var(--text); }
   </style>
 </head>
 <body>
@@ -492,6 +502,7 @@
         <button class="mkt-sub-btn active" data-calcol="estimate">Estimativa</button>
         <button class="mkt-sub-btn active" data-calcol="actual">Realizado</button>
         <button class="mkt-sub-btn active" data-calcol="surprise">Surpresa</button>
+        <button id="cal-reset-hidden" class="cal-reset-btn" onclick="calResetHidden()">↺ Mostrar tudo</button>
         <button class="cal-download-btn" onclick="downloadCalCSV()">↓ CSV</button>
       </div>
 
@@ -1642,6 +1653,8 @@ async function reloadReports() {
 let calData       = null;
 let calCountrySel = new Set();   // vazio = todos
 let calCols       = { prior:true, estimate:true, actual:true, surprise:true };
+let calHiddenDates = new Set();  // YYYY-MM-DD dias colapsados
+let calHiddenKeys  = new Set();  // _idx de eventos ocultos (Number)
 
 const CAL_CTRY = {
   BZ:{ name:"Brasil",    color:"#83a540" },
@@ -1678,6 +1691,7 @@ async function loadCalendario() {
   try {
     const res = await fetch("data/calendar.json?t=" + Date.now());
     calData = await res.json();
+    (calData.events||[]).forEach((e,i) => e._idx = i);  // chave estavel para ocultar
   } catch(e) {
     document.getElementById("cal-tbody").innerHTML =
       `<tr><td colspan="9" class="cal-empty">Erro ao carregar calendário.</td></tr>`;
@@ -1718,21 +1732,6 @@ async function loadCalendario() {
     });
   });
 
-  // Datas default: hoje → fim do mês
-  document.getElementById("cal-from").value = calTodayYMD();
-  document.getElementById("cal-to").value   = calEndMonthYMD();
-  document.getElementById("cal-from").addEventListener("change", renderCalendario);
-  document.getElementById("cal-to").addEventListener("change",   renderCalendario);
-
-  // Toggles de colunas
-  document.querySelectorAll("[data-calcol]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      btn.classList.toggle("active");
-      calCols[btn.dataset.calcol] = btn.classList.contains("active");
-      renderCalendario();
-    });
-  });
-
   renderCalendario();
 }
 
@@ -1762,7 +1761,7 @@ function renderCalendario() {
   if (calCols.estimate) th += `<th class="cal-num">Estimativa</th>`;
   if (calCols.actual)   th += `<th class="cal-num">Realizado</th>`;
   if (calCols.surprise) th += `<th class="cal-num">Surpresa</th>`;
-  th += `</tr>`;
+  th += `<th></th></tr>`;   // coluna de ocultar
   thead.innerHTML = th;
 
   if (!events.length) {
@@ -1774,41 +1773,52 @@ function renderCalendario() {
   const byDate = {};
   events.forEach(e => { const d=calParseYMD(e.date); (byDate[d]=byDate[d]||[]).push(e); });
 
-  const nCols = 4 + [calCols.prior,calCols.estimate,calCols.actual,calCols.surprise].filter(Boolean).length;
+  const nCols = 5 + [calCols.prior,calCols.estimate,calCols.actual,calCols.surprise].filter(Boolean).length;
   let html = "";
 
   Object.keys(byDate).sort().forEach(ymd => {
-    html += `<tr class="cal-day-row"><td colspan="${nCols}">${calFmtPT(ymd)}</td></tr>`;
-    byDate[ymd].forEach(e => {
-      const meta  = CAL_CTRY[e.country] || { name:e.country, color:"var(--text2)" };
-      const bold  = e.relevance === "HIGH" ? "cal-bold" : "";
-      const badge = `<span class="cal-badge" style="background:${meta.color}20;color:${meta.color}">${e.country}</span>`;
+    const collapsed = calHiddenDates.has(ymd);
+    const arrow = collapsed ? "▸" : "▾";
+    html += `<tr class="cal-day-row" data-calday="${ymd}"><td colspan="${nCols}"><i class="cal-day-arrow">${arrow}</i>${calFmtPT(ymd)}</td></tr>`;
+    if (!collapsed) {
+      byDate[ymd].forEach(e => {
+        if (calHiddenKeys.has(e._idx)) return;
+        const meta  = CAL_CTRY[e.country] || { name:e.country, color:"var(--text2)" };
+        const bold  = e.relevance === "HIGH" ? "cal-bold" : "";
+        const badge = `<span class="cal-badge" style="background:${meta.color}20;color:${meta.color}">${e.country}</span>`;
 
-      let surprTd = "";
-      if (calCols.surprise) {
-        const sv = parseFloat(e.surprise);
-        if (!isNaN(sv) && e.surprise !== null && e.surprise !== "") {
-          const cls  = sv > 0 ? "fx-chg pos" : sv < 0 ? "fx-chg neg" : "fx-chg neu";
-          const sign = sv > 0 ? "+" : "";
-          surprTd = `<td class="cal-num"><span class="${cls}">${sign}${e.surprise}</span></td>`;
-        } else {
-          surprTd = `<td class="cal-num" style="color:var(--text2)">—</td>`;
+        let surprTd = "";
+        if (calCols.surprise) {
+          const sv = parseFloat(e.surprise);
+          if (!isNaN(sv) && e.surprise !== null && e.surprise !== "") {
+            const cls  = sv > 0 ? "fx-chg pos" : sv < 0 ? "fx-chg neg" : "fx-chg neu";
+            const sign = sv > 0 ? "+" : "";
+            surprTd = `<td class="cal-num"><span class="${cls}">${sign}${e.surprise}</span></td>`;
+          } else {
+            surprTd = `<td class="cal-num" style="color:var(--text2)">—</td>`;
+          }
         }
-      }
 
-      html += `<tr class="${bold}">
-        <td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${e.date}</td>
-        <td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${e.time||"—"}</td>
-        <td>${badge}</td>
-        <td>${e.event||""}</td>
-        ${calCols.prior    ? `<td class="cal-num" style="color:var(--text2)">${e.prior    ||"—"}</td>`:""}
-        ${calCols.estimate ? `<td class="cal-num" style="color:var(--text2)">${e.estimate ||"—"}</td>`:""}
-        ${calCols.actual   ? `<td class="cal-num">${e.actual   ||"—"}</td>`:""}
-        ${calCols.surprise ? surprTd : ""}
-      </tr>`;
-    });
+        html += `<tr class="${bold}">
+          <td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${e.date}</td>
+          <td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${e.time||"—"}</td>
+          <td>${badge}</td>
+          <td>${e.event||""}</td>
+          ${calCols.prior    ? `<td class="cal-num" style="color:var(--text2)">${e.prior    ||"—"}</td>`:""}
+          ${calCols.estimate ? `<td class="cal-num" style="color:var(--text2)">${e.estimate ||"—"}</td>`:""}
+          ${calCols.actual   ? `<td class="cal-num">${e.actual   ||"—"}</td>`:""}
+          ${calCols.surprise ? surprTd : ""}
+          <td class="cal-hide-cell"><button class="cal-hide-btn" data-calhide="${e._idx}" title="Ocultar">×</button></td>
+        </tr>`;
+      });
+    }
   });
   tbody.innerHTML = html;
+
+  // Botão "Mostrar tudo"
+  const nH = calHiddenDates.size + calHiddenKeys.size;
+  const rb = document.getElementById("cal-reset-hidden");
+  if (rb) { rb.style.display = nH > 0 ? "" : "none"; rb.textContent = `↺ Mostrar tudo (${nH})`; }
 }
 
 function downloadCalCSV() {
@@ -1833,6 +1843,53 @@ function downloadCalCSV() {
   a.click();
 }
 
+function calToggleDay(ymd) {
+  calHiddenDates.has(ymd) ? calHiddenDates.delete(ymd) : calHiddenDates.add(ymd);
+  renderCalendario();
+}
+
+function calResetHidden() {
+  calHiddenDates.clear();
+  calHiddenKeys.clear();
+  renderCalendario();
+}
+
+function initCalendarListeners() {
+  // Datas default
+  document.getElementById("cal-from").value = calTodayYMD();
+  document.getElementById("cal-to").value   = calEndMonthYMD();
+
+  // Datas change
+  document.getElementById("cal-from").addEventListener("change", () => { if (calData) renderCalendario(); });
+  document.getElementById("cal-to").addEventListener("change",   () => { if (calData) renderCalendario(); });
+
+  // Toggles de colunas — fora do loadCalendario para evitar listeners duplicados
+  document.querySelectorAll("[data-calcol]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.classList.toggle("active");
+      calCols[btn.dataset.calcol] = btn.classList.contains("active");
+      if (calData) renderCalendario();
+    });
+  });
+
+  // Colapsar dia + ocultar evento (event delegation na tabela)
+  document.getElementById("cal-tbl").addEventListener("click", e => {
+    const hideBtn = e.target.closest("[data-calhide]");
+    if (hideBtn) {
+      e.stopPropagation();
+      calHiddenKeys.add(Number(hideBtn.dataset.calhide));
+      renderCalendario();
+      return;
+    }
+    const dayRow = e.target.closest("[data-calday]");
+    if (dayRow) {
+      const ymd = dayRow.dataset.calday;
+      calHiddenDates.has(ymd) ? calHiddenDates.delete(ymd) : calHiddenDates.add(ymd);
+      renderCalendario();
+    }
+  });
+}
+
 // ── Bootstrap ──────────────────────────────────────────────────────────────
 async function loadApp() {
   const config    = await loadConfig();
@@ -1842,6 +1899,7 @@ async function loadApp() {
   renderBCs(config.centralBanks);
   renderPPTs(config.presentations);
   await loadMarket();
+  initCalendarListeners();
 }
 window.loadApp = loadApp;
 

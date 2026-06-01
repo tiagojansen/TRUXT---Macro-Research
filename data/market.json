@@ -1,6 +1,17 @@
 {
   "snapshots":[
     {
+      "ts":"2026-06-01T18:05:10",
+      "label":"01/jun 18:05",
+      "di":[],
+      "ntnb":[],
+      "fx":{"usdbrl":0.0000,"eurbrl":0.0000,"eurusd":0.0000,"gbpusd":0.0000,"usdjpy":0.0000,"usdcny":0.0000,"dxy":0.0000},
+      "treasuries":[],
+      "bolsas":[],
+      "commodities":[]
+    },
+    
+    {
       "ts":"2026-06-01T16:33:13",
       "label":"01/jun 16:33",
       "di":[{"label":"Jun/26","du":0,"taxa":14.400},{"label":"Jul/26","du":0,"taxa":14.330},{"label":"Ago/26","du":0,"taxa":14.274},{"label":"Set/26","du":0,"taxa":14.231},{"label":"Out/26","du":0,"taxa":14.215},{"label":"Nov/26","du":0,"taxa":14.205},{"label":"Dez/26","du":0,"taxa":14.195},{"label":"Jan/27","du":0,"taxa":14.180},{"label":"Fev/27","du":0,"taxa":14.185},{"label":"Mar/27","du":0,"taxa":14.175},{"label":"Abr/27","du":0,"taxa":14.170},{"label":"Mai/27","du":0,"taxa":14.140},{"label":"Jul/27","du":0,"taxa":14.155},{"label":"Ago/27","du":0,"taxa":14.070},{"label":"Out/27","du":0,"taxa":14.115},{"label":"Nov/27","du":0,"taxa":14.035},{"label":"Dez/27","du":0,"taxa":14.070},{"label":"Jan/28","du":0,"taxa":14.050},{"label":"Abr/28","du":0,"taxa":14.020},{"label":"Jul/28","du":0,"taxa":14.005},{"label":"Out/28","du":0,"taxa":13.995},{"label":"Nov/28","du":0,"taxa":13.995},{"label":"Dez/28","du":0,"taxa":13.990},{"label":"Jan/29","du":0,"taxa":13.985},{"label":"Abr/29","du":0,"taxa":13.985},{"label":"Jul/29","du":0,"taxa":13.985},{"label":"Out/29","du":0,"taxa":13.970},{"label":"Nov/29","du":0,"taxa":13.990},{"label":"Dez/29","du":0,"taxa":13.975},{"label":"Jan/30","du":0,"taxa":13.970},{"label":"Abr/30","du":0,"taxa":13.960},{"label":"Jul/30","du":0,"taxa":13.975},{"label":"Out/30","du":0,"taxa":13.970},{"label":"Jan/31","du":0,"taxa":13.955},{"label":"Abr/31","du":0,"taxa":13.955},{"label":"Jul/31","du":0,"taxa":13.970},{"label":"Out/31","du":0,"taxa":13.980},{"label":"Jan/32","du":0,"taxa":14.000}],
@@ -529,6 +540,7 @@
       "fx":{"usdbrl":5.0261,"eurbrl":5.8478,"eurusd":1.1633,"gbpusd":1.3451,"usdjpy":159.3100,"usdcny":6.7861,"dxy":99.1350},
       "treasuries":[{"label":"2y","yield":4.040},{"label":"3y","yield":4.092},{"label":"5y","yield":4.177},{"label":"7y","yield":4.322},{"label":"10y","yield":4.489},{"label":"20y","yield":5.025},{"label":"30y","yield":5.024}]
     }
+
 
 
 

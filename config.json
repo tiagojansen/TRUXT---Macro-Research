@@ -79,6 +79,22 @@
                         "updated":  "2026-05-29 17:47"
                     },
                     {
+                        "id":  "balanca_comercial",
+                        "title":  "Balança Comercial",
+                        "country":  "brasil",
+                        "section":  "alta_frequencia",
+                        "file":  "reports/brasil/alta_frequencia/balanca_comercial.html",
+                        "updated":  "2026-06-01 16:02"
+                    },
+                    {
+                        "id":  "fluxo_cambial",
+                        "title":  "Fluxo Cambial",
+                        "country":  "brasil",
+                        "section":  "alta_frequencia",
+                        "file":  "reports/brasil/alta_frequencia/fluxo_cambial.html",
+                        "updated":  "2026-06-01 16:41"
+                    },
+                    {
                         "id":  "ipca",
                         "title":  "IPCA — Novo Fluxo",
                         "country":  "brasil",

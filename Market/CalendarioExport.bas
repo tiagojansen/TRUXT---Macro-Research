@@ -172,7 +172,7 @@ Public Sub ImportarDoWECO()
         Dim h As String
         h = LCase(Trim(wsBBG.Cells(hRow, c).Text))
         Select Case True
-            Case h = "date" Or h = "data":                                        colDate   = c
+            Case h Like "*date*" Or h = "data":                                   colDate   = c
             Case h = "time" Or h = "hora":                                         colTime   = c
             Case h = "c" Or h = "ctry" Or h Like "*countr*" Or h = "pais":        colCtry   = c
             Case h Like "*event*" Or h Like "*release*" Or h Like "*indicator*":  colEvent  = c
@@ -180,21 +180,28 @@ Public Sub ImportarDoWECO()
             Case h Like "*surv*" Or h Like "*median*" Or h Like "*forecast*":     colSurv   = c
             Case h = "prior" Or h Like "*anterior*" Or h Like "*previous*":       colPrior  = c
             Case h = "actual" Or h Like "*realiz*":                                colActual = c
-            Case h Like "*imp*" Or h = "rel" Or h = "relevance":                  colRel    = c
         End Select
     Next c
 
-    ' Bloomberg mescla "Date Time C" em A1:C1 — os dados ficam em cols separadas
-    ' mas os cabecalhos de B e C ficam vazios por causa da mesclagem.
-    ' Se nao achou Date/Time/Country pelos cabecalhos, inferir pelas posicoes.
+    ' Bloomberg WECO: "Date Time C" pode ser celula mesclada cobrindo A1:B1 ou A1:C1.
+    ' Nesse caso colDate e encontrado mas colCtry fica vazio (header mesclado).
+    ' Inferir: pais fica na coluna logo apos o datetime.
+    If colDate > 0 And colCtry = 0 Then
+        Dim hDateTxt As String
+        hDateTxt = LCase(Trim(wsBBG.Cells(hRow, colDate).Text))
+        If InStr(hDateTxt, "time") > 0 Or InStr(hDateTxt, " c") > 0 Then
+            colCtry = colDate + 1
+        End If
+    End If
+
+    ' Fallback: se ainda nao achou colDate, varre por celula com "date" no texto
     If colDate = 0 Then
         Dim cc As Long
         For cc = 1 To lastCol
             Dim hm As String: hm = LCase(Trim(wsBBG.Cells(hRow, cc).Text))
             If InStr(hm, "date") > 0 Then
                 colDate = cc
-                If InStr(hm, "time") > 0 And colTime = 0 Then colTime = cc + 1
-                If InStr(hm, " c") > 0  And colCtry = 0 Then colCtry = cc + 2
+                If colCtry = 0 Then colCtry = cc + 1
                 Exit For
             End If
         Next cc
@@ -230,14 +237,21 @@ Public Sub ImportarDoWECO()
     Dim rw As Long
     For rw = hRow + 1 To lastRow
 
-        ' Data
-        Dim dtTxt As String: dtTxt = Trim(wsBBG.Cells(rw, colDate).Text)
-        If dtTxt = "" Then GoTo ProxLinha
-
-        ' Hora
+        ' Data+Hora: Bloomberg exporta combinado ("6/30/2026 8:30") — separar aqui
+        Dim dtRaw As String: dtRaw = Trim(wsBBG.Cells(rw, colDate).Text)
+        If dtRaw = "" Then GoTo ProxLinha
+        Dim dtTxt As String: dtTxt = dtRaw
         Dim tmTxt As String: tmTxt = ""
-        If colTime > 0 Then tmTxt = Trim(wsBBG.Cells(rw, colTime).Text)
-        If tmTxt = "N/A" Or tmTxt = "--" Then tmTxt = ""
+        Dim spPos As Long:   spPos = InStr(dtRaw, " ")
+        If spPos > 0 Then
+            dtTxt = Left(dtRaw, spPos - 1)   ' "6/30/2026"
+            tmTxt = Mid(dtRaw, spPos + 1)     ' "8:30"
+        End If
+        ' Coluna Time separada tem prioridade (caso exista em algum export futuro)
+        If colTime > 0 Then
+            Dim tmSep As String: tmSep = Trim(wsBBG.Cells(rw, colTime).Text)
+            If tmSep <> "" And tmSep <> "N/A" And tmSep <> "--" Then tmTxt = tmSep
+        End If
 
         ' Evento
         Dim evTxt As String: evTxt = Trim(wsBBG.Cells(rw, colEvent).Text)

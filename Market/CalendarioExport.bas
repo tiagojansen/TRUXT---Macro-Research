@@ -109,10 +109,75 @@ Public Sub CriarSheetCalendario()
     wsCal.Range("A4").Select
     ActiveWindow.FreezePanes = True
 
+    CriarBotaoCalendario wsCal
+
     MsgBox "Sheet CALENDARIO criada." & vbCrLf & vbCrLf & _
            "Para preencher:" & vbCrLf & _
            "  1. Bloomberg Terminal -> WECO -> Export to Excel" & vbCrLf & _
-           "  2. Rodar ImportarDoWECO", vbInformation, "CalendarioExport"
+           "  2. Clicar o botao 'Atualizar Calendario' na sheet", vbInformation, "CalendarioExport"
+End Sub
+
+' -----------------------------------------------------------------------
+' CriarBotaoCalendario
+' Adiciona botao "Atualizar Calendario" na sheet.
+' Pode ser chamado standalone (Ctrl+G -> CriarBotaoCalendario) se a sheet
+' ja existir mas o botao nao tiver sido criado ainda.
+' -----------------------------------------------------------------------
+Public Sub CriarBotaoCalendario(Optional wsTarget As Worksheet = Nothing)
+    Dim wsCal As Worksheet
+    If wsTarget Is Nothing Then
+        On Error Resume Next
+        Set wsCal = ThisWorkbook.Sheets(CAL_SHEET)
+        On Error GoTo 0
+        If wsCal Is Nothing Then
+            MsgBox "Sheet CALENDARIO nao encontrada. Execute CriarSheetCalendario primeiro.", _
+                   vbExclamation, "CriarBotaoCalendario"
+            Exit Sub
+        End If
+    Else
+        Set wsCal = wsTarget
+    End If
+
+    ' Remove botao anterior se existir
+    Dim shp As Shape
+    For Each shp In wsCal.Shapes
+        If shp.Name = "btnAtualizarCalendario" Then shp.Delete
+    Next shp
+
+    ' Cria botao no canto superior direito (coluna I, linha 1-2)
+    Dim btn As Shape
+    Set btn = wsCal.Shapes.AddShape(msoShapeRoundedRectangle, _
+                Left:=wsCal.Columns(6).Left + 4, _
+                Top:=wsCal.Rows(1).Top + 4, _
+                Width:=180, Height:=44)
+
+    btn.Name = "btnAtualizarCalendario"
+
+    With btn.Fill
+        .ForeColor.RGB = RGB(0, 130, 180)   ' azul TRUXT
+        .BackColor.RGB = RGB(0, 130, 180)
+        .Solid
+    End With
+
+    With btn.Line
+        .Visible = msoFalse
+    End With
+
+    With btn.TextFrame2
+        .TextRange.Text = Chr(8595) & "  Atualizar Calendario"
+        With .TextRange.Font
+            .Name = "Arial"
+            .Size = 11
+            .Bold = msoTrue
+            .Fill.ForeColor.RGB = vbWhite
+        End With
+        .VerticalAnchor = msoAnchorMiddle
+        .TextRange.ParagraphFormat.Alignment = msoAlignCenter
+    End With
+
+    btn.OnAction = "ImportarDoWECO"
+
+    Application.StatusBar = "Botao criado na sheet " & CAL_SHEET
 End Sub
 
 ' -----------------------------------------------------------------------

@@ -211,6 +211,31 @@
       main { padding:1.5rem; }
       .country-grid { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
     }
+
+    /* ── Calendário Econômico ─────────────────────────────────────────────── */
+    .cal-date-bar { display:flex; align-items:center; gap:.5rem; margin-bottom:.75rem; flex-wrap:wrap; }
+    .cal-filter-lbl { font-size:.78rem; font-weight:600; color:var(--text2); white-space:nowrap; }
+    .cal-col-bar { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+    .cal-download-btn { margin-left:auto; padding:.38rem 1rem; background:var(--accent); border:none;
+      border-radius:99px; color:#fff; font-size:.78rem; font-weight:700; cursor:pointer; letter-spacing:.03em; }
+    .cal-download-btn:hover { opacity:.82; }
+    .cal-dot { display:inline-block; width:7px; height:7px; border-radius:50%;
+      margin-right:4px; vertical-align:middle; flex-shrink:0; }
+    .cal-badge { display:inline-block; padding:.12rem .4rem; border-radius:4px;
+      font-size:.73rem; font-weight:700; letter-spacing:.03em; }
+    .cal-wrap { overflow-x:auto; }
+    .cal-tbl { width:100%; border-collapse:collapse; font-size:.875rem; }
+    .cal-tbl th { text-align:left; color:var(--text2); font-size:.68rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:.07em; padding:.5rem .75rem;
+      border-bottom:2px solid var(--border); white-space:nowrap; }
+    .cal-tbl td { padding:.52rem .75rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .cal-tbl tr:hover td { background:var(--surface2); }
+    .cal-day-row td { background:var(--surface); color:var(--text2); font-size:.72rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:.06em; padding:.35rem .75rem;
+      border-top:2px solid var(--border); border-bottom:1px solid var(--border); }
+    .cal-bold td { font-weight:700; }
+    .cal-empty { text-align:center; color:var(--text2); padding:3rem 1rem; font-size:.9rem; }
+    .cal-num { text-align:right; font-variant-numeric:tabular-nums; }
   </style>
 </head>
 <body>
@@ -246,6 +271,7 @@
     <button class="tab-btn active" data-tab="paises">Países</button>
     <button class="tab-btn" data-tab="bcs">BCs</button>
     <button class="tab-btn" data-tab="mercado">Mercado</button>
+    <button class="tab-btn" data-tab="calendario">Calendário</button>
     <button class="tab-btn" data-tab="ppts">PPTs</button>
   </nav>
 
@@ -442,6 +468,43 @@
       </div>
     </div>
 
+    <!-- Calendário -->
+    <div id="tab-calendario" class="tab-panel">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+        <div><h2 style="margin:0">Calendário Econômico</h2><div id="cal-updated" style="font-size:.76rem;color:var(--text2);margin-top:.15rem"></div></div>
+      </div>
+
+      <!-- Filtro países -->
+      <div class="mkt-sub-bar" id="cal-ctry-bar" style="margin-bottom:.75rem"></div>
+
+      <!-- Filtro datas -->
+      <div class="cal-date-bar">
+        <span class="cal-filter-lbl">De:</span>
+        <input type="date" class="snap-select" id="cal-from">
+        <span class="cal-filter-lbl">Até:</span>
+        <input type="date" class="snap-select" id="cal-to">
+      </div>
+
+      <!-- Colunas + download -->
+      <div class="cal-col-bar">
+        <span class="cal-filter-lbl">Colunas:</span>
+        <button class="mkt-sub-btn active" data-calcol="prior">Anterior</button>
+        <button class="mkt-sub-btn active" data-calcol="estimate">Estimativa</button>
+        <button class="mkt-sub-btn active" data-calcol="actual">Realizado</button>
+        <button class="mkt-sub-btn active" data-calcol="surprise">Surpresa</button>
+        <button class="cal-download-btn" onclick="downloadCalCSV()">↓ CSV</button>
+      </div>
+
+      <!-- Tabela -->
+      <div class="cal-wrap">
+        <table class="cal-tbl" id="cal-tbl">
+          <thead id="cal-thead"></thead>
+          <tbody id="cal-tbody"></tbody>
+        </table>
+        <div id="cal-empty" class="cal-empty" style="display:none">Nenhum evento encontrado para os filtros selecionados.</div>
+      </div>
+    </div>
+
     <!-- PPTs -->
     <div id="tab-ppts" class="tab-panel">
       <div class="page-header"><h2>Apresentações</h2><p>Decks e slides internos</p></div>
@@ -484,6 +547,7 @@ document.querySelectorAll(".tab-btn").forEach(btn =>
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    if (btn.dataset.tab === "calendario") loadCalendario();
   })
 );
 document.getElementById("header-date").textContent =
@@ -1572,6 +1636,201 @@ async function reloadReports() {
       btn.disabled = false;
     }, 600);
   }
+}
+
+// ── Calendário Econômico ───────────────────────────────────────────────────
+let calData       = null;
+let calCountrySel = new Set();   // vazio = todos
+let calCols       = { prior:true, estimate:true, actual:true, surprise:true };
+
+const CAL_CTRY = {
+  BZ:{ name:"Brasil",    color:"#83a540" },
+  US:{ name:"EUA",       color:"#00a3b4" },
+  EC:{ name:"Zona Euro", color:"#eea320" },
+  EA:{ name:"Zona Euro", color:"#eea320" },
+  GE:{ name:"Alemanha",  color:"#8b72cc" },
+  CN:{ name:"China",     color:"#c9484c" },
+  MX:{ name:"México",    color:"#9a9496" },
+};
+
+function calTodayYMD() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;
+}
+function calEndMonthYMD() {
+  const n = new Date();
+  const l = new Date(n.getFullYear(), n.getMonth()+1, 0);
+  return `${l.getFullYear()}-${String(l.getMonth()+1).padStart(2,"0")}-${String(l.getDate()).padStart(2,"0")}`;
+}
+function calParseYMD(dStr) {          // "01/06/2026" → "2026-06-01"
+  if (!dStr) return "";
+  const [d,m,y] = dStr.split("/");
+  return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+}
+function calFmtPT(ymd) {              // "2026-06-01" → "Seg, 01 Jun 2026"
+  const [y,m,d] = ymd.split("-");
+  const dt = new Date(+y, +m-1, +d);
+  return dt.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});
+}
+
+async function loadCalendario() {
+  if (calData) { renderCalendario(); return; }
+  try {
+    const res = await fetch("data/calendar.json?t=" + Date.now());
+    calData = await res.json();
+  } catch(e) {
+    document.getElementById("cal-tbody").innerHTML =
+      `<tr><td colspan="9" class="cal-empty">Erro ao carregar calendário.</td></tr>`;
+    return;
+  }
+
+  // Timestamp
+  if (calData.updated)
+    document.getElementById("cal-updated").textContent =
+      "Atualizado: " + calData.updated.replace("T"," ").slice(0,16);
+
+  // Botões de país (dinâmicos)
+  const countries = [...new Set((calData.events||[]).map(e=>e.country))].sort();
+  const bar = document.getElementById("cal-ctry-bar");
+  bar.innerHTML = `<button class="mkt-sub-btn active" data-calctry="ALL">Todos</button>` +
+    countries.map(c => {
+      const m = CAL_CTRY[c] || { name:c, color:"var(--text2)" };
+      return `<button class="mkt-sub-btn" data-calctry="${c}">` +
+             `<span class="cal-dot" style="background:${m.color}"></span>${m.name}</button>`;
+    }).join("");
+
+  bar.querySelectorAll("[data-calctry]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.calctry === "ALL") {
+        calCountrySel.clear();
+        bar.querySelectorAll("[data-calctry]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      } else {
+        bar.querySelector("[data-calctry='ALL']").classList.remove("active");
+        btn.classList.toggle("active");
+        const c = btn.dataset.calctry;
+        calCountrySel.has(c) ? calCountrySel.delete(c) : calCountrySel.add(c);
+        if (calCountrySel.size === 0) {
+          bar.querySelector("[data-calctry='ALL']").classList.add("active");
+        }
+      }
+      renderCalendario();
+    });
+  });
+
+  // Datas default: hoje → fim do mês
+  document.getElementById("cal-from").value = calTodayYMD();
+  document.getElementById("cal-to").value   = calEndMonthYMD();
+  document.getElementById("cal-from").addEventListener("change", renderCalendario);
+  document.getElementById("cal-to").addEventListener("change",   renderCalendario);
+
+  // Toggles de colunas
+  document.querySelectorAll("[data-calcol]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.classList.toggle("active");
+      calCols[btn.dataset.calcol] = btn.classList.contains("active");
+      renderCalendario();
+    });
+  });
+
+  renderCalendario();
+}
+
+function calGetFiltered() {
+  const from  = document.getElementById("cal-from").value;
+  const to    = document.getElementById("cal-to").value;
+  const today = calTodayYMD();
+  return (calData.events||[]).filter(e => {
+    const d = calParseYMD(e.date);
+    if (d < today) return false;
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    if (calCountrySel.size > 0 && !calCountrySel.has(e.country)) return false;
+    return true;
+  });
+}
+
+function renderCalendario() {
+  const events = calGetFiltered();
+  const thead  = document.getElementById("cal-thead");
+  const tbody  = document.getElementById("cal-tbody");
+  const empty  = document.getElementById("cal-empty");
+
+  // Cabeçalho
+  let th = `<tr><th>Data</th><th>Hora</th><th>País</th><th>Evento / Indicador</th>`;
+  if (calCols.prior)    th += `<th class="cal-num">Anterior</th>`;
+  if (calCols.estimate) th += `<th class="cal-num">Estimativa</th>`;
+  if (calCols.actual)   th += `<th class="cal-num">Realizado</th>`;
+  if (calCols.surprise) th += `<th class="cal-num">Surpresa</th>`;
+  th += `</tr>`;
+  thead.innerHTML = th;
+
+  if (!events.length) {
+    tbody.innerHTML = ""; empty.style.display = "block"; return;
+  }
+  empty.style.display = "none";
+
+  // Agrupa por data
+  const byDate = {};
+  events.forEach(e => { const d=calParseYMD(e.date); (byDate[d]=byDate[d]||[]).push(e); });
+
+  const nCols = 4 + [calCols.prior,calCols.estimate,calCols.actual,calCols.surprise].filter(Boolean).length;
+  let html = "";
+
+  Object.keys(byDate).sort().forEach(ymd => {
+    html += `<tr class="cal-day-row"><td colspan="${nCols}">${calFmtPT(ymd)}</td></tr>`;
+    byDate[ymd].forEach(e => {
+      const meta  = CAL_CTRY[e.country] || { name:e.country, color:"var(--text2)" };
+      const bold  = e.relevance === "HIGH" ? "cal-bold" : "";
+      const badge = `<span class="cal-badge" style="background:${meta.color}20;color:${meta.color}">${e.country}</span>`;
+
+      let surprTd = "";
+      if (calCols.surprise) {
+        const sv = parseFloat(e.surprise);
+        if (!isNaN(sv) && e.surprise !== null && e.surprise !== "") {
+          const cls  = sv > 0 ? "fx-chg pos" : sv < 0 ? "fx-chg neg" : "fx-chg neu";
+          const sign = sv > 0 ? "+" : "";
+          surprTd = `<td class="cal-num"><span class="${cls}">${sign}${e.surprise}</span></td>`;
+        } else {
+          surprTd = `<td class="cal-num" style="color:var(--text2)">—</td>`;
+        }
+      }
+
+      html += `<tr class="${bold}">
+        <td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${e.date}</td>
+        <td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${e.time||"—"}</td>
+        <td>${badge}</td>
+        <td>${e.event||""}</td>
+        ${calCols.prior    ? `<td class="cal-num" style="color:var(--text2)">${e.prior    ||"—"}</td>`:""}
+        ${calCols.estimate ? `<td class="cal-num" style="color:var(--text2)">${e.estimate ||"—"}</td>`:""}
+        ${calCols.actual   ? `<td class="cal-num">${e.actual   ||"—"}</td>`:""}
+        ${calCols.surprise ? surprTd : ""}
+      </tr>`;
+    });
+  });
+  tbody.innerHTML = html;
+}
+
+function downloadCalCSV() {
+  const events = calGetFiltered();
+  const hdrs = ["Data","Hora","Pais","Evento"];
+  if (calCols.prior)    hdrs.push("Anterior");
+  if (calCols.estimate) hdrs.push("Estimativa");
+  if (calCols.actual)   hdrs.push("Realizado");
+  if (calCols.surprise) hdrs.push("Surpresa");
+  const rows = events.map(e => {
+    const r = [e.date, e.time||"", e.country, `"${(e.event||"").replace(/"/g,'""')}"`];
+    if (calCols.prior)    r.push(e.prior    ?? "");
+    if (calCols.estimate) r.push(e.estimate ?? "");
+    if (calCols.actual)   r.push(e.actual   ?? "");
+    if (calCols.surprise) r.push(e.surprise ?? "");
+    return r.join(";");
+  });
+  const csv = "﻿" + [hdrs.join(";"), ...rows].join("\r\n");
+  const a = document.createElement("a");
+  a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+  a.download = `calendario_${calTodayYMD()}.csv`;
+  a.click();
 }
 
 // ── Bootstrap ──────────────────────────────────────────────────────────────

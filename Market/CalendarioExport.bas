@@ -344,6 +344,11 @@ Public Sub ExportCalendario(Optional silencioso As Boolean = False)
         Exit Sub
     End If
 
+    ' Carrega whitelist de Important Data.xlsx (nome exato BBG + pais + bold)
+    Dim dictWL   As Object: Set dictWL   = CreateObject("Scripting.Dictionary")
+    Dim dictBold As Object: Set dictBold = CreateObject("Scripting.Dictionary")
+    CarregarWhitelist dictWL, dictBold
+
     Dim eventsJson As String: eventsJson = ""
     Dim evCount    As Long:   evCount    = 0
     Dim fOut       As Integer
@@ -356,7 +361,27 @@ Public Sub ExportCalendario(Optional silencioso As Boolean = False)
 
         Dim tmTxt  As String: tmTxt  = Trim(ws.Cells(rw, 2).Text)
         Dim ctry   As String: ctry   = Trim(ws.Cells(rw, 3).Text)
-        Dim relOut As String: relOut = Trim(ws.Cells(rw, 5).Text)
+
+        ' Strip sufixo [Period] para matching com whitelist
+        ' Ex: "IBGE Inflation IPCA MoM  [May]" -> "IBGE Inflation IPCA MoM"
+        Dim baseName As String
+        Dim bPos     As Long: bPos = InStr(evName, "  [")
+        If bPos = 0 Then bPos = InStr(evName, " [")
+        baseName = IIf(bPos > 0, Trim(Left(evName, bPos - 1)), Trim(evName))
+
+        ' Normaliza pais: Bloomberg WECO usa EC/CH, Important Data usa EA/CN
+        Dim ctryN As String: ctryN = UCase(ctry)
+        If ctryN = "EC" Then ctryN = "EA"
+        If ctryN = "CH" Then ctryN = "CN"
+
+        ' Filtra por whitelist — pula se nao estiver em Important Data.xlsx
+        Dim wlKey As String: wlKey = ctryN & "|" & UCase(baseName)
+        If dictWL.Count > 0 And Not dictWL.Exists(wlKey) Then GoTo NextRow
+
+        ' Relevancia vem da whitelist (Bold = HIGH)
+        Dim relOut As String
+        relOut = IIf(dictBold.Exists(wlKey), "HIGH", "")
+
         Dim prior  As String: prior  = LimparNum(ws.Cells(rw, 6).Text)
         Dim estim  As String: estim  = LimparNum(ws.Cells(rw, 7).Text)
         Dim actual As String: actual = LimparNum(ws.Cells(rw, 8).Text)
@@ -439,6 +464,55 @@ Private Function MapRel(raw As String) As String
         Case Else:                               MapRel = raw
     End Select
 End Function
+
+' -----------------------------------------------------------------------
+' CarregarWhitelist
+' Le Important Data.xlsx (mesma pasta do market_data.xlsm) e monta
+' dois dicionarios: dictWL (eventos permitidos) e dictBold (bold=HIGH).
+' Chave: "PAIS|NOMEEVENTOMAIUS" (pais ja normalizado: EA, CN...)
+' -----------------------------------------------------------------------
+Private Sub CarregarWhitelist(dictWL As Object, dictBold As Object)
+    Dim wlPath As String
+    wlPath = ThisWorkbook.Path & "\Important Data.xlsx"
+
+    If Dir(wlPath) = "" Then
+        ' Arquivo nao encontrado — exporta sem filtro
+        Application.StatusBar = "AVISO: Important Data.xlsx nao encontrado — exportando sem filtro"
+        Exit Sub
+    End If
+
+    Dim wbWL As Workbook
+    Dim wsWL As Worksheet
+    On Error Resume Next
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts  = False
+    Set wbWL = Workbooks.Open(wlPath, ReadOnly:=True, UpdateLinks:=False)
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts  = True
+    On Error GoTo 0
+
+    If wbWL Is Nothing Then
+        Application.StatusBar = "AVISO: nao foi possivel abrir Important Data.xlsx"
+        Exit Sub
+    End If
+
+    Set wsWL = wbWL.Sheets(1)
+    Dim r As Long
+    Dim lastWLRow As Long: lastWLRow = wsWL.Cells(wsWL.Rows.Count, 1).End(xlUp).Row
+
+    For r = 3 To lastWLRow   ' linha 1 = titulo, linha 2 = cabecalho
+        Dim evN  As String: evN  = Trim(wsWL.Cells(r, 1).Value)
+        Dim ctN  As String: ctN  = UCase(Trim(wsWL.Cells(r, 2).Value))
+        Dim bold As String: bold = UCase(Trim(wsWL.Cells(r, 3).Value))
+        If evN <> "" And ctN <> "" Then
+            Dim key As String: key = ctN & "|" & UCase(evN)
+            dictWL(key) = True
+            If bold = "YES" Then dictBold(key) = True
+        End If
+    Next r
+
+    wbWL.Close False
+End Sub
 
 ' Retorna "" para valores vazios / N/A / erros
 Private Function LimparNum(txt As String) As String

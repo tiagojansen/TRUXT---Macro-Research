@@ -74,8 +74,8 @@
                         "id":  "coleta_fgv",
                         "title":  "Coleta FGV",
                         "country":  "brasil",
-                        "section":  "inflacao",
-                        "file":  "reports/brasil/inflacao/ColetaFGV.html",
+                        "section":  "alta_frequencia",
+                        "file":  "reports/brasil/alta_frequencia/ColetaFGV.html",
                         "updated":  "2026-05-29 14:12"
                     },
                     {

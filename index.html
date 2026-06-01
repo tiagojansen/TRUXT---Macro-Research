@@ -746,9 +746,10 @@ document.querySelectorAll(".di-filter-btn").forEach(btn =>
 );
 
 // Sub-tabs
-document.querySelectorAll(".mkt-sub-btn").forEach(btn =>
+// Sub-tabs Mercado: escopo para .mkt-sub-bar para nao interferir com botoes do Calendario
+document.querySelectorAll(".mkt-sub-bar .mkt-sub-btn").forEach(btn =>
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".mkt-sub-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".mkt-sub-bar .mkt-sub-btn").forEach(b => b.classList.remove("active"));
     document.querySelectorAll(".mkt-sub-panel").forEach(p => p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("mkt-panel-" + btn.dataset.mkt).classList.add("active");
@@ -1818,7 +1819,7 @@ function renderCalendario() {
   // Botão "Mostrar tudo"
   const nH = calHiddenDates.size + calHiddenKeys.size;
   const rb = document.getElementById("cal-reset-hidden");
-  if (rb) { rb.style.display = nH > 0 ? "" : "none"; rb.textContent = `↺ Mostrar tudo (${nH})`; }
+  if (rb) { rb.style.display = nH > 0 ? "inline-block" : "none"; rb.textContent = `↺ Mostrar tudo (${nH})`; }
 }
 
 function downloadCalCSV() {

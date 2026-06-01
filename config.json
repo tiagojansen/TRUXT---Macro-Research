@@ -71,6 +71,14 @@
                         "updated":  "2026-05-28 15:27"
                     },
                     {
+                        "id":  "credito",
+                        "title":  "Crédito — Estatísticas do BCB",
+                        "country":  "brasil",
+                        "section":  "atividade",
+                        "file":  "reports/brasil/atividade/Credito_Truxt.html",
+                        "updated":  "2026-06-01 00:00"
+                    },
+                    {
                         "id":  "coleta_fgv",
                         "title":  "Coleta FGV — Monitor de Inflação",
                         "country":  "brasil",

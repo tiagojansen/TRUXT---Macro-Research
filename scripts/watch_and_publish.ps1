@@ -13,6 +13,7 @@
 $SITE_DIR     = "S:\Macro\Site"
 $JSON_FILE    = "$SITE_DIR\data\market.json"
 $HIST_FILE    = "$SITE_DIR\data\market_history.json"
+$CAL_FILE     = "$SITE_DIR\data\calendar.json"
 $REPORTS_DIR  = "$SITE_DIR\reports"
 $PRES_DIR     = "$SITE_DIR\presentations"
 $CONFIG_FILE  = "$SITE_DIR\config.json"
@@ -36,6 +37,7 @@ function PublishMarket {
         $staged = $false
         if (Test-Path $JSON_FILE) { git add "data/market.json";         $staged = $true }
         if (Test-Path $HIST_FILE) { git add "data/market_history.json"; $staged = $true }
+        if (Test-Path $CAL_FILE)  { git add "data/calendar.json";       $staged = $true }
         if ($staged) {
             $msg    = "data: market $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
             $result = git commit -m $msg 2>&1
@@ -93,6 +95,10 @@ while ($true) {
     }
     if (-not $triggerMarket -and (Test-Path $HIST_FILE)) {
         $age = ((Get-Date) - (Get-Item $HIST_FILE).LastWriteTime).TotalSeconds
+        if ($age -le $window) { $triggerMarket = $true }
+    }
+    if (-not $triggerMarket -and (Test-Path $CAL_FILE)) {
+        $age = ((Get-Date) - (Get-Item $CAL_FILE).LastWriteTime).TotalSeconds
         if ($age -le $window) { $triggerMarket = $true }
     }
 

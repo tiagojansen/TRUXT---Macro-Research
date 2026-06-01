@@ -405,6 +405,17 @@ NextRow:
     Application.StatusBar = "Atualizando histórico..."
     ExportHistorico silencioso:=True
 
+    ' Exporta calendário econômico Bloomberg (se módulo CalendarioExport importado)
+    On Error Resume Next
+    Dim wsCalTest As Worksheet
+    Set wsCalTest = ThisWorkbook.Sheets("CALENDARIO")
+    If Not wsCalTest Is Nothing Then
+        Application.StatusBar = "Exportando calendario..."
+        Application.Run "ExportCalendario", True
+    End If
+    Set wsCalTest = Nothing
+    On Error GoTo ErrHandler
+
     Application.StatusBar = "Exportado em " & Format(Now, "hh:mm:ss") & " — site atualizará em segundos"
     Exit Sub
 

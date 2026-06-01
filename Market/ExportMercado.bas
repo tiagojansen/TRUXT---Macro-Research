@@ -35,6 +35,33 @@ Public Const MAX_SNAPSHOTS As Long = 90   ' ~30 dias x 3
 Public Const EXPORT_SHEET As String = "EXPORT"
 
 ' ------------------------------------------------------------------
+' Refresh Bloomberg + salva + exporta (chamado pelo OnTime horario)
+' ------------------------------------------------------------------
+Public Sub AtualizarEExportar()
+    Application.StatusBar = "Bloomberg: atualizando..."
+
+    ' Força recálculo completo (BDP/BDH) e aguarda async queries
+    Application.CalculateFull
+    Application.CalculateUntilAsyncQueriesDone
+
+    Application.StatusBar = "Salvando workbook..."
+    ThisWorkbook.Save
+
+    Application.StatusBar = "Exportando para o site..."
+    ExportarMercado
+
+    ' Re-agenda para a proxima hora cheia + 5min (ex: 09:05, 10:05...)
+    Dim proxima As Date
+    proxima = Int(Now) + TimeValue(Format(Hour(Now) + 1, "00") & ":05:00")
+    If Hour(proxima) <= 18 Then
+        Application.OnTime proxima, "AtualizarEExportar"
+        Application.StatusBar = "Exportado. Prox: " & Format(proxima, "hh:mm")
+    Else
+        Application.StatusBar = "Exportado. Fim do dia."
+    End If
+End Sub
+
+' ------------------------------------------------------------------
 ' Ponto de entrada principal — chamado por Application.OnTime
 ' ------------------------------------------------------------------
 Public Sub ExportarMercado()
@@ -912,15 +939,23 @@ End Function
 ' ------------------------------------------------------------------
 '
 ' Private Sub Workbook_Open()
-'     ' Agenda exportações automáticas nos 3 horários
-'     Dim horarios As Variant
-'     Dim t As Variant
-'     horarios = Array(TimeValue("09:05:00"), TimeValue("13:00:00"), TimeValue("18:00:00"))
-'     For Each t In horarios
-'         If Now < (Int(Now) + t) Then
-'             Application.OnTime Int(Now) + t, "ExportarMercado"
+'     ' Agenda AtualizarEExportar toda hora das 8h05 às 18h05 (seg-sex)
+'     Dim h As Integer
+'     Dim dow As Integer
+'     dow = Weekday(Now, vbMonday)   ' 1=seg ... 7=dom
+'     If dow >= 6 Then Exit Sub      ' fim de semana: nao agenda
+'
+'     Dim count As Integer
+'     count = 0
+'     For h = 8 To 18
+'         Dim t As Date
+'         t = Int(Now) + TimeValue(Format(h, "00") & ":05:00")
+'         If Now < t Then
+'             Application.OnTime t, "AtualizarEExportar"
+'             count = count + 1
 '         End If
-'     Next t
+'     Next h
+'     Application.StatusBar = "TRUXT: " & count & " exportacoes agendadas hoje"
 ' End Sub
 '
 ' ------------------------------------------------------------------

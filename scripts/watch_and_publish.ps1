@@ -6,8 +6,8 @@
 #   - data/market.json e data/market_history.json  → publica market data
 #   - reports/**/*.html e presentations/**          → atualiza config.json e publica
 #
-# Setup (rodar UMA vez como admin no Main PC):
-#   powershell -File "S:\Macro\Site\scripts\setup_watcher_task.ps1"
+# Setup (rodar UMA vez como usuario normal, sem admin):
+#   powershell -ExecutionPolicy Bypass -File "S:\Macro\Site\scripts\setup_watcher_task.ps1"
 # ============================================================
 
 $SITE_DIR     = "S:\Macro\Site"

@@ -138,46 +138,32 @@ Public Sub CriarBotaoCalendario(Optional wsTarget As Worksheet = Nothing)
         Set wsCal = wsTarget
     End If
 
-    ' Remove botao anterior se existir
+    ' Remove botao anterior se existir (Shape ou Button)
     Dim shp As Shape
     For Each shp In wsCal.Shapes
         If shp.Name = "btnAtualizarCalendario" Then shp.Delete
     Next shp
 
-    ' Cria botao no canto superior direito (coluna I, linha 1-2)
-    Dim btn As Shape
-    Set btn = wsCal.Shapes.AddShape(msoShapeRoundedRectangle, _
-                Left:=wsCal.Columns(6).Left + 4, _
-                Top:=wsCal.Rows(1).Top + 4, _
-                Width:=180, Height:=44)
+    ' Posicao: canto direito da linha 1 (fora das colunas de dados A-I)
+    ' Usa coluna J como ancora para nao sobrepor o banner mesclado A1:I1
+    Dim btnLeft As Double: btnLeft = wsCal.Columns(11).Left - 190
+    Dim btnTop  As Double: btnTop  = wsCal.Rows(1).Top + 3
+    Dim btnW    As Double: btnW    = 184
+    Dim btnH    As Double: btnH    = wsCal.Rows(1).Height + wsCal.Rows(2).Height - 6
 
-    btn.Name = "btnAtualizarCalendario"
-
-    With btn.Fill
-        .ForeColor.RGB = RGB(0, 130, 180)   ' azul TRUXT
-        .BackColor.RGB = RGB(0, 130, 180)
-        .Solid
+    ' Form Control Button (mais simples e confiavel que Shape)
+    Dim btn As Button
+    Set btn = wsCal.Buttons.Add(btnLeft, btnTop, btnW, btnH)
+    With btn
+        .Name      = "btnAtualizarCalendario"
+        .Caption   = Chr(8595) & " Atualizar Calendario"
+        .OnAction  = "ImportarDoWECO"
+        .Font.Name = "Arial"
+        .Font.Size = 11
+        .Font.Bold = True
     End With
 
-    With btn.Line
-        .Visible = msoFalse
-    End With
-
-    With btn.TextFrame2
-        .TextRange.Text = Chr(8595) & "  Atualizar Calendario"
-        With .TextRange.Font
-            .Name = "Arial"
-            .Size = 11
-            .Bold = msoTrue
-            .Fill.ForeColor.RGB = vbWhite
-        End With
-        .VerticalAnchor = msoAnchorMiddle
-        .TextRange.ParagraphFormat.Alignment = msoAlignCenter
-    End With
-
-    btn.OnAction = "ImportarDoWECO"
-
-    Application.StatusBar = "Botao criado na sheet " & CAL_SHEET
+    MsgBox "Botao criado na sheet " & CAL_SHEET & ".", vbInformation, "CriarBotaoCalendario"
 End Sub
 
 ' -----------------------------------------------------------------------

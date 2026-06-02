@@ -157,7 +157,7 @@ Public Sub CriarBotaoCalendario(Optional wsTarget As Worksheet = Nothing)
     Set btn = wsCal.Buttons.Add(btnLeft, btnTop, btnW, btnH)
     With btn
         .Name      = "btnAtualizarCalendario"
-        .Caption   = Chr(8595) & " Atualizar Calendario"
+        .Caption   = ChrW(8595) & " Atualizar Calendario"
         .OnAction  = "ImportarDoWECO"
         .Font.Name = "Arial"
         .Font.Size = 11

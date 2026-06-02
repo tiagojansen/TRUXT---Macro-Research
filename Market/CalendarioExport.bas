@@ -467,10 +467,15 @@ Public Sub ExportCalendario(Optional silencioso As Boolean = False)
 
         ' Strip sufixo [Period] para matching com whitelist
         ' Ex: "IBGE Inflation IPCA MoM  [May]" -> "IBGE Inflation IPCA MoM"
+        ' Nota: IIf avalia os dois lados; usar If/Else para evitar Left(,-1)
         Dim baseName As String
         Dim bPos     As Long: bPos = InStr(evName, "  [")
         If bPos = 0 Then bPos = InStr(evName, " [")
-        baseName = IIf(bPos > 0, Trim(Left(evName, bPos - 1)), Trim(evName))
+        If bPos > 0 Then
+            baseName = Trim(Left(evName, bPos - 1))
+        Else
+            baseName = Trim(evName)
+        End If
 
         ' Normaliza pais: Bloomberg WECO usa EC/CH, Important Data usa EA/CN
         Dim ctryN As String: ctryN = UCase(ctry)

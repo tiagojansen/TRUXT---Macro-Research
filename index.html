@@ -1822,8 +1822,17 @@ function renderCalendario() {
   if (rb) { rb.style.display = nH > 0 ? "inline-block" : "none"; rb.textContent = `↺ Mostrar tudo (${nH})`; }
 }
 
+function calGetVisible() {
+  // calGetFiltered() + remove dias colapsados e eventos ocultos (igual ao que aparece na tabela)
+  return calGetFiltered().filter(e => {
+    if (calHiddenKeys.has(e._idx)) return false;
+    if (calHiddenDates.has(calParseYMD(e.date))) return false;
+    return true;
+  });
+}
+
 function downloadCalCSV() {
-  const events = calGetFiltered();
+  const events = calGetVisible();
   const hdrs = ["Data","Hora","Pais","Evento"];
   if (calCols.prior)    hdrs.push("Anterior");
   if (calCols.estimate) hdrs.push("Estimativa");

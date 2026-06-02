@@ -1676,9 +1676,9 @@ function calEndMonthYMD() {
   const l = new Date(n.getFullYear(), n.getMonth()+1, 0);
   return `${l.getFullYear()}-${String(l.getMonth()+1).padStart(2,"0")}-${String(l.getDate()).padStart(2,"0")}`;
 }
-function calParseYMD(dStr) {          // "01/06/2026" → "2026-06-01"
+function calParseYMD(dStr) {          // "06/30/2026" → "2026-06-30"  (MM/DD/YYYY)
   if (!dStr) return "";
-  const [d,m,y] = dStr.split("/");
+  const [m,d,y] = dStr.split("/");
   return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 }
 function calFmtPT(ymd) {              // "2026-06-01" → "Seg, 01 Jun 2026"

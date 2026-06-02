@@ -101,7 +101,7 @@ Public Sub CriarSheetCalendario()
     End With
 
     ' Formatos
-    wsCal.Range("A4:A203").NumberFormat = "dd/mm/yyyy"
+    wsCal.Range("A4:A203").NumberFormat = "mm/dd/yyyy"
     wsCal.Range("B4:B203").NumberFormat = "hh:mm"
     wsCal.Range("F4:I203").HorizontalAlignment = xlRight
 

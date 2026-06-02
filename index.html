@@ -504,6 +504,7 @@
         <button class="mkt-sub-btn active" data-calcol="surprise">Surpresa</button>
         <button id="cal-reset-hidden" class="cal-reset-btn" onclick="calResetHidden()">↺ Mostrar tudo</button>
         <button class="cal-download-btn" onclick="downloadCalCSV()">↓ CSV</button>
+        <button class="cal-download-btn" onclick="downloadCalICS()" style="margin-left:.4rem">↓ ICS</button>
       </div>
 
       <!-- Tabela -->
@@ -1851,6 +1852,91 @@ function downloadCalCSV() {
   a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
   a.download = `calendario_${calTodayYMD()}.csv`;
   a.click();
+}
+
+function downloadCalICS() {
+  const events = calGetVisible();
+  if (!events.length) return;
+
+  const TZID = "America/Sao_Paulo";
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//TRUXT Macro Research//Calendário Econômico//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "X-WR-CALNAME:Calendário Econômico TRUXT",
+    "X-WR-TIMEZONE:" + TZID,
+    "BEGIN:VTIMEZONE",
+    "TZID:" + TZID,
+    "BEGIN:STANDARD",
+    "DTSTART:19700101T000000",
+    "TZOFFSETFROM:-0200",
+    "TZOFFSETTO:-0300",
+    "TZNAME:BRT",
+    "END:STANDARD",
+    "END:VTIMEZONE",
+  ];
+
+  events.forEach((e, i) => {
+    const ymd  = calParseYMD(e.date);          // "2026-06-30"
+    const ymdC = ymd.replace(/-/g, "");        // "20260630"
+    const tm   = (e.time || "").replace(/\D/g, "");  // "0830" or ""
+    const hasTime = tm.length === 4;
+
+    let dtStart, dtEnd;
+    if (hasTime) {
+      dtStart = "DTSTART;TZID=" + TZID + ":" + ymdC + "T" + tm + "00";
+      const h   = parseInt(tm.slice(0, 2), 10);
+      const m   = parseInt(tm.slice(2, 4), 10);
+      const tot = h * 60 + m + 30;
+      const eh  = String(Math.floor(tot / 60) % 24).padStart(2, "0");
+      const em  = String(tot % 60).padStart(2, "0");
+      dtEnd = "DTEND;TZID=" + TZID + ":" + ymdC + "T" + eh + em + "00";
+    } else {
+      // Evento dia-inteiro: DTEND = dia seguinte (padrão iCalendar)
+      const [y, mo, d] = ymd.split("-").map(Number);
+      const nxt = new Date(y, mo - 1, d + 1);
+      const nxtC = String(nxt.getFullYear()) +
+                   String(nxt.getMonth() + 1).padStart(2, "0") +
+                   String(nxt.getDate()).padStart(2, "0");
+      dtStart = "DTSTART;VALUE=DATE:" + ymdC;
+      dtEnd   = "DTEND;VALUE=DATE:"   + nxtC;
+    }
+
+    const uid     = "ecocal-" + ymdC + "-" + (tm || "allday") + "-" + e.country + "-" + i;
+    const summary = e.country + " - " + (e.event || "");
+    const dp = [];
+    if (e.prior    != null && e.prior    !== "") dp.push("Anterior: "   + e.prior);
+    if (e.estimate != null && e.estimate !== "") dp.push("Estimativa: " + e.estimate);
+    if (e.actual   != null && e.actual   !== "") dp.push("Realizado: "  + e.actual);
+    const desc = dp.join(" | ");
+
+    lines.push("BEGIN:VEVENT");
+    lines.push("UID:" + uid);
+    lines.push(dtStart);
+    lines.push(dtEnd);
+    lines.push("SUMMARY:" + summary);
+    if (desc) lines.push("DESCRIPTION:" + desc);
+    if (hasTime) {
+      lines.push("BEGIN:VALARM");
+      lines.push("TRIGGER:-PT5M");
+      lines.push("ACTION:DISPLAY");
+      lines.push("DESCRIPTION:" + summary + " em 5 minutos");
+      lines.push("END:VALARM");
+    }
+    lines.push("END:VEVENT");
+  });
+
+  lines.push("END:VCALENDAR");
+
+  const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "calendario_" + calTodayYMD() + ".ics";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function calToggleDay(ymd) {

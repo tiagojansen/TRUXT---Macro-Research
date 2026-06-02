@@ -496,13 +496,12 @@ Public Sub ExportCalendario(Optional silencioso As Boolean = False)
         Dim surpr  As String: surpr  = LimparNum(ws.Cells(rw, 9).Text)
 
         evName = Replace(evName, """", "'")
-        ctry   = Replace(ctry,   """", "'")
 
         If eventsJson <> "" Then eventsJson = eventsJson & "," & vbCrLf
         eventsJson = eventsJson & "    {" & _
             """date"":""" & dtTxt & """," & _
             """time"":""" & tmTxt & """," & _
-            """country"":""" & ctry & """," & _
+            """country"":""" & ctryN & """," & _
             """event"":""" & evName & """," & _
             """relevance"":""" & relOut & """," & _
             """prior"":" & IIf(prior  <> "", """" & prior  & """", "null") & "," & _
@@ -623,13 +622,23 @@ Private Sub CarregarWhitelist(dictWL As Object, dictBold As Object)
 End Sub
 
 ' Converte data Bloomberg "M/D/YYYY" em Date (locale-safe, nao usa CDate)
-' Evita problemas de locale pt-BR onde CDate("6/30/2026") falharia
+' Suporta tambem ranges "M/D/YYYY-M/D/YYYY" (usa a primeira data)
+' e "M/D" sem ano (usa ano corrente)
 Private Function ParseBBGDate(dtTxt As String) As Date
     On Error Resume Next
-    Dim p() As String: p = Split(Trim(dtTxt), "/")
-    If UBound(p) = 2 Then
-        ParseBBGDate = DateSerial(CInt(p(2)), CInt(p(0)), CInt(p(1)))
-    End If
+    ' Se for range (ex: "6/5/2026-6/15/2026"), pega so a primeira data
+    Dim clean As String: clean = Trim(dtTxt)
+    Dim dashP As Long
+    dashP = InStr(3, clean, "-")   ' ignora eventual "-" no inicio; procura a partir do 3o char
+    If dashP > 0 Then clean = Trim(Left(clean, dashP - 1))
+
+    Dim p() As String: p = Split(clean, "/")
+    Select Case UBound(p)
+        Case 2  ' M/D/YYYY
+            ParseBBGDate = DateSerial(CInt(p(2)), CInt(p(0)), CInt(p(1)))
+        Case 1  ' M/D (sem ano) — usa ano corrente
+            ParseBBGDate = DateSerial(Year(Now), CInt(p(0)), CInt(p(1)))
+    End Select
     On Error GoTo 0
 End Function
 

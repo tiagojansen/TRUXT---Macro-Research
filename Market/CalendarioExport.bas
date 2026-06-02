@@ -5,7 +5,8 @@ Attribute VB_Name = "CalendarioExport"
 '
 ' Macros publicas:
 '   CriarSheetCalendario  -- cria a sheet CALENDARIO (rodar 1x)
-'   ImportarDoWECO        -- le planilha Bloomberg aberta -> CALENDARIO -> JSON
+'   ImportarDoWECO        -- le TODAS as planilhas Bloomberg abertas -> CALENDARIO -> JSON
+'                            (abre EM e DM ao mesmo tempo, importa e ordena automaticamente)
 '   ExportCalendario      -- exporta calendar.json
 '
 ' Colunas Bloomberg WECO Export:
@@ -168,105 +169,47 @@ End Sub
 
 ' -----------------------------------------------------------------------
 ' ImportarDoWECO
-' Le a planilha Bloomberg WECO aberta, preenche CALENDARIO, exporta JSON.
+' Le TODAS as planilhas Bloomberg WECO abertas, preenche CALENDARIO,
+' ordena por data+hora e exporta JSON.
+'
+' Fluxo: Bloomberg -> WECO EM -> Export to Excel
+'         Bloomberg -> WECO DM -> Export to Excel
+'         (ambas abertas) -> Rodar ImportarDoWECO -> importa as duas
 '
 ' Bloomberg exporta "Date Time C" como celula mesclada A1:C1 mas os
-' dados ficam em colunas separadas: col A=Date, col B=Time, col C=Country.
+' dados ficam em colunas separadas: col A=Date/hora combinado, B=Country.
 ' -----------------------------------------------------------------------
 Public Sub ImportarDoWECO()
 
-    ' ── 1. Encontra planilha Bloomberg aberta ────────────────────────────
-    Dim wbBBG As Workbook
-    Dim wsBBG As Worksheet
-    Dim hRow  As Long
+    ' ── 1. Coleta TODOS os workbooks Bloomberg abertos ───────────────────
+    Dim bbgSheets(20) As Worksheet
+    Dim bbgWBs(20)    As Workbook
+    Dim bbgCount      As Long: bbgCount = 0
 
-    Dim wb As Workbook
-    For Each wb In Application.Workbooks
-        If wb.Name <> ThisWorkbook.Name Then
-            Dim ws As Worksheet
-            For Each ws In wb.Worksheets
-                hRow = AcharCabecalho(ws)
-                If hRow > 0 Then
-                    Set wbBBG = wb
-                    Set wsBBG = ws
-                    Exit For
+    Dim wbI As Workbook
+    For Each wbI In Application.Workbooks
+        If wbI.Name <> ThisWorkbook.Name Then
+            Dim wsI As Worksheet
+            For Each wsI In wbI.Worksheets
+                If AcharCabecalho(wsI) > 0 Then
+                    Set bbgSheets(bbgCount) = wsI
+                    Set bbgWBs(bbgCount)    = wbI
+                    bbgCount = bbgCount + 1
+                    If bbgCount > 20 Then Exit For
                 End If
-            Next ws
-            If Not wsBBG Is Nothing Then Exit For
+            Next wsI
         End If
-    Next wb
+    Next wbI
 
-    If wsBBG Is Nothing Then
+    If bbgCount = 0 Then
         MsgBox "Nenhuma planilha Bloomberg WECO encontrada." & vbCrLf & vbCrLf & _
                "1. No terminal Bloomberg: WECO -> Export to Excel" & vbCrLf & _
-               "2. Deixe a planilha aberta" & vbCrLf & _
+               "2. Deixe a(s) planilha(s) aberta(s)" & vbCrLf & _
                "3. Rode ImportarDoWECO novamente", vbExclamation, "ImportarDoWECO"
         Exit Sub
     End If
 
-    ' ── 2. Mapeia colunas ────────────────────────────────────────────────
-    Dim colDate   As Long: colDate   = 0
-    Dim colTime   As Long: colTime   = 0
-    Dim colCtry   As Long: colCtry   = 0
-    Dim colEvent  As Long: colEvent  = 0
-    Dim colPeriod As Long: colPeriod = 0
-    Dim colSurv   As Long: colSurv   = 0
-    Dim colPrior  As Long: colPrior  = 0
-    Dim colActual As Long: colActual = 0
-    Dim colRel    As Long: colRel    = 0
-
-    Dim lastCol As Long
-    lastCol = wsBBG.Cells(hRow, wsBBG.Columns.Count).End(xlToLeft).Column
-
-    Dim c As Long
-    For c = 1 To lastCol
-        Dim h As String
-        h = LCase(Trim(wsBBG.Cells(hRow, c).Text))
-        Select Case True
-            Case h Like "*date*" Or h = "data":                                   colDate   = c
-            Case h = "time" Or h = "hora":                                         colTime   = c
-            Case h = "c" Or h = "ctry" Or h Like "*countr*" Or h = "pais":        colCtry   = c
-            Case h Like "*event*" Or h Like "*release*" Or h Like "*indicator*":  colEvent  = c
-            Case h Like "*period*":                                                colPeriod = c
-            Case h Like "*surv*" Or h Like "*median*" Or h Like "*forecast*":     colSurv   = c
-            Case h = "prior" Or h Like "*anterior*" Or h Like "*previous*":       colPrior  = c
-            Case h = "actual" Or h Like "*realiz*":                                colActual = c
-        End Select
-    Next c
-
-    ' Bloomberg WECO: "Date Time C" pode ser celula mesclada cobrindo A1:B1 ou A1:C1.
-    ' Nesse caso colDate e encontrado mas colCtry fica vazio (header mesclado).
-    ' Inferir: pais fica na coluna logo apos o datetime.
-    If colDate > 0 And colCtry = 0 Then
-        Dim hDateTxt As String
-        hDateTxt = LCase(Trim(wsBBG.Cells(hRow, colDate).Text))
-        If InStr(hDateTxt, "time") > 0 Or InStr(hDateTxt, " c") > 0 Then
-            colCtry = colDate + 1
-        End If
-    End If
-
-    ' Fallback: se ainda nao achou colDate, varre por celula com "date" no texto
-    If colDate = 0 Then
-        Dim cc As Long
-        For cc = 1 To lastCol
-            Dim hm As String: hm = LCase(Trim(wsBBG.Cells(hRow, cc).Text))
-            If InStr(hm, "date") > 0 Then
-                colDate = cc
-                If colCtry = 0 Then colCtry = cc + 1
-                Exit For
-            End If
-        Next cc
-    End If
-
-    If colDate = 0 Or colEvent = 0 Then
-        MsgBox "Nao foi possivel identificar as colunas da planilha Bloomberg." & vbCrLf & _
-               "Cabecalho encontrado na linha " & hRow & " da sheet '" & wsBBG.Name & "'." & vbCrLf & vbCrLf & _
-               "Colunas esperadas: Date | Time | C | Event | Period | Survey(M) | Prior | Actual", _
-               vbCritical, "ImportarDoWECO"
-        Exit Sub
-    End If
-
-    ' ── 3. Garante sheet CALENDARIO ──────────────────────────────────────
+    ' ── 2. Garante sheet CALENDARIO ──────────────────────────────────────
     Dim wsCal As Worksheet
     On Error Resume Next
     Set wsCal = ThisWorkbook.Sheets(CAL_SHEET)
@@ -276,92 +219,201 @@ Public Sub ImportarDoWECO()
         Set wsCal = ThisWorkbook.Sheets(CAL_SHEET)
     End If
 
+    ' Limpa CALENDARIO uma unica vez antes de comecar
     Dim lastCalRow As Long
     lastCalRow = wsCal.Cells(wsCal.Rows.Count, 1).End(xlUp).Row
     If lastCalRow >= 4 Then wsCal.Rows("4:" & lastCalRow).ClearContents
 
-    ' ── 4. Le e escreve os dados ─────────────────────────────────────────
-    Dim lastRow  As Long: lastRow  = wsBBG.Cells(wsBBG.Rows.Count, colDate).End(xlUp).Row
+    ' ── 3. Importa de cada fonte Bloomberg ───────────────────────────────
     Dim destRow  As Long: destRow  = 4
     Dim imported As Long: imported = 0
 
-    Dim rw As Long
-    For rw = hRow + 1 To lastRow
+    Dim si   As Long
+    Dim wsBBG As Worksheet
+    Dim hRow  As Long
 
-        ' Data+Hora: Bloomberg exporta combinado ("6/30/2026 8:30") — separar aqui
-        Dim dtRaw As String: dtRaw = Trim(wsBBG.Cells(rw, colDate).Text)
-        If dtRaw = "" Then GoTo ProxLinha
-        Dim dtTxt As String: dtTxt = dtRaw
-        Dim tmTxt As String: tmTxt = ""
-        Dim spPos As Long:   spPos = InStr(dtRaw, " ")
-        If spPos > 0 Then
-            dtTxt = Left(dtRaw, spPos - 1)   ' "6/30/2026"
-            tmTxt = Mid(dtRaw, spPos + 1)     ' "8:30"
-        End If
-        ' Coluna Time separada tem prioridade (caso exista em algum export futuro)
-        If colTime > 0 Then
-            Dim tmSep As String: tmSep = Trim(wsBBG.Cells(rw, colTime).Text)
-            If tmSep <> "" And tmSep <> "N/A" And tmSep <> "--" Then tmTxt = tmSep
-        End If
+    ' Variaveis de mapeamento (reset a cada fonte)
+    Dim colDate   As Long
+    Dim colTime   As Long
+    Dim colCtry   As Long
+    Dim colEvent  As Long
+    Dim colPeriod As Long
+    Dim colSurv   As Long
+    Dim colPrior  As Long
+    Dim colActual As Long
+    Dim colRel    As Long
+    Dim lastCol   As Long
+    Dim c         As Long
+    Dim h         As String
+    Dim cc        As Long
+    Dim hm        As String
+    Dim hDateTxt  As String
 
-        ' Evento
-        Dim evTxt As String: evTxt = Trim(wsBBG.Cells(rw, colEvent).Text)
-        If evTxt = "" Then GoTo ProxLinha
+    ' Variaveis de linha
+    Dim rw       As Long
+    Dim dtRaw    As String
+    Dim dtTxt    As String
+    Dim tmTxt    As String
+    Dim spPos    As Long
+    Dim tmSep    As String
+    Dim evTxt    As String
+    Dim perTxt   As String
+    Dim ctryTxt  As String
+    Dim relTxt   As String
+    Dim priorTxt As String
+    Dim survTxt  As String
+    Dim actualTxt As String
+    Dim surpresa  As String
+    Dim dtDate    As Date
 
-        ' Periodo: adiciona ao nome do evento (ex: "IPCA MoM  [May]")
-        If colPeriod > 0 Then
-            Dim perTxt As String: perTxt = Trim(wsBBG.Cells(rw, colPeriod).Text)
-            If perTxt <> "" And perTxt <> "N/A" And perTxt <> "--" Then
-                evTxt = evTxt & "  [" & perTxt & "]"
+    For si = 0 To bbgCount - 1
+        Set wsBBG = bbgSheets(si)
+        hRow = AcharCabecalho(wsBBG)
+
+        ' Reset mapeamento de colunas para esta fonte
+        colDate = 0: colTime = 0: colCtry = 0: colEvent = 0: colPeriod = 0
+        colSurv = 0: colPrior = 0: colActual = 0: colRel = 0
+
+        lastCol = wsBBG.Cells(hRow, wsBBG.Columns.Count).End(xlToLeft).Column
+
+        For c = 1 To lastCol
+            h = LCase(Trim(wsBBG.Cells(hRow, c).Text))
+            Select Case True
+                Case h Like "*date*" Or h = "data":                                   colDate   = c
+                Case h = "time" Or h = "hora":                                         colTime   = c
+                Case h = "c" Or h = "ctry" Or h Like "*countr*" Or h = "pais":        colCtry   = c
+                Case h Like "*event*" Or h Like "*release*" Or h Like "*indicator*":  colEvent  = c
+                Case h Like "*period*":                                                colPeriod = c
+                Case h Like "*surv*" Or h Like "*median*" Or h Like "*forecast*":     colSurv   = c
+                Case h = "prior" Or h Like "*anterior*" Or h Like "*previous*":       colPrior  = c
+                Case h = "actual" Or h Like "*realiz*":                                colActual = c
+            End Select
+        Next c
+
+        ' Bloomberg WECO: "Date Time C" pode ser celula mesclada
+        If colDate > 0 And colCtry = 0 Then
+            hDateTxt = LCase(Trim(wsBBG.Cells(hRow, colDate).Text))
+            If InStr(hDateTxt, "time") > 0 Or InStr(hDateTxt, " c") > 0 Then
+                colCtry = colDate + 1
             End If
         End If
 
-        ' Pais
-        Dim ctryTxt As String: ctryTxt = ""
-        If colCtry > 0 Then ctryTxt = Trim(wsBBG.Cells(rw, colCtry).Text)
-
-        ' Relevancia (opcional)
-        Dim relTxt As String: relTxt = ""
-        If colRel > 0 Then relTxt = MapRel(Trim(wsBBG.Cells(rw, colRel).Text))
-
-        ' Valores numericos
-        Dim priorTxt  As String: priorTxt  = LimparNum(wsBBG.Cells(rw, colPrior).Text)
-        Dim survTxt   As String: survTxt   = ""
-        Dim actualTxt As String: actualTxt = ""
-        If colSurv   > 0 Then survTxt   = LimparNum(wsBBG.Cells(rw, colSurv).Text)
-        If colActual > 0 Then actualTxt = LimparNum(wsBBG.Cells(rw, colActual).Text)
-
-        ' Surpresa = Actual - Survey(M)
-        Dim surpresa As String: surpresa = ""
-        If actualTxt <> "" And survTxt <> "" Then
-            If IsNumeric(actualTxt) And IsNumeric(survTxt) Then
-                surpresa = CStr(Round(CDbl(actualTxt) - CDbl(survTxt), 4))
-            End If
+        ' Fallback: varre por celula com "date" no texto
+        If colDate = 0 Then
+            For cc = 1 To lastCol
+                hm = LCase(Trim(wsBBG.Cells(hRow, cc).Text))
+                If InStr(hm, "date") > 0 Then
+                    colDate = cc
+                    If colCtry = 0 Then colCtry = cc + 1
+                    Exit For
+                End If
+            Next cc
         End If
 
-        ' Escreve na sheet CALENDARIO (9 colunas)
-        wsCal.Cells(destRow, 1).Value = dtTxt    ' Data
-        wsCal.Cells(destRow, 2).Value = tmTxt    ' Hora
-        wsCal.Cells(destRow, 3).Value = ctryTxt  ' Pais
-        wsCal.Cells(destRow, 4).Value = evTxt    ' Evento
-        wsCal.Cells(destRow, 5).Value = relTxt   ' Relevancia
-        wsCal.Cells(destRow, 6).Value = priorTxt ' Anterior
-        wsCal.Cells(destRow, 7).Value = survTxt  ' Estimativa
-        wsCal.Cells(destRow, 8).Value = actualTxt' Realizado
-        wsCal.Cells(destRow, 9).Value = surpresa ' Surpresa
+        If colDate = 0 Or colEvent = 0 Then
+            MsgBox "Planilha '" & wsBBG.Name & "': nao foi possivel identificar colunas." & vbCrLf & _
+                   "Cabecalho na linha " & hRow & ". Esperado: Date | Time | C | Event | ...", _
+                   vbCritical, "ImportarDoWECO"
+            GoTo ProxFonte
+        End If
 
-        destRow  = destRow  + 1
-        imported = imported + 1
+        ' Le linhas de dados
+        Dim lastRow As Long: lastRow = wsBBG.Cells(wsBBG.Rows.Count, colDate).End(xlUp).Row
+
+        For rw = hRow + 1 To lastRow
+
+            ' Data+Hora: Bloomberg exporta combinado ("6/30/2026 8:30")
+            dtRaw = Trim(wsBBG.Cells(rw, colDate).Text)
+            If dtRaw = "" Then GoTo ProxLinha
+            dtTxt = dtRaw: tmTxt = ""
+            spPos = InStr(dtRaw, " ")
+            If spPos > 0 Then
+                dtTxt = Left(dtRaw, spPos - 1)   ' "6/30/2026"
+                tmTxt = Mid(dtRaw, spPos + 1)     ' "8:30"
+            End If
+            If colTime > 0 Then
+                tmSep = Trim(wsBBG.Cells(rw, colTime).Text)
+                If tmSep <> "" And tmSep <> "N/A" And tmSep <> "--" Then tmTxt = tmSep
+            End If
+
+            evTxt = Trim(wsBBG.Cells(rw, colEvent).Text)
+            If evTxt = "" Then GoTo ProxLinha
+
+            If colPeriod > 0 Then
+                perTxt = Trim(wsBBG.Cells(rw, colPeriod).Text)
+                If perTxt <> "" And perTxt <> "N/A" And perTxt <> "--" Then
+                    evTxt = evTxt & "  [" & perTxt & "]"
+                End If
+            End If
+
+            ctryTxt = ""
+            If colCtry > 0 Then ctryTxt = Trim(wsBBG.Cells(rw, colCtry).Text)
+
+            relTxt = ""
+            If colRel > 0 Then relTxt = MapRel(Trim(wsBBG.Cells(rw, colRel).Text))
+
+            priorTxt = LimparNum(wsBBG.Cells(rw, colPrior).Text)
+            survTxt  = "": actualTxt = ""
+            If colSurv   > 0 Then survTxt   = LimparNum(wsBBG.Cells(rw, colSurv).Text)
+            If colActual > 0 Then actualTxt = LimparNum(wsBBG.Cells(rw, colActual).Text)
+
+            surpresa = ""
+            If actualTxt <> "" And survTxt <> "" Then
+                If IsNumeric(actualTxt) And IsNumeric(survTxt) Then
+                    surpresa = CStr(Round(CDbl(actualTxt) - CDbl(survTxt), 4))
+                End If
+            End If
+
+            ' Data como valor Date (locale-safe) para ordenacao e formato DD/MM/YYYY no JSON
+            dtDate = ParseBBGDate(dtTxt)
+            wsCal.Cells(destRow, 1).Value = IIf(dtDate > 0, dtDate, dtTxt)
+            wsCal.Cells(destRow, 2).Value = tmTxt
+            wsCal.Cells(destRow, 3).Value = ctryTxt
+            wsCal.Cells(destRow, 4).Value = evTxt
+            wsCal.Cells(destRow, 5).Value = relTxt
+            wsCal.Cells(destRow, 6).Value = priorTxt
+            wsCal.Cells(destRow, 7).Value = survTxt
+            wsCal.Cells(destRow, 8).Value = actualTxt
+            wsCal.Cells(destRow, 9).Value = surpresa
+
+            destRow  = destRow  + 1
+            imported = imported + 1
 
 ProxLinha:
-    Next rw
+        Next rw
 
-    ' ── 5. Fecha planilha Bloomberg ──────────────────────────────────────
+ProxFonte:
+    Next si
+
+    ' ── 4. Ordena CALENDARIO por Data + Hora ─────────────────────────────
+    ' Funciona porque datas sao valores Date (serials), nao texto
+    Dim sortEnd As Long: sortEnd = destRow - 1
+    If sortEnd >= 5 Then
+        wsCal.Sort.SortFields.Clear
+        wsCal.Sort.SortFields.Add Key:=wsCal.Range("A4:A" & sortEnd), Order:=xlAscending
+        wsCal.Sort.SortFields.Add Key:=wsCal.Range("B4:B" & sortEnd), Order:=xlAscending
+        With wsCal.Sort
+            .SetRange wsCal.Range("A4:I" & sortEnd)
+            .Header = xlNo
+            .Apply
+        End With
+    End If
+
+    ' ── 5. Pergunta sobre fechar planilhas Bloomberg ──────────────────────
+    Dim nomes As String: nomes = ""
+    For si = 0 To bbgCount - 1
+        nomes = nomes & "  - " & bbgWBs(si).Name & vbCrLf
+    Next si
+
     Dim resp As Integer
-    resp = MsgBox(imported & " eventos importados." & vbCrLf & vbCrLf & _
-                  "Fechar a planilha Bloomberg (" & wbBBG.Name & ")?", _
+    resp = MsgBox(imported & " eventos importados de " & bbgCount & " planilha(s):" & _
+                  vbCrLf & nomes & vbCrLf & "Fechar estas planilhas?", _
                   vbQuestion + vbYesNo, "ImportarDoWECO")
-    If resp = vbYes Then wbBBG.Close SaveChanges:=False
+    If resp = vbYes Then
+        For si = 0 To bbgCount - 1
+            bbgWBs(si).Close SaveChanges:=False
+        Next si
+    End If
 
     ' ── 6. Exporta JSON ──────────────────────────────────────────────────
     ExportCalendario silencioso:=False
@@ -564,6 +616,17 @@ Private Sub CarregarWhitelist(dictWL As Object, dictBold As Object)
 
     wbWL.Close False
 End Sub
+
+' Converte data Bloomberg "M/D/YYYY" em Date (locale-safe, nao usa CDate)
+' Evita problemas de locale pt-BR onde CDate("6/30/2026") falharia
+Private Function ParseBBGDate(dtTxt As String) As Date
+    On Error Resume Next
+    Dim p() As String: p = Split(Trim(dtTxt), "/")
+    If UBound(p) = 2 Then
+        ParseBBGDate = DateSerial(CInt(p(2)), CInt(p(0)), CInt(p(1)))
+    End If
+    On Error GoTo 0
+End Function
 
 ' Retorna "" para valores vazios / N/A / erros
 Private Function LimparNum(txt As String) As String

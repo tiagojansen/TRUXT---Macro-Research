@@ -144,7 +144,12 @@
                     }
                 ],
     "centralBanks":  [
-
+                         { "flag": "🇧🇷", "name": "BCB — Banco Central do Brasil", "cycle": "tightening", "rate": "—"           },
+                         { "flag": "🇺🇸", "name": "Fed — Federal Reserve",         "cycle": "hold",       "rate": "4,25–4,50%" },
+                         { "flag": "🇪🇺", "name": "BCE — Banco Central Europeu",   "cycle": "easing",     "rate": "2,40%"      },
+                         { "flag": "🇬🇧", "name": "BoE — Bank of England",         "cycle": "easing",     "rate": "4,25%"      },
+                         { "flag": "🇯🇵", "name": "BoJ — Bank of Japan",           "cycle": "tightening", "rate": "0,50%"      },
+                         { "flag": "🇨🇳", "name": "PBoC — People's Bank of China", "cycle": "easing",     "rate": "3,10%"      }
                      ],
     "speeches":  [
 

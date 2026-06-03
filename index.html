@@ -56,7 +56,30 @@
     /* ── Main ───────────────────────────────────────────────────────────── */
     main { padding:1rem; max-width:960px; margin:0 auto; }
     .tab-panel { display:none; }
-    .tab-panel.active { display:block; }
+    .tab-panel.active { display:block; animation:tabIn .18s ease; }
+    @keyframes tabIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+
+    /* ── Bottom nav (mobile) ─────────────────────────────────────────────── */
+    .bottom-nav { display:none; }
+    .bnav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:2px; background:none; border:none; border-top:2px solid transparent; cursor:pointer;
+      color:var(--text2); transition:color .15s,border-color .15s; padding:0 2px;
+      -webkit-tap-highlight-color:transparent; }
+    .bnav-btn.active { color:var(--accent); border-top-color:var(--accent); }
+    .bnav-icon { font-size:1.2rem; line-height:1; }
+    .bnav-label { font-size:.58rem; font-weight:600; letter-spacing:.02em; }
+
+    @media (max-width:639px) {
+      .tab-bar { display:none; }
+      main { padding-bottom:calc(60px + env(safe-area-inset-bottom, 0px) + .5rem); }
+      .bottom-nav {
+        display:flex; position:fixed; bottom:0; left:0; right:0;
+        height:calc(56px + env(safe-area-inset-bottom, 0px));
+        padding-bottom:env(safe-area-inset-bottom, 0px);
+        background:var(--surface); border-top:1px solid var(--border);
+        z-index:200; box-shadow:0 -2px 8px var(--shadow);
+      }
+    }
 
     /* ── Country grid ───────────────────────────────────────────────────── */
     .country-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.75rem; }
@@ -536,6 +559,24 @@
     </div>
 
   </main>
+
+  <nav class="bottom-nav">
+    <button class="bnav-btn active" data-tab="paises">
+      <span class="bnav-icon">🌍</span><span class="bnav-label">Países</span>
+    </button>
+    <button class="bnav-btn" data-tab="bcs">
+      <span class="bnav-icon">🏦</span><span class="bnav-label">BCs</span>
+    </button>
+    <button class="bnav-btn" data-tab="mercado">
+      <span class="bnav-icon">📈</span><span class="bnav-label">Mercado</span>
+    </button>
+    <button class="bnav-btn" data-tab="calendario">
+      <span class="bnav-icon">📅</span><span class="bnav-label">Calendário</span>
+    </button>
+    <button class="bnav-btn" data-tab="ppts">
+      <span class="bnav-icon">🖼️</span><span class="bnav-label">PPTs</span>
+    </button>
+  </nav>
 </div>
 
 <div id="mkt-tooltip"></div>
@@ -565,15 +606,40 @@ function emptyState(msg) {
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
+const TAB_ORDER = ["paises","bcs","mercado","calendario","ppts"];
+let activeTab   = "paises";
+
+function showTab(id) {
+  if (!TAB_ORDER.includes(id)) return;
+  activeTab = id;
+  document.querySelectorAll(".tab-btn").forEach(b  => b.classList.toggle("active", b.dataset.tab === id));
+  document.querySelectorAll(".bnav-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === id));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "tab-" + id));
+  if (id === "calendario") loadCalendario();
+}
+
 document.querySelectorAll(".tab-btn").forEach(btn =>
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
-    if (btn.dataset.tab === "calendario") loadCalendario();
-  })
+  btn.addEventListener("click", () => showTab(btn.dataset.tab))
 );
+document.querySelectorAll(".bnav-btn").forEach(btn =>
+  btn.addEventListener("click", () => showTab(btn.dataset.tab))
+);
+
+// Swipe horizontal entre abas (mobile)
+let swipeX0 = 0, swipeY0 = 0;
+const mainEl = document.querySelector("main");
+mainEl.addEventListener("touchstart", e => {
+  swipeX0 = e.touches[0].clientX;
+  swipeY0 = e.touches[0].clientY;
+}, { passive:true });
+mainEl.addEventListener("touchend", e => {
+  const dx = e.changedTouches[0].clientX - swipeX0;
+  const dy = e.changedTouches[0].clientY - swipeY0;
+  if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
+  const cur = TAB_ORDER.indexOf(activeTab);
+  if (dx < 0 && cur < TAB_ORDER.length - 1) showTab(TAB_ORDER[cur + 1]);
+  if (dx > 0 && cur > 0) showTab(TAB_ORDER[cur - 1]);
+}, { passive:true });
 document.getElementById("header-date").textContent =
   new Date().toLocaleDateString("pt-BR", { day:"2-digit", month:"short", year:"numeric" });
 

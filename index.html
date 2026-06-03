@@ -701,6 +701,29 @@ document.getElementById("back-btn").addEventListener("click", () => {
 });
 
 // ── BCs ────────────────────────────────────────────────────────────────────
+
+// Busca Selic Meta diretamente da API aberta do BCB (sem autenticação)
+async function fetchSelicLive() {
+  try {
+    const r = await fetch(
+      "https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/10?formato=json"
+    );
+    if (!r.ok) return null;
+    const pts = await r.json();
+    if (!pts?.length) return null;
+    const current = parseFloat(pts[pts.length - 1].valor);
+    // Determina ciclo: compara com o último valor diferente do atual
+    let prev = current;
+    for (let i = pts.length - 2; i >= 0; i--) {
+      const v = parseFloat(pts[i].valor);
+      if (v !== current) { prev = v; break; }
+    }
+    const cycle  = current > prev ? "tightening" : current < prev ? "easing" : "hold";
+    const rate   = current.toFixed(2).replace(".", ",") + "%";
+    return { rate, cycle };
+  } catch { return null; }
+}
+
 function renderBCs(configBCs) {
   const list = document.getElementById("bc-list");
   const bcs  = configBCs?.length ? configBCs : CENTRAL_BANKS_STATIC;
@@ -719,6 +742,20 @@ function renderBCs(configBCs) {
     if (isBCB) html += `<div class="bcb-docs" id="bcb-docs" style="display:none">${buildBCBDocs()}</div>`;
   });
   list.innerHTML = html;
+
+  // Atualiza BCB com taxa Selic ao vivo (sobrescreve o valor do config.json)
+  fetchSelicLive().then(selic => {
+    if (!selic) return;
+    const card = document.getElementById("bc-card-bcb");
+    if (!card) return;
+    const rateEl  = card.querySelector(".bc-rate");
+    const badgeEl = card.querySelector(".bc-cycle .badge");
+    if (rateEl)  rateEl.textContent = selic.rate;
+    if (badgeEl) {
+      badgeEl.className   = "badge " + (CYCLE_BADGE[selic.cycle] || "badge-hold");
+      badgeEl.textContent = CYCLE_LABEL[selic.cycle] || selic.cycle;
+    }
+  });
 }
 
 function buildBCBDocs() {

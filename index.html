@@ -85,12 +85,6 @@
     .bc-flag { font-size:1.5rem; flex-shrink:0; }
     .bc-info { flex:1; min-width:0; }
     .bc-name { font-size:.9rem; font-weight:600; }
-    .bc-cycle { margin-top:.25rem; }
-    .badge { display:inline-block; padding:.15rem .55rem; border-radius:99px; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
-    .badge-tightening { background:rgba(163,20,24,.15); color:var(--red); }
-    .badge-easing     { background:rgba(131,165,64,.15); color:var(--green); }
-    .badge-hold       { background:rgba(238,163,32,.15); color:var(--amber); }
-    .bc-rate { font-size:.85rem; color:var(--text2); font-weight:700; flex-shrink:0; }
     .bc-clickable { cursor:pointer; }
     .bc-clickable:hover { border-color:var(--accent); }
     .bc-open { border-bottom-left-radius:0; border-bottom-right-radius:0; border-bottom-color:transparent; }
@@ -616,8 +610,6 @@ const CENTRAL_BANKS_STATIC = [
   { flag:"🇯🇵", name:"BoJ — Bank of Japan",            cycle:"tightening", rate:"0,50%"      },
   { flag:"🇨🇳", name:"PBoC — People's Bank of China",  cycle:"easing",     rate:"3,10%"      },
 ];
-const CYCLE_LABEL = { tightening:"Alta de juros", easing:"Corte de juros", hold:"Em espera" };
-const CYCLE_BADGE = { tightening:"badge-tightening", easing:"badge-easing", hold:"badge-hold" };
 
 const BCB_DOCS = {
   comunicados: [
@@ -702,28 +694,6 @@ document.getElementById("back-btn").addEventListener("click", () => {
 
 // ── BCs ────────────────────────────────────────────────────────────────────
 
-// Busca Selic Meta diretamente da API aberta do BCB (sem autenticação)
-async function fetchSelicLive() {
-  try {
-    const r = await fetch(
-      "https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/10?formato=json"
-    );
-    if (!r.ok) return null;
-    const pts = await r.json();
-    if (!pts?.length) return null;
-    const current = parseFloat(pts[pts.length - 1].valor);
-    // Determina ciclo: compara com o último valor diferente do atual
-    let prev = current;
-    for (let i = pts.length - 2; i >= 0; i--) {
-      const v = parseFloat(pts[i].valor);
-      if (v !== current) { prev = v; break; }
-    }
-    const cycle  = current > prev ? "tightening" : current < prev ? "easing" : "hold";
-    const rate   = current.toFixed(2).replace(".", ",") + "%";
-    return { rate, cycle };
-  } catch { return null; }
-}
-
 function renderBCs(configBCs) {
   const list = document.getElementById("bc-list");
   const bcs  = configBCs?.length ? configBCs : CENTRAL_BANKS_STATIC;
@@ -734,28 +704,12 @@ function renderBCs(configBCs) {
       <div class="bc-flag">${bc.flag||"🏦"}</div>
       <div class="bc-info">
         <div class="bc-name">${bc.name}</div>
-        <div class="bc-cycle"><span class="badge ${CYCLE_BADGE[bc.cycle]||"badge-hold"}">${CYCLE_LABEL[bc.cycle]||bc.cycle}</span></div>
       </div>
-      <div class="bc-rate">${bc.rate||""}</div>
       ${isBCB ? '<span class="bc-chevron">▾</span>' : ''}
     </div>`;
     if (isBCB) html += `<div class="bcb-docs" id="bcb-docs" style="display:none">${buildBCBDocs()}</div>`;
   });
   list.innerHTML = html;
-
-  // Atualiza BCB com taxa Selic ao vivo (sobrescreve o valor do config.json)
-  fetchSelicLive().then(selic => {
-    if (!selic) return;
-    const card = document.getElementById("bc-card-bcb");
-    if (!card) return;
-    const rateEl  = card.querySelector(".bc-rate");
-    const badgeEl = card.querySelector(".bc-cycle .badge");
-    if (rateEl)  rateEl.textContent = selic.rate;
-    if (badgeEl) {
-      badgeEl.className   = "badge " + (CYCLE_BADGE[selic.cycle] || "badge-hold");
-      badgeEl.textContent = CYCLE_LABEL[selic.cycle] || selic.cycle;
-    }
-  });
 }
 
 function buildBCBDocs() {

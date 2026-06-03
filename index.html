@@ -91,6 +91,23 @@
     .badge-easing     { background:rgba(131,165,64,.15); color:var(--green); }
     .badge-hold       { background:rgba(238,163,32,.15); color:var(--amber); }
     .bc-rate { font-size:.85rem; color:var(--text2); font-weight:700; flex-shrink:0; }
+    .bc-clickable { cursor:pointer; }
+    .bc-clickable:hover { border-color:var(--accent); }
+    .bc-open { border-bottom-left-radius:0; border-bottom-right-radius:0; border-bottom-color:transparent; }
+    .bc-chevron { margin-left:.5rem; color:var(--text2); font-size:.8rem; transition:transform .2s; flex-shrink:0; }
+    .bc-open .bc-chevron { transform:rotate(180deg); }
+    .bcb-docs { background:var(--bg); border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius) var(--radius); padding:1rem 1rem .5rem; }
+    .bcb-section { margin-bottom:1.25rem; }
+    .bcb-section:last-child { margin-bottom:.25rem; }
+    .bcb-section-title { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text2); margin-bottom:.5rem; padding-bottom:.3rem; border-bottom:1px solid var(--border); }
+    .bcb-doc-row { display:flex; align-items:center; justify-content:space-between; padding:.3rem 0; gap:.5rem; }
+    .bcb-doc-row + .bcb-doc-row { border-top:1px solid var(--border); }
+    .bcb-doc-label { font-size:.82rem; font-weight:500; }
+    .bcb-doc-sub { font-size:.72rem; color:var(--text2); margin-top:.05rem; }
+    .bcb-doc-meta { display:flex; align-items:center; gap:.4rem; flex-shrink:0; }
+    .bcb-doc-date { font-size:.72rem; color:var(--text2); }
+    .bcb-doc-link { font-size:.72rem; font-weight:700; color:var(--accent); text-decoration:none; white-space:nowrap; padding:.12rem .45rem; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); border-radius:4px; }
+    .bcb-doc-link:hover { background:color-mix(in srgb,var(--accent) 10%,transparent); }
 
     /* ── PPTs ───────────────────────────────────────────────────────────── */
     .ppt-list { display:flex; flex-direction:column; gap:.5rem; }
@@ -602,6 +619,42 @@ const CENTRAL_BANKS_STATIC = [
 const CYCLE_LABEL = { tightening:"Alta de juros", easing:"Corte de juros", hold:"Em espera" };
 const CYCLE_BADGE = { tightening:"badge-tightening", easing:"badge-easing", hold:"badge-hold" };
 
+const BCB_DOCS = {
+  comunicados: [
+    { num:278, date:"29/04/2026", label:"Reunião 278", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:277, date:"18/03/2026", label:"Reunião 277", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:276, date:"28/01/2026", label:"Reunião 276", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:275, date:"10/12/2025", label:"Reunião 275", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:274, date:"05/11/2025", label:"Reunião 274", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:273, date:"17/09/2025", label:"Reunião 273", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:272, date:"30/07/2025", label:"Reunião 272", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:271, date:"18/06/2025", label:"Reunião 271", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:270, date:"07/05/2025", label:"Reunião 270", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:269, date:"19/03/2025", label:"Reunião 269", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+    { num:268, date:"29/01/2025", label:"Reunião 268", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+  ],
+  atas: [
+    { num:278, date:"05/05/2026", label:"Ata 278", sub:"Reunião de 29/04/2026", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom278-not20260429278.pdf" },
+    { num:277, date:"24/03/2026", label:"Ata 277", sub:"Reunião de 18/03/2026", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom277-not20260318277.pdf" },
+    { num:276, date:"03/02/2026", label:"Ata 276", sub:"Reunião de 28/01/2026", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom276-not20260128276.pdf" },
+    { num:275, date:"16/12/2025", label:"Ata 275", sub:"Reunião de 10/12/2025", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom275-not20251210275.pdf" },
+    { num:274, date:"11/11/2025", label:"Ata 274", sub:"Reunião de 05/11/2025", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom274-not20251105274.pdf" },
+    { num:273, date:"23/09/2025", label:"Ata 273", sub:"Reunião de 17/09/2025", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom273-not20250917273.pdf" },
+    { num:272, date:"05/08/2025", label:"Ata 272", sub:"Reunião de 30/07/2025", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom272-not20250730272.pdf" },
+    { num:271, date:"24/06/2025", label:"Ata 271", sub:"Reunião de 18/06/2025", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom271-not20250618271.pdf" },
+    { num:270, date:"13/05/2025", label:"Ata 270", sub:"Reunião de 07/05/2025", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom270-not20250507270.pdf" },
+    { num:269, date:"25/03/2025", label:"Ata 269", sub:"Reunião de 19/03/2025", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom269-not20250319269.pdf" },
+    { num:268, date:"04/02/2025", label:"Ata 268", sub:"Reunião de 29/01/2025", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom268-not20250129268.pdf" },
+  ],
+  rpm: [
+    { date:"Mar/2026", label:"Relatório de Política Monetária", sub:"1º Trimestre 2026", url:"https://www.bcb.gov.br/content/ri/relatorioinflacao/202603/rpm202603p.pdf" },
+    { date:"Dez/2025", label:"Relatório de Política Monetária", sub:"4º Trimestre 2025", url:"https://www.bcb.gov.br/content/ri/relatorioinflacao/202512/rpm202512p.pdf" },
+    { date:"Set/2025", label:"Relatório de Política Monetária", sub:"3º Trimestre 2025", url:"https://www.bcb.gov.br/content/ri/relatorioinflacao/202509/rpm202509p.pdf" },
+    { date:"Jun/2025", label:"Relatório de Política Monetária", sub:"2º Trimestre 2025", url:"https://www.bcb.gov.br/content/ri/relatorioinflacao/202506/rpm202506p.pdf" },
+    { date:"Mar/2025", label:"Relatório de Política Monetária", sub:"1º Trimestre 2025", url:"https://www.bcb.gov.br/content/ri/relatorioinflacao/202503/rpm202503p.pdf" },
+  ],
+};
+
 // ── Países ─────────────────────────────────────────────────────────────────
 function renderCountryGrid(countries, byCountry) {
   const grid = document.getElementById("country-grid");
@@ -651,15 +704,54 @@ document.getElementById("back-btn").addEventListener("click", () => {
 function renderBCs(configBCs) {
   const list = document.getElementById("bc-list");
   const bcs  = configBCs?.length ? configBCs : CENTRAL_BANKS_STATIC;
-  list.innerHTML = bcs.map(bc => `
-    <div class="bc-card">
+  let html = "";
+  bcs.forEach(bc => {
+    const isBCB = (bc.flag === "🇧🇷");
+    html += `<div class="bc-card${isBCB ? " bc-clickable" : ""}"${isBCB ? ' id="bc-card-bcb" onclick="toggleBCBDocs()"' : ''}>
       <div class="bc-flag">${bc.flag||"🏦"}</div>
       <div class="bc-info">
         <div class="bc-name">${bc.name}</div>
         <div class="bc-cycle"><span class="badge ${CYCLE_BADGE[bc.cycle]||"badge-hold"}">${CYCLE_LABEL[bc.cycle]||bc.cycle}</span></div>
       </div>
       <div class="bc-rate">${bc.rate||""}</div>
-    </div>`).join("");
+      ${isBCB ? '<span class="bc-chevron">▾</span>' : ''}
+    </div>`;
+    if (isBCB) html += `<div class="bcb-docs" id="bcb-docs" style="display:none">${buildBCBDocs()}</div>`;
+  });
+  list.innerHTML = html;
+}
+
+function buildBCBDocs() {
+  const row = (item, linkTxt) =>
+    `<div class="bcb-doc-row">
+      <div><div class="bcb-doc-label">${item.label}</div>${item.sub ? `<div class="bcb-doc-sub">${item.sub}</div>` : ""}</div>
+      <div class="bcb-doc-meta">
+        <span class="bcb-doc-date">${item.date}</span>
+        <a class="bcb-doc-link" href="${item.url}" target="_blank" rel="noopener">${linkTxt}</a>
+      </div>
+    </div>`;
+  return `
+    <div class="bcb-section">
+      <div class="bcb-section-title">Comunicados</div>
+      ${BCB_DOCS.comunicados.map(d => row(d, "↗ Web")).join("")}
+    </div>
+    <div class="bcb-section">
+      <div class="bcb-section-title">Atas do COPOM</div>
+      ${BCB_DOCS.atas.map(d => row(d, "↓ PDF")).join("")}
+    </div>
+    <div class="bcb-section">
+      <div class="bcb-section-title">Relatório de Política Monetária</div>
+      ${BCB_DOCS.rpm.map(d => row(d, "↓ PDF")).join("")}
+    </div>`;
+}
+
+function toggleBCBDocs() {
+  const panel = document.getElementById("bcb-docs");
+  const card  = document.getElementById("bc-card-bcb");
+  if (!panel || !card) return;
+  const opening = panel.style.display === "none";
+  panel.style.display = opening ? "" : "none";
+  card.classList.toggle("bc-open", opening);
 }
 
 // ── PPTs ───────────────────────────────────────────────────────────────────

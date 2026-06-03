@@ -498,6 +498,7 @@
       <!-- Colunas + download -->
       <div class="cal-col-bar">
         <span class="cal-filter-lbl">Colunas:</span>
+        <button class="mkt-sub-btn active" data-calcol="date">Data</button>
         <button class="mkt-sub-btn active" data-calcol="prior">Anterior</button>
         <button class="mkt-sub-btn active" data-calcol="estimate">Estimativa</button>
         <button class="mkt-sub-btn active" data-calcol="actual">Realizado</button>
@@ -1686,7 +1687,7 @@ async function reloadReports() {
 // ── Calendário Econômico ───────────────────────────────────────────────────
 let calData       = null;
 let calCountrySel = new Set();   // vazio = todos
-let calCols       = { prior:true, estimate:true, actual:true, surprise:true };
+let calCols       = { date:true, prior:true, estimate:true, actual:true, surprise:true };
 let calHiddenDates = new Set();  // YYYY-MM-DD dias colapsados
 let calHiddenKeys  = new Set();  // _idx de eventos ocultos (Number)
 
@@ -1790,7 +1791,9 @@ function renderCalendario() {
   const empty  = document.getElementById("cal-empty");
 
   // Cabeçalho
-  let th = `<tr><th>Data</th><th>Hora</th><th>País</th><th>Evento / Indicador</th>`;
+  let th = `<tr>`;
+  if (calCols.date)     th += `<th>Data</th>`;
+  th += `<th>Hora</th><th>País</th><th>Evento / Indicador</th>`;
   if (calCols.prior)    th += `<th class="cal-num">Anterior</th>`;
   if (calCols.estimate) th += `<th class="cal-num">Estimativa</th>`;
   if (calCols.actual)   th += `<th class="cal-num">Realizado</th>`;
@@ -1807,7 +1810,7 @@ function renderCalendario() {
   const byDate = {};
   events.forEach(e => { const d=calParseYMD(e.date); (byDate[d]=byDate[d]||[]).push(e); });
 
-  const nCols = 5 + [calCols.prior,calCols.estimate,calCols.actual,calCols.surprise].filter(Boolean).length;
+  const nCols = 4 + [calCols.date,calCols.prior,calCols.estimate,calCols.actual,calCols.surprise].filter(Boolean).length;
   let html = "";
 
   Object.keys(byDate).sort().forEach(ymd => {
@@ -1834,7 +1837,7 @@ function renderCalendario() {
         }
 
         html += `<tr class="${bold}">
-          <td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${e.date}</td>
+          ${calCols.date ? `<td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${e.date}</td>` : ""}
           <td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${e.time||"—"}</td>
           <td>${badge}</td>
           <td>${e.event||""}</td>
@@ -1987,15 +1990,27 @@ function initCalendarListeners() {
   document.getElementById("cal-from").value = calTodayYMD();
   document.getElementById("cal-to").value   = calEndMonthYMD();
 
+  // Restaura preferências de colunas do localStorage
+  try {
+    const saved = JSON.parse(localStorage.getItem("cal_cols") || "{}");
+    Object.keys(saved).forEach(k => { if (k in calCols) calCols[k] = !!saved[k]; });
+  } catch(e) {}
+  // Sincroniza estado dos botões com as preferências restauradas
+  document.querySelectorAll("[data-calcol]").forEach(btn => {
+    const k = btn.dataset.calcol;
+    if (k in calCols) calCols[k] ? btn.classList.add("active") : btn.classList.remove("active");
+  });
+
   // Datas change
   document.getElementById("cal-from").addEventListener("change", () => { if (calData) renderCalendario(); });
   document.getElementById("cal-to").addEventListener("change",   () => { if (calData) renderCalendario(); });
 
-  // Toggles de colunas — fora do loadCalendario para evitar listeners duplicados
+  // Toggles de colunas — salva no localStorage a cada clique
   document.querySelectorAll("[data-calcol]").forEach(btn => {
     btn.addEventListener("click", () => {
       btn.classList.toggle("active");
       calCols[btn.dataset.calcol] = btn.classList.contains("active");
+      localStorage.setItem("cal_cols", JSON.stringify(calCols));
       if (calData) renderCalendario();
     });
   });

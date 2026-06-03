@@ -966,15 +966,32 @@ async function loadMarket() {
     if (!byDate[date] || s.ts > byDate[date].ts) byDate[date] = s;
   });
 
-  // 2. Live (market.json) sempre sobrepõe histórico para a mesma data
-  //    O history usa timestamp T18:00 fixo; o live tem dados mais completos
+  // 2. Live (market.json) sobrepõe histórico — com smart merge por campo:
+  //    se o live não tiver um campo (ex: bolsas), mantém o valor do histórico.
+  //    Evita que snapshots incompletos destruam dados históricos completos.
   const liveByDate = {};
   liveSnaps.forEach(s => {
     const date = (s.ts || "").substring(0, 10);
     if (!date) return;
     if (!liveByDate[date] || s.ts > liveByDate[date].ts) liveByDate[date] = s;
   });
-  Object.assign(byDate, liveByDate);
+
+  Object.entries(liveByDate).forEach(([date, lv]) => {
+    const hv = byDate[date];
+    if (!hv) { byDate[date] = lv; return; }           // sem histórico → usa live direto
+    // Para cada campo array: usa live se não-vazio, senão fallback ao histórico
+    const merged = { ts: lv.ts, label: lv.label };
+    ["di","ntnb","treasuries","bolsas","commodities"].forEach(key => {
+      const la = lv[key], ha = hv[key];
+      merged[key] = (Array.isArray(la) && la.length > 0) ? la
+                  : (Array.isArray(ha) && ha.length > 0) ? ha
+                  : (la !== undefined ? la : ha);
+    });
+    // fx é objeto — usa live se tiver chaves, senão histórico
+    const lFx = lv.fx || {}, hFx = hv.fx || {};
+    merged.fx = Object.keys(lFx).length > 0 ? lFx : hFx;
+    byDate[date] = merged;
+  });
 
   mktByDate = byDate;
   mktDates  = Object.keys(byDate).sort().reverse(); // newest first
@@ -1101,10 +1118,25 @@ function drawCurve(svgId, legendId, updId, dataA, dataB, labelA, labelB, valueKe
       stroke:"var(--border)", "stroke-width":"1" }));
   });
 
+  // Mapa label→índice de dataA (para alinhar dataB quando tiver vértices diferentes)
+  const labelToIdx = {};
+  dataA.forEach((d, i) => { labelToIdx[d.label] = i; });
+
   // Função para desenhar uma curva com pontos clicáveis
+  // Para dataB: alinha pelos labels de dataA — ignora vértices ausentes no dataA
   function drawLine(data, colorClass, dotClass, label) {
     if (!data || !data.length) return;
-    const pts = data.map((d,i) => `${xOf(i)},${yOf(d[valueKey])}`).join(" ");
+    // Cria pares {xi, val} — para dataB usa labelToIdx; para dataA usa índice direto
+    const isB = (data !== dataA);
+    const pairs = [];
+    data.forEach((d, i) => {
+      const xi  = isB ? (labelToIdx[d.label] ?? -1) : i;
+      const val = d[valueKey];
+      if (xi >= 0 && val != null) pairs.push({ xi, val, lbl: d.label });
+    });
+    if (!pairs.length) return;
+
+    const pts = pairs.map(p => `${xOf(p.xi)},${yOf(p.val)}`).join(" ");
     const poly = mkEl("polyline", { points:pts, fill:"none",
       stroke: colorClass === "a" ? "var(--accent)" : "var(--amber)",
       "stroke-width":"2.2", "stroke-linecap":"round", "stroke-linejoin":"round" });
@@ -1112,8 +1144,8 @@ function drawCurve(svgId, legendId, updId, dataA, dataB, labelA, labelB, valueKe
     svg.appendChild(poly);
 
     // Pontos interativos
-    data.forEach((d,i) => {
-      const cx = xOf(i), cy = yOf(d[valueKey]);
+    pairs.forEach(({ xi, val, lbl }) => {
+      const cx = xOf(xi), cy = yOf(val);
       const circle = mkEl("circle", { cx, cy, r:"4",
         fill: colorClass === "a" ? "var(--accent)" : "var(--amber)",
         stroke:"var(--surface)", "stroke-width":"1.5", style:"cursor:pointer" });
@@ -1122,7 +1154,7 @@ function drawCurve(svgId, legendId, updId, dataA, dataB, labelA, labelB, valueKe
         tt.style.display = "block";
         tt.style.left = (e.clientX + 12) + "px";
         tt.style.top  = (e.clientY - 28) + "px";
-        tt.textContent = `${d.label}  ${d[valueKey].toFixed(3)} ${unit}  [${label}]`;
+        tt.textContent = `${lbl}  ${val.toFixed(3)} ${unit}  [${label}]`;
       });
       circle.addEventListener("mouseleave", () => {
         document.getElementById("mkt-tooltip").style.display = "none";

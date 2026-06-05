@@ -1,6 +1,17 @@
 {
   "snapshots":[
     {
+      "ts":"2026-06-05T10:02:32",
+      "label":"05/jun 10:02",
+      "di":[],
+      "ntnb":[],
+      "fx":{"usdbrl":0.0000,"eurbrl":0.0000,"eurusd":0.0000,"gbpusd":0.0000,"usdjpy":0.0000,"usdcny":0.0000,"dxy":0.0000},
+      "treasuries":[],
+      "bolsas":[],
+      "commodities":[]
+    },
+    
+    {
       "ts":"2026-06-05T09:50:08",
       "label":"05/jun 09:50",
       "di":[{"label":"Jun/26","du":0,"taxa":14.400},{"label":"Jul/26","du":0,"taxa":14.335},{"label":"Ago/26","du":0,"taxa":14.304},{"label":"Set/26","du":0,"taxa":14.270},{"label":"Out/26","du":0,"taxa":14.285},{"label":"Nov/26","du":0,"taxa":14.294},{"label":"Dez/26","du":0,"taxa":14.295},{"label":"Jan/27","du":0,"taxa":14.285},{"label":"Fev/27","du":0,"taxa":14.313},{"label":"Mar/27","du":0,"taxa":14.330},{"label":"Abr/27","du":0,"taxa":14.335},{"label":"Mai/27","du":0,"taxa":14.354},{"label":"Jul/27","du":0,"taxa":14.375},{"label":"Ago/27","du":0,"taxa":14.375},{"label":"Out/27","du":0,"taxa":14.380},{"label":"Nov/27","du":0,"taxa":14.380},{"label":"Dez/27","du":0,"taxa":14.370},{"label":"Jan/28","du":0,"taxa":14.375},{"label":"Abr/28","du":0,"taxa":14.380},{"label":"Jul/28","du":0,"taxa":14.405},{"label":"Out/28","du":0,"taxa":14.410},{"label":"Nov/28","du":0,"taxa":14.425},{"label":"Dez/28","du":0,"taxa":14.425},{"label":"Jan/29","du":0,"taxa":14.435},{"label":"Abr/29","du":0,"taxa":14.435},{"label":"Jul/29","du":0,"taxa":14.445},{"label":"Out/29","du":0,"taxa":14.450},{"label":"Nov/29","du":0,"taxa":14.300},{"label":"Dez/29","du":0,"taxa":14.439},{"label":"Jan/30","du":0,"taxa":14.445},{"label":"Abr/30","du":0,"taxa":14.430},{"label":"Jul/30","du":0,"taxa":14.425},{"label":"Out/30","du":0,"taxa":14.410},{"label":"Jan/31","du":0,"taxa":14.400},{"label":"Abr/31","du":0,"taxa":14.399},{"label":"Jul/31","du":0,"taxa":14.400},{"label":"Out/31","du":0,"taxa":14.310},{"label":"Jan/32","du":0,"taxa":14.430}],
@@ -914,15 +925,6 @@
     
     {
       "ts":"2026-05-26T17:03:52",
-      "label":"26/May 17:03",
-      "di":[{"label":"1/1/2026","du":5,"taxa":14.391},{"label":"1/1/2027","du":160,"taxa":14.060},{"label":"1/1/2028","du":420,"taxa":0.000},{"label":"1/1/2029","du":681,"taxa":0.000},{"label":"1/1/2030","du":1203,"taxa":13.900},{"label":"1/1/2031","du":1464,"taxa":13.960}],
-      "ntnb":[],
-      "fx":{"usdbrl":5.0261,"eurbrl":5.8478,"eurusd":1.1633,"gbpusd":1.3451,"usdjpy":159.3100,"usdcny":6.7861,"dxy":99.1350},
-      "treasuries":[{"label":"2y","yield":4.040},{"label":"3y","yield":4.092},{"label":"5y","yield":4.177},{"label":"7y","yield":4.322},{"label":"10y","yield":4.489},{"label":"20y","yield":5.025},{"label":"30y","yield":5.024}]
-    },
-    
-    {
-      "ts":"2026-05-26T17:03:51",
       "label":"26/May 17:03",
       "di":[{"label":"1/1/2026","du":5,"taxa":14.391},{"label":"1/1/2027","du":160,"taxa":14.060},{"label":"1/1/2028","du":420,"taxa":0.000},{"label":"1/1/2029","du":681,"taxa":0.000},{"label":"1/1/2030","du":1203,"taxa":13.900},{"label":"1/1/2031","du":1464,"taxa":13.960}],
       "ntnb":[],

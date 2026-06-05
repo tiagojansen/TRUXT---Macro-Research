@@ -1,4 +1,4 @@
-{
+﻿{
     "countries":  [
                       "brasil",
                       "eua",
@@ -84,7 +84,7 @@
                         "country":  "brasil",
                         "section":  "alta_frequencia",
                         "file":  "reports/brasil/alta_frequencia/ColetaFGV.html",
-                        "updated":  "2026-06-03 08:13"
+                        "updated":  "2026-06-05 08:50"
                     },
                     {
                         "id":  "balanca_comercial",
@@ -144,12 +144,42 @@
                     }
                 ],
     "centralBanks":  [
-                         { "flag": "🇧🇷", "name": "BCB — Banco Central do Brasil", "cycle": "tightening", "rate": "—"           },
-                         { "flag": "🇺🇸", "name": "Fed — Federal Reserve",         "cycle": "hold",       "rate": "4,25–4,50%" },
-                         { "flag": "🇪🇺", "name": "BCE — Banco Central Europeu",   "cycle": "easing",     "rate": "2,40%"      },
-                         { "flag": "🇬🇧", "name": "BoE — Bank of England",         "cycle": "easing",     "rate": "4,25%"      },
-                         { "flag": "🇯🇵", "name": "BoJ — Bank of Japan",           "cycle": "tightening", "rate": "0,50%"      },
-                         { "flag": "🇨🇳", "name": "PBoC — People's Bank of China", "cycle": "easing",     "rate": "3,10%"      }
+                         {
+                             "flag":  "🇧🇷",
+                             "name":  "BCB — Banco Central do Brasil",
+                             "cycle":  "tightening",
+                             "rate":  "—"
+                         },
+                         {
+                             "flag":  "🇺🇸",
+                             "name":  "Fed — Federal Reserve",
+                             "cycle":  "hold",
+                             "rate":  "4,25–4,50%"
+                         },
+                         {
+                             "flag":  "🇪🇺",
+                             "name":  "BCE — Banco Central Europeu",
+                             "cycle":  "easing",
+                             "rate":  "2,40%"
+                         },
+                         {
+                             "flag":  "🇬🇧",
+                             "name":  "BoE — Bank of England",
+                             "cycle":  "easing",
+                             "rate":  "4,25%"
+                         },
+                         {
+                             "flag":  "🇯🇵",
+                             "name":  "BoJ — Bank of Japan",
+                             "cycle":  "tightening",
+                             "rate":  "0,50%"
+                         },
+                         {
+                             "flag":  "🇨🇳",
+                             "name":  "PBoC — People\u0027s Bank of China",
+                             "cycle":  "easing",
+                             "rate":  "3,10%"
+                         }
                      ],
     "speeches":  [
 

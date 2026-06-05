@@ -281,6 +281,7 @@
       border-radius:99px; color:var(--text2); font-size:.78rem; font-weight:600; cursor:pointer; display:none; }
     .cal-reset-btn:hover { color:var(--text); }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -714,6 +715,11 @@ const BCB_DOCS = {
 };
 
 // ── Países ─────────────────────────────────────────────────────────────────
+// Twemoji: substitui emojis por SVGs (resolve flags no Windows/desktop)
+function tw(el) {
+  if (window.twemoji && el) twemoji.parse(el, { folder:"svg", ext:".svg" });
+}
+
 function renderCountryGrid(countries, byCountry) {
   const grid = document.getElementById("country-grid");
   if (!countries.length) { grid.innerHTML = emptyState("Nenhum país cadastrado."); return; }
@@ -728,6 +734,7 @@ function renderCountryGrid(countries, byCountry) {
   grid.querySelectorAll(".country-card").forEach(card =>
     card.addEventListener("click", () => showCountryDetail(card.dataset.country, byCountry))
   );
+  tw(grid);
 }
 
 function showCountryDetail(country, byCountry) {
@@ -751,6 +758,7 @@ function showCountryDetail(country, byCountry) {
       : `<div class="empty-section">Nenhum relatório disponível.</div>`;
   });
   document.getElementById("country-detail-content").innerHTML = html;
+  tw(document.getElementById("country-detail-content"));
 }
 
 document.getElementById("back-btn").addEventListener("click", () => {
@@ -776,6 +784,7 @@ function renderBCs(configBCs) {
     if (isBCB) html += `<div class="bcb-docs" id="bcb-docs" style="display:none">${buildBCBDocs()}</div>`;
   });
   list.innerHTML = html;
+  tw(list);
 }
 
 function buildBCBDocs() {

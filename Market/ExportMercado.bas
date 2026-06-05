@@ -102,9 +102,9 @@ Public Sub ExportarMercado()
         Dim v1     As Double
         Dim v2     As Double
 
-        tipo  = LCase(Trim(wsExp.Cells(r, 1).Value))
+        tipo = LCase(Trim(wsExp.Cells(r, 1).Value))
         label = Trim(wsExp.Cells(r, 2).Text)   ' .Text preserva o texto exato da célula
-        v1    = 0 : v2 = 0
+        v1 = 0: v2 = 0
         If IsNumeric(wsExp.Cells(r, 3).Value) Then v1 = CDbl(wsExp.Cells(r, 3).Value)
         If IsNumeric(wsExp.Cells(r, 4).Value) Then v2 = CDbl(wsExp.Cells(r, 4).Value)
         ' Ignora linhas onde o valor principal é zero ou erro (dados ausentes no BBG)
@@ -136,7 +136,7 @@ NextRow:
     On Error GoTo ErrHandler
     If Not wsDI2 Is Nothing Then
         Dim lastDIRow2 As Long
-        lastDIRow2 = wsDI2.Cells(wsDI2.Rows.Count, 1).End(xlUp).Row
+        lastDIRow2 = wsDI2.Cells(wsDI2.Rows.count, 1).End(xlUp).Row
         Dim cDI As Long
         cDI = 2
         Do While wsDI2.Cells(4, cDI).Value <> ""
@@ -171,14 +171,14 @@ NextRow:
     On Error GoTo ErrHandler
     If Not wsBolsas Is Nothing Then
         Dim lastBolsasRow As Long
-        lastBolsasRow = wsBolsas.Cells(wsBolsas.Rows.Count, 1).End(xlUp).Row
+        lastBolsasRow = wsBolsas.Cells(wsBolsas.Rows.count, 1).End(xlUp).Row
         Dim cBolsas As Long
         cBolsas = 2
         Do While wsBolsas.Cells(4, cBolsas).Value <> ""
             Dim bTickFull As String
             bTickFull = Trim(wsBolsas.Cells(4, cBolsas).Text)
             Dim bLabel As String, bGrupo As String
-            bLabel = "" : bGrupo = ""
+            bLabel = "": bGrupo = ""
             Call BolsasMeta(bTickFull, bLabel, bGrupo)
             If bLabel <> "" Then
                 Dim bVal As Double
@@ -212,14 +212,14 @@ NextRow:
     On Error GoTo ErrHandler
     If Not wsComm Is Nothing Then
         Dim lastCommRow As Long
-        lastCommRow = wsComm.Cells(wsComm.Rows.Count, 1).End(xlUp).Row
+        lastCommRow = wsComm.Cells(wsComm.Rows.count, 1).End(xlUp).Row
         Dim cComm As Long
         cComm = 2
         Do While wsComm.Cells(4, cComm).Value <> ""
             Dim cTickFull As String
             cTickFull = Trim(wsComm.Cells(4, cComm).Text)
             Dim cLabel As String, cGrupo As String, cUnit As String, cTicker As String
-            cLabel = "" : cGrupo = "" : cUnit = "" : cTicker = ""
+            cLabel = "": cGrupo = "": cUnit = "": cTicker = ""
             Call CommMeta(cTickFull, cLabel, cGrupo, cUnit, cTicker)
             If cLabel <> "" Then
                 Dim cVal As Double
@@ -244,10 +244,10 @@ NextRow:
     Dim ts     As String
     Dim lbl    As String
     Dim ptMes(1 To 12) As String
-    ptMes(1)="jan":ptMes(2)="fev":ptMes(3)="mar":ptMes(4)="abr"
-    ptMes(5)="mai":ptMes(6)="jun":ptMes(7)="jul":ptMes(8)="ago"
-    ptMes(9)="set":ptMes(10)="out":ptMes(11)="nov":ptMes(12)="dez"
-    ts  = Format(Now, "yyyy-mm-ddThh:mm:ss")
+    ptMes(1) = "jan": ptMes(2) = "fev": ptMes(3) = "mar": ptMes(4) = "abr"
+    ptMes(5) = "mai": ptMes(6) = "jun": ptMes(7) = "jul": ptMes(8) = "ago"
+    ptMes(9) = "set": ptMes(10) = "out": ptMes(11) = "nov": ptMes(12) = "dez"
+    ts = Format(Now, "yyyy-mm-ddThh:mm:ss")
     lbl = Format(Day(Now), "00") & "/" & ptMes(Month(Now)) & " " & _
           Format(Hour(Now), "00") & ":" & Format(Minute(Now), "00")
 
@@ -325,7 +325,7 @@ NextRow:
         startPos = InStr(fileContent, """snapshots"":[")
         If startPos > 0 Then
             startPos = InStr(startPos, fileContent, "[") + 1
-            endPos   = Len(fileContent)
+            endPos = Len(fileContent)
             ' Encontra o ] de fechamento do array (do fim para o início)
             Dim j As Long
             For j = endPos To 1 Step -1
@@ -440,9 +440,9 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
     On Error GoTo ErrHandler
 
     On Error Resume Next
-    Set wsDI      = ThisWorkbook.Sheets("DI_Futuro")
-    Set wsFX      = ThisWorkbook.Sheets("FX")
-    Set wsTR      = ThisWorkbook.Sheets("Treasuries")
+    Set wsDI = ThisWorkbook.Sheets("DI_Futuro")
+    Set wsFX = ThisWorkbook.Sheets("FX")
+    Set wsTR = ThisWorkbook.Sheets("Treasuries")
     Set wsBolsasH = ThisWorkbook.Sheets("Bolsas")
     Set wsCommodH = ThisWorkbook.Sheets("Commodities")
     On Error GoTo ErrHandler
@@ -477,7 +477,7 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
     Dim dictBolsas As Object
     Dim dictComm   As Object
     Set dictBolsas = CreateObject("Scripting.Dictionary")
-    Set dictComm   = CreateObject("Scripting.Dictionary")
+    Set dictComm = CreateObject("Scripting.Dictionary")
 
     If Not wsBolsasH Is Nothing Then
         r = 7
@@ -502,23 +502,23 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
     ' ── 2. Mapeamentos FX e Treasuries (fixos) ───────────────────────────────
     Dim fxKeys(0 To 6) As String
     Dim fxCols(0 To 6) As Long
-    fxKeys(0) = "eurbrl" : fxCols(0) = 2
-    fxKeys(1) = "usdbrl" : fxCols(1) = 3
-    fxKeys(2) = "eurusd" : fxCols(2) = 4
-    fxKeys(3) = "gbpusd" : fxCols(3) = 5
-    fxKeys(4) = "usdjpy" : fxCols(4) = 6
-    fxKeys(5) = "usdcny" : fxCols(5) = 7
-    fxKeys(6) = "dxy"    : fxCols(6) = 8
+    fxKeys(0) = "eurbrl": fxCols(0) = 2
+    fxKeys(1) = "usdbrl": fxCols(1) = 3
+    fxKeys(2) = "eurusd": fxCols(2) = 4
+    fxKeys(3) = "gbpusd": fxCols(3) = 5
+    fxKeys(4) = "usdjpy": fxCols(4) = 6
+    fxKeys(5) = "usdcny": fxCols(5) = 7
+    fxKeys(6) = "dxy": fxCols(6) = 8
 
     Dim trLbls(0 To 6) As String
     Dim trCols(0 To 6) As Long
-    trLbls(0) = "2y"  : trCols(0) = 2
-    trLbls(1) = "3y"  : trCols(1) = 3
-    trLbls(2) = "5y"  : trCols(2) = 4
-    trLbls(3) = "7y"  : trCols(3) = 5
-    trLbls(4) = "10y" : trCols(4) = 6
-    trLbls(5) = "20y" : trCols(5) = 7
-    trLbls(6) = "30y" : trCols(6) = 8
+    trLbls(0) = "2y": trCols(0) = 2
+    trLbls(1) = "3y": trCols(1) = 3
+    trLbls(2) = "5y": trCols(2) = 4
+    trLbls(3) = "7y": trCols(3) = 5
+    trLbls(4) = "10y": trCols(4) = 6
+    trLbls(5) = "20y": trCols(5) = 7
+    trLbls(6) = "30y": trCols(6) = 8
 
     ' Bolsas columns (dynamic, scanned from row 4)
     Dim bolsHCols(0 To 20)    As Long
@@ -531,15 +531,15 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
         Dim cBH As Long
         cBH = 2
         Do While wsBolsasH.Cells(4, cBH).Value <> ""
-            Dim bhTick As String : bhTick = Trim(wsBolsasH.Cells(4, cBH).Text)
-            Dim bhLbl  As String : bhLbl  = ""
-            Dim bhGrp  As String : bhGrp  = ""
+            Dim bhTick As String: bhTick = Trim(wsBolsasH.Cells(4, cBH).Text)
+            Dim bhLbl  As String: bhLbl = ""
+            Dim bhGrp  As String: bhGrp = ""
             Call BolsasMeta(bhTick, bhLbl, bhGrp)
             If bhLbl <> "" Then
-                bolsHCols(bolsHCount)   = cBH
+                bolsHCols(bolsHCount) = cBH
                 bolsHLabels(bolsHCount) = bhLbl
                 bolsHGrupos(bolsHCount) = bhGrp
-                bolsHRoots(bolsHCount)  = Split(bhTick, " ")(0)
+                bolsHRoots(bolsHCount) = Split(bhTick, " ")(0)
                 bolsHCount = bolsHCount + 1
             End If
             cBH = cBH + 1
@@ -558,17 +558,17 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
         Dim cCH As Long
         cCH = 2
         Do While wsCommodH.Cells(4, cCH).Value <> ""
-            Dim chTick As String : chTick = Trim(wsCommodH.Cells(4, cCH).Text)
-            Dim chLbl  As String : chLbl  = ""
-            Dim chGrp  As String : chGrp  = ""
-            Dim chUnit As String : chUnit = ""
-            Dim chTkr  As String : chTkr  = ""
+            Dim chTick As String: chTick = Trim(wsCommodH.Cells(4, cCH).Text)
+            Dim chLbl  As String: chLbl = ""
+            Dim chGrp  As String: chGrp = ""
+            Dim chUnit As String: chUnit = ""
+            Dim chTkr  As String: chTkr = ""
             Call CommMeta(chTick, chLbl, chGrp, chUnit, chTkr)
             If chLbl <> "" Then
-                commHCols(commHCount)    = cCH
-                commHLabels(commHCount)  = chLbl
-                commHGrupos(commHCount)  = chGrp
-                commHUnits(commHCount)   = chUnit
+                commHCols(commHCount) = cCH
+                commHLabels(commHCount) = chLbl
+                commHGrupos(commHCount) = chGrp
+                commHUnits(commHCount) = chUnit
                 commHTickers(commHCount) = chTkr
                 commHCount = commHCount + 1
             End If
@@ -598,7 +598,7 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
     Dim lastSavedDate As String
     Dim histContent   As String
     lastSavedDate = ""
-    histContent   = ""
+    histContent = ""
 
     If Dir(HISTORY_PATH) <> "" Then
         Dim fIn As Integer
@@ -669,15 +669,15 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
 
     ' ── 6. Loop principal ────────────────────────────────────────────────────
     Dim ptMes2(1 To 12) As String
-    ptMes2(1)="jan":ptMes2(2)="fev":ptMes2(3)="mar":ptMes2(4)="abr"
-    ptMes2(5)="mai":ptMes2(6)="jun":ptMes2(7)="jul":ptMes2(8)="ago"
-    ptMes2(9)="set":ptMes2(10)="out":ptMes2(11)="nov":ptMes2(12)="dez"
+    ptMes2(1) = "jan": ptMes2(2) = "fev": ptMes2(3) = "mar": ptMes2(4) = "abr"
+    ptMes2(5) = "mai": ptMes2(6) = "jun": ptMes2(7) = "jul": ptMes2(8) = "ago"
+    ptMes2(9) = "set": ptMes2(10) = "out": ptMes2(11) = "nov": ptMes2(12) = "dez"
 
     Dim snapCount As Long
     snapCount = 0
 
     Dim lastDIRow As Long
-    lastDIRow = wsDI.Cells(wsDI.Rows.Count, 1).End(xlUp).Row
+    lastDIRow = wsDI.Cells(wsDI.Rows.count, 1).End(xlUp).Row
 
     Dim dtDI       As Date
     Dim dateStr    As String
@@ -706,14 +706,14 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
         If wsDI.Cells(r, 1).Value = "" Then GoTo NextHistRow
         If Not IsDate(wsDI.Cells(r, 1).Value) Then GoTo NextHistRow
 
-        dtDI    = CDate(wsDI.Cells(r, 1).Value)
+        dtDI = CDate(wsDI.Cells(r, 1).Value)
         dateStr = Format(dtDI, "yyyy-mm-dd")
 
         ' Pula datas já exportadas (modo incremental)
         If isIncremental And dateStr <= lastSavedDate Then GoTo NextHistRow
 
         ' Monta DI array (dinâmico)
-        diJson  = ""
+        diJson = ""
         diCount = 0
         For k = 0 To diDynCount - 1
             vDI = 0
@@ -802,7 +802,7 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
         If diCount = 0 And fxJson = "" And bolsasJson = "" And commodJson = "" Then GoTo NextHistRow
 
         ' Timestamp e label (formato "22/mai/26")
-        tsStr  = dateStr & "T18:00:00"
+        tsStr = dateStr & "T18:00:00"
         lblStr = Format(Day(dtDI), "0") & "/" & ptMes2(Month(dtDI)) & "/" & _
                  Right(CStr(Year(dtDI)), 2)
 
@@ -861,33 +861,33 @@ End Sub
 ' Grupos (ASCII): America, Europa, Asia, Volatilidade
 ' ------------------------------------------------------------------
 Private Sub BolsasMeta(tickerFull As String, ByRef outLabel As String, ByRef outGrupo As String)
-    Dim t As String : t = UCase(tickerFull)
+    Dim t As String: t = UCase(tickerFull)
     If InStr(t, "IBOV ") = 1 Then
-        outLabel = "Ibovespa" : outGrupo = "America"
+        outLabel = "Ibovespa": outGrupo = "America"
     ElseIf InStr(t, "SPX ") = 1 Then
-        outLabel = "S&P 500" : outGrupo = "America"
+        outLabel = "S&P 500": outGrupo = "America"
     ElseIf InStr(t, "ES1 ") = 1 Then
-        outLabel = "S&P 500 Fut." : outGrupo = "America"
+        outLabel = "S&P 500 Fut.": outGrupo = "America"
     ElseIf InStr(t, "NQ1 ") = 1 Then
-        outLabel = "Nasdaq Fut." : outGrupo = "America"
+        outLabel = "Nasdaq Fut.": outGrupo = "America"
     ElseIf InStr(t, "INDU ") = 1 Then
-        outLabel = "Dow Jones" : outGrupo = "America"
+        outLabel = "Dow Jones": outGrupo = "America"
     ElseIf InStr(t, "SX5E ") = 1 Then
-        outLabel = "Euro Stoxx 50" : outGrupo = "Europa"
+        outLabel = "Euro Stoxx 50": outGrupo = "Europa"
     ElseIf InStr(t, "NKY ") = 1 Then
-        outLabel = "Nikkei 225" : outGrupo = "Asia"
+        outLabel = "Nikkei 225": outGrupo = "Asia"
     ElseIf InStr(t, "HSI ") = 1 Then
-        outLabel = "Hang Seng" : outGrupo = "Asia"
+        outLabel = "Hang Seng": outGrupo = "Asia"
     ElseIf InStr(t, "SHSZ300") = 1 Then
-        outLabel = "CSI 300" : outGrupo = "Asia"
+        outLabel = "CSI 300": outGrupo = "Asia"
     ElseIf InStr(t, "KOSPI") = 1 Then
-        outLabel = "KOSPI" : outGrupo = "Asia"
+        outLabel = "KOSPI": outGrupo = "Asia"
     ElseIf InStr(t, "VIX ") = 1 Then
-        outLabel = "VIX" : outGrupo = "Volatilidade"
+        outLabel = "VIX": outGrupo = "Volatilidade"
     ElseIf InStr(t, "MOVE ") = 1 Then
-        outLabel = "MOVE" : outGrupo = "Volatilidade"
+        outLabel = "MOVE": outGrupo = "Volatilidade"
     Else
-        outLabel = "" : outGrupo = ""
+        outLabel = "": outGrupo = ""
     End If
 End Sub
 
@@ -896,27 +896,27 @@ End Sub
 ' Grupos (ASCII): Energia, Metais, Agricolas
 ' ------------------------------------------------------------------
 Private Sub CommMeta(tickerFull As String, ByRef outLabel As String, ByRef outGrupo As String, ByRef outUnit As String, ByRef outTicker As String)
-    Dim t As String : t = UCase(tickerFull)
+    Dim t As String: t = UCase(tickerFull)
     If InStr(t, "CL1 ") = 1 Then
-        outLabel = "WTI Crude" : outGrupo = "Energia" : outUnit = "USD/bbl" : outTicker = "CL1"
+        outLabel = "WTI Crude": outGrupo = "Energia": outUnit = "USD/bbl": outTicker = "CL1"
     ElseIf InStr(t, "CO1 ") = 1 Then
-        outLabel = "Brent" : outGrupo = "Energia" : outUnit = "USD/bbl" : outTicker = "CO1"
+        outLabel = "Brent": outGrupo = "Energia": outUnit = "USD/bbl": outTicker = "CO1"
     ElseIf InStr(t, "NG1 ") = 1 Then
-        outLabel = "Nat. Gas" : outGrupo = "Energia" : outUnit = "USD/MMBtu" : outTicker = "NG1"
+        outLabel = "Nat. Gas": outGrupo = "Energia": outUnit = "USD/MMBtu": outTicker = "NG1"
     ElseIf InStr(t, "GC1 ") = 1 Then
-        outLabel = "Ouro" : outGrupo = "Metais" : outUnit = "USD/oz" : outTicker = "GC1"
+        outLabel = "Ouro": outGrupo = "Metais": outUnit = "USD/oz": outTicker = "GC1"
     ElseIf InStr(t, "SI1 ") = 1 Then
-        outLabel = "Prata" : outGrupo = "Metais" : outUnit = "USD/oz" : outTicker = "SI1"
+        outLabel = "Prata": outGrupo = "Metais": outUnit = "USD/oz": outTicker = "SI1"
     ElseIf InStr(t, "HG1 ") = 1 Then
-        outLabel = "Cobre" : outGrupo = "Metais" : outUnit = "USD/lb" : outTicker = "HG1"
+        outLabel = "Cobre": outGrupo = "Metais": outUnit = "USD/lb": outTicker = "HG1"
     ElseIf InStr(t, "S 1 ") = 1 Then
-        outLabel = "Soja" : outGrupo = "Agricolas" : outUnit = "USD/bu" : outTicker = "S 1"
+        outLabel = "Soja": outGrupo = "Agricolas": outUnit = "USD/bu": outTicker = "S 1"
     ElseIf InStr(t, "C 1 ") = 1 Then
-        outLabel = "Milho" : outGrupo = "Agricolas" : outUnit = "USD/bu" : outTicker = "C 1"
+        outLabel = "Milho": outGrupo = "Agricolas": outUnit = "USD/bu": outTicker = "C 1"
     ElseIf InStr(t, "LC1 ") = 1 Then
-        outLabel = "Boi Gordo" : outGrupo = "Agricolas" : outUnit = "USD/lb" : outTicker = "LC1"
+        outLabel = "Boi Gordo": outGrupo = "Agricolas": outUnit = "USD/lb": outTicker = "LC1"
     Else
-        outLabel = "" : outGrupo = "" : outUnit = "" : outTicker = ""
+        outLabel = "": outGrupo = "": outUnit = "": outTicker = ""
     End If
 End Sub
 
@@ -936,19 +936,19 @@ Public Function ParseDILabel(tickerText As String) As String
 
     root = Split(Trim(tickerText), " ")(0)      ' "ODM26"
     If Len(root) < 4 Or Left(root, 2) <> "OD" Then
-        ParseDILabel = tickerText : Exit Function
+        ParseDILabel = tickerText: Exit Function
     End If
 
     monthCode = Mid(root, 3, 1)                  ' "M"
-    yearStr   = Right(root, 2)                    ' "26"
-    codes     = "FGHJKMNQUVXZ"
+    yearStr = Right(root, 2)                      ' "26"
+    codes = "FGHJKMNQUVXZ"
 
-    names(1) ="Jan": names(2) ="Fev": names(3) ="Mar": names(4) ="Abr"
-    names(5) ="Mai": names(6) ="Jun": names(7) ="Jul": names(8) ="Ago"
-    names(9) ="Set": names(10)="Out": names(11)="Nov": names(12)="Dez"
+    names(1) = "Jan": names(2) = "Fev": names(3) = "Mar": names(4) = "Abr"
+    names(5) = "Mai": names(6) = "Jun": names(7) = "Jul": names(8) = "Ago"
+    names(9) = "Set": names(10) = "Out": names(11) = "Nov": names(12) = "Dez"
 
     idx = InStr(codes, UCase(monthCode))
-    If idx = 0 Then ParseDILabel = tickerText : Exit Function
+    If idx = 0 Then ParseDILabel = tickerText: Exit Function
 
     ParseDILabel = names(idx) & "/" & yearStr
 End Function

@@ -1091,11 +1091,6 @@ function renderCommHistory() {
 }
 
 async function loadMarket() {
-  // Indicador de carregamento (arquivo pode ter 14+ MB)
-  const mktSel = document.getElementById("mkt-snap-selectors");
-  if (mktSel) mktSel.innerHTML =
-    '<span style="color:var(--text2);font-size:.8rem">⏳ Carregando histórico…</span>';
-
   const histSnaps = [];
   const liveSnaps = [];
 

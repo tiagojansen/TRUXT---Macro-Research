@@ -455,6 +455,46 @@
 
       <!-- US Rates (Nominais + Forwards Inflation + Juros Reais) -->
       <div id="mkt-panel-us-rates" class="mkt-sub-panel">
+        <div class="fx-view-bar">
+          <button class="ur-view-btn fx-view-btn active" data-view="curves">Curvas</button>
+          <button class="ur-view-btn fx-view-btn" data-view="hist">Histórico</button>
+        </div>
+
+        <!-- Vista Histórico -->
+        <div id="ur-view-hist" style="display:none">
+          <div class="us-rates-sub-bar">
+            <button class="ur-hgrp-btn us-rates-sub-btn active" data-grp="nom">Nominais</button>
+            <button class="ur-hgrp-btn us-rates-sub-btn" data-grp="fwd">Forwards</button>
+            <button class="ur-hgrp-btn us-rates-sub-btn" data-grp="real">Juros Reais</button>
+          </div>
+          <div class="fx-hist-controls">
+            <div class="fx-pair-bar" id="ur-hist-pill-bar"></div>
+            <div class="fx-hist-toolbar">
+              <div class="fx-mode-bar">
+                <button class="ur-hist-mode-btn fx-mode-btn active" data-mode="abs">Yield</button>
+                <button class="ur-hist-mode-btn fx-mode-btn" data-mode="bps">Var. bps</button>
+              </div>
+              <div class="fx-range-bar">
+                <button class="ur-hist-range-btn fx-range-btn" data-range="1m">1M</button>
+                <button class="ur-hist-range-btn fx-range-btn" data-range="3m">3M</button>
+                <button class="ur-hist-range-btn fx-range-btn" data-range="6m">6M</button>
+                <button class="ur-hist-range-btn fx-range-btn active" data-range="1a">1A</button>
+                <button class="ur-hist-range-btn fx-range-btn" data-range="all">Tudo</button>
+              </div>
+            </div>
+            <div class="fx-date-bar">
+              <label>De: <input type="date" id="ur-hist-from" class="snap-select"></label>
+              <label>Até: <input type="date" id="ur-hist-to" class="snap-select"></label>
+            </div>
+          </div>
+          <div class="curve-wrap">
+            <svg id="chart-ur-hist" class="curve-svg"></svg>
+            <div class="curve-legend" id="legend-ur-hist"></div>
+          </div>
+        </div>
+
+        <!-- Vista Curvas -->
+        <div id="ur-view-curves">
         <div class="us-rates-sub-bar">
           <button class="us-rates-sub-btn active" data-ur="nom">Nominais</button>
           <button class="us-rates-sub-btn" data-ur="fwd">Forwards</button>
@@ -503,6 +543,7 @@
           </div>
         </div>
 
+        </div> <!-- /ur-view-curves -->
         <div class="mkt-updated" id="mkt-updated-us-rates"></div>
       </div>
 
@@ -947,6 +988,20 @@ let commHistMode    = "pct";
 let commSelItems    = new Set(["CL1","GC1","S 1"]);
 let commActiveRange = "1a";
 
+// ── US Rates histórico ────────────────────────────────────────────────────────
+let urHistView  = "curves";
+let urHistGroup = "nom";
+let urHistMode  = "abs";
+let urHistRange = "1a";
+let urSelItems  = { nom: new Set(["2y","5y","10y","30y"]), fwd: new Set(["5y fwd","10y fwd","5y5y"]), real: new Set(["Real 2y","Real 10y","Real 30y"]) };
+const UR_META = {
+  nom:  [{label:"2y",color:"#4b9cd3"},{label:"3y",color:"#6aae97"},{label:"5y",color:"#83a540"},
+         {label:"7y",color:"#c8a32a"},{label:"10y",color:"#e8703a"},{label:"20y",color:"#c9484c"},{label:"30y",color:"#8b72cc"}],
+  fwd:  [{label:"2y fwd",color:"#4b9cd3"},{label:"3y fwd",color:"#6aae97"},{label:"5y fwd",color:"#83a540"},
+         {label:"10y fwd",color:"#e8703a"},{label:"30y fwd",color:"#c9484c"},{label:"5y5y",color:"#8b72cc"}],
+  real: [{label:"Real 2y",color:"#4b9cd3"},{label:"Real 5y",color:"#83a540"},{label:"Real 10y",color:"#eea320"},{label:"Real 30y",color:"#c9484c"}],
+};
+
 const DI_PT_MONTHS = {Jan:0,Fev:1,Mar:2,Abr:3,Mai:4,Jun:5,Jul:6,Ago:7,Set:8,Out:9,Nov:10,Dez:11};
 
 function filterDI(data, snapTs) {
@@ -987,10 +1042,10 @@ document.querySelectorAll(".mkt-sub-bar .mkt-sub-btn").forEach(btn =>
   })
 );
 
-// US Rates nested sub-tabs
-document.querySelectorAll(".us-rates-sub-btn").forEach(btn =>
+// US Rates nested sub-tabs (curvas)
+document.querySelectorAll(".us-rates-sub-btn:not(.ur-hgrp-btn)").forEach(btn =>
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".us-rates-sub-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".us-rates-sub-btn:not(.ur-hgrp-btn)").forEach(b => b.classList.remove("active"));
     document.querySelectorAll(".us-rates-panel").forEach(p => p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("ur-panel-" + btn.dataset.ur).classList.add("active");
@@ -1372,6 +1427,7 @@ async function loadMarket() {
   initFXHistory();
   initBolsasHistory();
   initCommHistory();
+  initURHistory();
   renderAllCharts();
 }
 
@@ -1420,6 +1476,7 @@ function renderAllCharts() {
   renderDITable(snapA, snapB, diA, diB);
   if (bolsasHistView === "hist") renderBolsasHistory(); else renderBolsas(snapA, snapB);
   if (commHistView   === "hist") renderCommHistory();   else renderCommodities(snapA, snapB);
+  if (urHistView     === "hist") renderURHistory();
   const ts = snapA ? snapA.label : "—";
   ["di"].forEach(k =>
     document.getElementById("mkt-updated-" + k).textContent = snapA ? "Snapshot: " + ts : "");
@@ -1682,6 +1739,112 @@ const FX_PAIRS = [
 ];
 
 // ── FX Histórico ───────────────────────────────────────────────────────────
+// ── US Rates histórico ────────────────────────────────────────────────────────
+
+function buildURPills() {
+  const bar  = document.getElementById("ur-hist-pill-bar");
+  const meta = UR_META[urHistGroup];
+  const sel  = urSelItems[urHistGroup];
+  bar.innerHTML = meta.map(m => {
+    const on = sel.has(m.label);
+    return `<button class="fx-pair-pill${on?" active":""}" data-lbl="${m.label}"
+      ${on?`style="background:${m.color}"`:""}>${m.label}</button>`;
+  }).join("");
+  bar.querySelectorAll(".fx-pair-pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const lbl = btn.dataset.lbl;
+      const s   = urSelItems[urHistGroup];
+      if (s.has(lbl)) { if (s.size > 1) { s.delete(lbl); btn.classList.remove("active"); btn.style.background=""; } }
+      else { s.add(lbl); btn.classList.add("active"); btn.style.background = UR_META[urHistGroup].find(m=>m.label===lbl)?.color||""; }
+      if (urHistView === "hist") renderURHistory();
+    });
+  });
+}
+
+function initURHistory() {
+  // View toggle: Curvas / Histórico
+  document.querySelectorAll(".ur-view-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".ur-view-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      urHistView = btn.dataset.view;
+      document.getElementById("ur-view-curves").style.display = urHistView === "curves" ? "" : "none";
+      document.getElementById("ur-view-hist").style.display   = urHistView === "hist"   ? "" : "none";
+      if (urHistView === "hist") renderURHistory();
+    })
+  );
+  // Grupo selector
+  document.querySelectorAll(".ur-hgrp-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".ur-hgrp-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      urHistGroup = btn.dataset.grp;
+      buildURPills();
+      if (urHistView === "hist") renderURHistory();
+    })
+  );
+  // Mode
+  document.querySelectorAll(".ur-hist-mode-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".ur-hist-mode-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active"); urHistMode = btn.dataset.mode;
+      if (urHistView === "hist") renderURHistory();
+    })
+  );
+  // Range
+  document.querySelectorAll(".ur-hist-range-btn").forEach(btn =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".ur-hist-range-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active"); urHistRange = btn.dataset.range;
+      applyHistRange("ur-hist-from", "ur-hist-to", urHistRange);
+      if (urHistView === "hist") renderURHistory();
+    })
+  );
+  ["ur-hist-from","ur-hist-to"].forEach(id =>
+    document.getElementById(id).addEventListener("change", () => {
+      urHistRange = null;
+      document.querySelectorAll(".ur-hist-range-btn").forEach(b => b.classList.remove("active"));
+      if (urHistView === "hist") renderURHistory();
+    })
+  );
+  buildURPills();
+  applyHistRange("ur-hist-from", "ur-hist-to", urHistRange);
+}
+
+function renderURHistory() {
+  if (!mktDates.length) return;
+  const grpKey = { nom:"nominais", fwd:"forwards_inflation", real:"juros_reais" }[urHistGroup];
+  const meta   = UR_META[urHistGroup];
+  const sel    = urSelItems[urHistGroup];
+  const fromStr = document.getElementById("ur-hist-from").value || mktDates[mktDates.length-1];
+  const toStr   = document.getElementById("ur-hist-to").value   || mktDates[0];
+  const dates   = mktDates.filter(d => d >= fromStr && d <= toStr).reverse();
+  if (!dates.length) return;
+
+  const seriesData = [];
+  meta.forEach(m => {
+    if (!sel.has(m.label)) return;
+    const rawVals = dates.map(d => {
+      const snap = mktByDate[d];
+      // backward compat: nominais pode vir de treasuries
+      const arr = snap?.us_rates?.[grpKey]
+               || (grpKey === "nominais" ? snap?.treasuries : null)
+               || [];
+      return arr.find(v => v.label === m.label)?.yield ?? null;
+    });
+    if (!rawVals.some(v => v != null)) return;
+    if (urHistMode === "bps") {
+      const baseIdx = rawVals.findIndex(v => v != null);
+      const base    = baseIdx >= 0 ? rawVals[baseIdx] : null;
+      const bpsVals = base != null ? rawVals.map(v => v != null ? (v - base) * 100 : null) : rawVals.map(() => null);
+      seriesData.push({ key:m.label, label:m.label, color:m.color, dec:1, values:bpsVals });
+    } else {
+      seriesData.push({ key:m.label, label:m.label, color:m.color, dec:3, values:rawVals });
+    }
+  });
+  drawFXSeries("chart-ur-hist", "legend-ur-hist", dates, seriesData, urHistMode);
+}
+
 function initFXHistory() {
   const bar = document.getElementById("fx-pair-bar");
   bar.innerHTML = FX_PAIRS.map(p => {
@@ -1839,9 +2002,9 @@ function drawFXSeries(svgId, legendId, dates, seriesData, mode) {
     const y   = yOf(yv);
     svg.appendChild(mk("line", { x1:PAD.left, y1:y, x2:PAD.left+cW, y2:y,
       stroke:"var(--border)", "stroke-width":"1" }));
-    const lbl = mode === "pct"
-      ? (yv >= 0 ? "+" : "") + yv.toFixed(1) + "%"
-      : Math.abs(yv) >= 10 ? yv.toFixed(2) : yv.toFixed(3);
+    const lbl = mode === "pct" ? (yv >= 0 ? "+" : "") + yv.toFixed(1) + "%"
+              : mode === "bps" ? (yv >= 0 ? "+" : "") + yv.toFixed(0) + "bps"
+              : Math.abs(yv) >= 10 ? yv.toFixed(2) : yv.toFixed(3);
     const t = mk("text", { x:PAD.left-5, y:y+4, "text-anchor":"end",
       fill:"var(--text2)", "font-size":"9" });
     t.textContent = lbl;
@@ -1919,9 +2082,9 @@ function drawFXSeries(svgId, legendId, dates, seriesData, mode) {
       const pv = s.plotValues[idx];
       const rv = s.values[idx];
       if (pv == null) return;
-      const fmt = mode === "pct"
-        ? `${pv >= 0 ? "+" : ""}${pv.toFixed(2)}%`
-        : rv != null ? rv.toFixed(s.dec) : "—";
+      const fmt = mode === "pct" ? `${pv >= 0 ? "+" : ""}${pv.toFixed(2)}%`
+              : mode === "bps" ? `${pv >= 0 ? "+" : ""}${pv.toFixed(1)}bps`
+              : rv != null ? rv.toFixed(s.dec) : "—";
       html += `<br><span style="color:${s.color};font-weight:700">${s.label}</span>: ${fmt}`;
     });
 

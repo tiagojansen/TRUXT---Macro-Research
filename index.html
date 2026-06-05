@@ -85,7 +85,7 @@
     .country-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.75rem; }
     .country-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem 1rem; text-align:center; cursor:pointer; transition:border-color .15s,background .15s,box-shadow .15s; }
     .country-card:hover { border-color:var(--accent); background:var(--surface2); box-shadow:0 2px 8px var(--shadow); }
-    .country-card .flag { font-size:2rem; margin-bottom:.4rem; }
+    .country-card .flag { font-size:1.6rem; margin-bottom:.4rem; }
     .country-card .name { font-size:.85rem; font-weight:600; }
     .country-card .soon { font-size:.65rem; color:var(--text2); margin-top:.3rem; }
 
@@ -105,7 +105,7 @@
     /* ── BCs ────────────────────────────────────────────────────────────── */
     .bc-list { display:flex; flex-direction:column; gap:.5rem; }
     .bc-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; display:flex; align-items:center; gap:1rem; }
-    .bc-flag { font-size:1.5rem; flex-shrink:0; }
+    .bc-flag { font-size:1.2rem; flex-shrink:0; }
     .bc-info { flex:1; min-width:0; }
     .bc-name { font-size:.9rem; font-weight:600; }
     .bc-clickable { cursor:pointer; }
@@ -308,6 +308,7 @@
     .cal-reset-btn:hover { color:var(--text); }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <style>img.emoji { height:1em; width:1em; margin:0 .05em 0 .1em; vertical-align:-0.1em; }</style>
 </head>
 <body>
 

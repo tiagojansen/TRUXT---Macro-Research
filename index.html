@@ -1091,6 +1091,11 @@ function renderCommHistory() {
 }
 
 async function loadMarket() {
+  // Indicador de carregamento (arquivo pode ter 14+ MB)
+  const mktSel = document.getElementById("mkt-snap-selectors");
+  if (mktSel) mktSel.innerHTML =
+    '<span style="color:var(--text2);font-size:.8rem">⏳ Carregando histórico…</span>';
+
   const histSnaps = [];
   const liveSnaps = [];
 
@@ -1098,7 +1103,7 @@ async function loadMarket() {
   try {
     const res = await fetch("data/market_history.json?t=" + Date.now());
     if (res.ok) { const d = await res.json(); histSnaps.push(...(d.snapshots || [])); }
-  } catch { /* arquivo ainda não existe — silencioso */ }
+  } catch(e) { console.warn("market_history.json:", e); }
 
   // Carrega snapshots intraday (market.json)
   try {
@@ -1165,8 +1170,8 @@ function populateDatePickers() {
   // A = hoje (ou data mais recente disponível)
   inpA.value = newest;
 
-  // B = ~5 dias úteis atrás (índice 5, ou o que tiver)
-  const idxB = Math.min(5, mktDates.length - 1);
+  // B = ~1 mês atrás (índice 22, ou o que tiver)
+  const idxB = Math.min(22, mktDates.length - 1);
   inpB.value = idxB > 0 ? mktDates[idxB] : "";
 }
 

@@ -31,6 +31,7 @@ Option Explicit
 
 Public Const JSON_PATH As String = "S:\Macro\Site\data\market.json"
 Public Const HISTORY_PATH As String = "S:\Macro\Site\data\market_history.json"
+Public Const HISTORY_TMP  As String = "S:\Macro\Site\data\market_history.json.tmp"
 Public Const MAX_SNAPSHOTS As Long = 90   ' ~30 dias x 3
 Public Const EXPORT_SHEET As String = "EXPORT"
 
@@ -641,8 +642,8 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
     Dim firstSnap As Boolean
 
     If Not isIncremental Then
-        ' Primeira execução: escreve do zero
-        Open HISTORY_PATH For Output As #fOut
+        ' Primeira execução: escreve do zero (no arquivo .tmp)
+        Open HISTORY_TMP For Output As #fOut
         Print #fOut, "{""snapshots"":["
         firstSnap = True
     Else
@@ -660,8 +661,8 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
             If Mid(histContent, arrIdx, 1) = "]" Then Exit Do
             arrIdx = arrIdx - 1
         Loop
-        ' Regrava sem o fechamento "]}"
-        Open HISTORY_PATH For Output As #fOut
+        ' Regrava sem o fechamento "]}" (no arquivo .tmp — não toca o original ainda)
+        Open HISTORY_TMP For Output As #fOut
         Print #fOut, Left(histContent, arrIdx - 1)
         firstSnap = False  ' próximo entry precisa de ","
     End If
@@ -829,6 +830,12 @@ NextHistRow:
     Print #fOut, "]}"
     Close #fOut
 
+    ' ── Publicação atômica: renomeia .tmp → .json só quando escrita estiver completa ──
+    ' O watcher detecta LastWriteTime de market_history.json; com o rename
+    ' o timestamp só muda após o arquivo estar 100% íntegro.
+    If Dir(HISTORY_PATH) <> "" Then Kill HISTORY_PATH
+    Name HISTORY_TMP As HISTORY_PATH
+
     Dim modeStr As String
     modeStr = IIf(isIncremental, " (incremental)", " (completo)")
     Application.StatusBar = "market_history.json: " & snapCount & " snapshots" & modeStr
@@ -841,6 +848,7 @@ NextHistRow:
 
 ErrHandler:
     If fOut > 0 Then Close #fOut
+    If Dir(HISTORY_TMP) <> "" Then Kill HISTORY_TMP   ' descarta .tmp parcial, preserva o .json original
     If Not silencioso Then
         MsgBox "Erro ao exportar histórico: " & Err.Description, vbCritical, "ExportHistorico"
     Else

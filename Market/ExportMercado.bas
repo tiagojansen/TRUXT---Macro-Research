@@ -19,10 +19,23 @@ Attribute VB_Name = "ExportMercado"
 '   fx     usdbrl      5.7812
 '   fx     eurbrl      6.4253
 '   fx     eurusd      1.1119
-'   treasury  2y       4.850
-'   treasury  5y       4.620
-'   treasury  10y      4.450
-'   treasury  30y      4.630
+'   treasury     2y       =BDP("USGG2YR Index","PX_LAST")    =BDP("USGG2YR Index","CHG_BPS_1D")
+'   treasury     3y       =BDP("USGG3YR Index","PX_LAST")    =BDP("USGG3YR Index","CHG_BPS_1D")
+'   treasury     5y       =BDP("USGG5YR Index","PX_LAST")    =BDP("USGG5YR Index","CHG_BPS_1D")
+'   treasury     7y       =BDP("USGG7YR Index","PX_LAST")    =BDP("USGG7YR Index","CHG_BPS_1D")
+'   treasury     10y      =BDP("USGG10YR Index","PX_LAST")   =BDP("USGG10YR Index","CHG_BPS_1D")
+'   treasury     20y      =BDP("USGG20YR Index","PX_LAST")   =BDP("USGG20YR Index","CHG_BPS_1D")
+'   treasury     30y      =BDP("USGG30YR Index","PX_LAST")   =BDP("USGG30YR Index","CHG_BPS_1D")
+'   treasury_fwd 2y fwd   =BDP("USSWIT2 Index","PX_LAST")    =BDP("USSWIT2 Index","CHG_BPS_1D")
+'   treasury_fwd 3y fwd   =BDP("USSWIT3 Index","PX_LAST")    =BDP("USSWIT3 Index","CHG_BPS_1D")
+'   treasury_fwd 5y fwd   =BDP("USSWIT5 Index","PX_LAST")    =BDP("USSWIT5 Index","CHG_BPS_1D")
+'   treasury_fwd 10y fwd  =BDP("USSWIT10 Index","PX_LAST")   =BDP("USSWIT10 Index","CHG_BPS_1D")
+'   treasury_fwd 30y fwd  =BDP("USSWIT30 Index","PX_LAST")   =BDP("USSWIT30 Index","CHG_BPS_1D")
+'   treasury_fwd 5y5y     =BDP("FWISUS55 Index","PX_LAST")   =BDP("FWISUS55 Index","CHG_BPS_1D")
+'   treasury_real Real 2y  =BDP("USGGT02Y Index","PX_LAST")  =BDP("USGGT02Y Index","CHG_BPS_1D")
+'   treasury_real Real 5y  =BDP("USGGT05Y Index","PX_LAST")  =BDP("USGGT05Y Index","CHG_BPS_1D")
+'   treasury_real Real 10y =BDP("USGGT10Y Index","PX_LAST")  =BDP("USGGT10Y Index","CHG_BPS_1D")
+'   treasury_real Real 30y =BDP("USGGT30 Index","PX_LAST")   =BDP("USGGT30 Index","CHG_BPS_1D")
 '
 ' Deixe Col A vazia para encerrar a leitura.
 ' ============================================================
@@ -84,15 +97,21 @@ Public Sub ExportarMercado()
     Dim ntnbArr()   As String
     Dim fxArr()     As String
     Dim treasArr()  As String
+    Dim fwdArr()    As String    ' Forwards Inflation (USSWIT + FWISUS55)
+    Dim realArr()   As String    ' Juros Reais TIPS (USGGT)
     Dim diCount     As Long
     Dim ntnbCount   As Long
     Dim fxCount     As Long
     Dim treasCount  As Long
+    Dim fwdCount    As Long
+    Dim realCount   As Long
 
     ReDim diArr(0 To 100)
     ReDim ntnbArr(0 To 50)
     ReDim fxArr(0 To 20)
     ReDim treasArr(0 To 20)
+    ReDim fwdArr(0 To 20)
+    ReDim realArr(0 To 20)
 
     Dim r As Long
     r = 1
@@ -108,7 +127,8 @@ Public Sub ExportarMercado()
         If IsNumeric(wsExp.Cells(r, 3).Value) Then v1 = CDbl(wsExp.Cells(r, 3).Value)
         If IsNumeric(wsExp.Cells(r, 4).Value) Then v2 = CDbl(wsExp.Cells(r, 4).Value)
         ' Ignora linhas onde o valor principal é zero ou erro (dados ausentes no BBG)
-        If tipo = "di" Or tipo = "ntnb" Or tipo = "treasury" Then
+        If tipo = "di" Or tipo = "ntnb" Or tipo = "treasury" _
+           Or tipo = "treasury_fwd" Or tipo = "treasury_real" Then
             If v1 = 0 Then GoTo NextRow
         End If
 
@@ -121,9 +141,23 @@ Public Sub ExportarMercado()
                 fxArr(fxCount) = """" & label & """:" & Format(v1, "0.0000")
                 fxCount = fxCount + 1
             Case "treasury"
+                ' v2 = CHG_BPS_1D (col D); zero se não disponível
                 treasArr(treasCount) = "{""label"":""" & label & """," & _
-                                        """yield"":" & Format(v1, "0.000") & "}"
+                                        """yield"":" & Format(v1, "0.000") & "," & _
+                                        """chg"":" & Format(v2, "0.0") & "}"
                 treasCount = treasCount + 1
+            Case "treasury_fwd"
+                ' Forwards Inflation: USSWIT2/3/5/10/30 + FWISUS55 (5y5y)
+                fwdArr(fwdCount) = "{""label"":""" & label & """," & _
+                                    """yield"":" & Format(v1, "0.000") & "," & _
+                                    """chg"":" & Format(v2, "0.0") & "}"
+                fwdCount = fwdCount + 1
+            Case "treasury_real"
+                ' Juros Reais (TIPS): USGGT02Y/05Y/10Y/30
+                realArr(realCount) = "{""label"":""" & label & """," & _
+                                      """yield"":" & Format(v1, "0.000") & "," & _
+                                      """chg"":" & Format(v2, "0.0") & "}"
+                realCount = realCount + 1
         End Select
 NextRow:
         r = r + 1
@@ -281,13 +315,34 @@ NextRow:
     Next i
     snapJson = snapJson & "}," & vbCrLf
 
-    ' Treasuries array
+    ' Treasuries array (backward compat — nominais)
     snapJson = snapJson & "      ""treasuries"":["
     For i = 0 To treasCount - 1
         snapJson = snapJson & treasArr(i)
         If i < treasCount - 1 Then snapJson = snapJson & ","
     Next i
     snapJson = snapJson & "]," & vbCrLf
+
+    ' us_rates object: nominais + forwards_inflation + juros_reais
+    snapJson = snapJson & "      ""us_rates"":{" & vbCrLf
+    snapJson = snapJson & "        ""nominais"":["
+    For i = 0 To treasCount - 1
+        snapJson = snapJson & treasArr(i)
+        If i < treasCount - 1 Then snapJson = snapJson & ","
+    Next i
+    snapJson = snapJson & "]," & vbCrLf
+    snapJson = snapJson & "        ""forwards_inflation"":["
+    For i = 0 To fwdCount - 1
+        snapJson = snapJson & fwdArr(i)
+        If i < fwdCount - 1 Then snapJson = snapJson & ","
+    Next i
+    snapJson = snapJson & "]," & vbCrLf
+    snapJson = snapJson & "        ""juros_reais"":["
+    For i = 0 To realCount - 1
+        snapJson = snapJson & realArr(i)
+        If i < realCount - 1 Then snapJson = snapJson & ","
+    Next i
+    snapJson = snapJson & "]" & vbCrLf & "      }," & vbCrLf
 
     ' Bolsas array
     snapJson = snapJson & "      ""bolsas"":["
@@ -520,6 +575,24 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
     trLbls(5) = "20y": trCols(5) = 7
     trLbls(6) = "30y": trCols(6) = 8
 
+    ' Forwards Inflation: USSWIT2(col9), USSWIT3(10), USSWIT5(11), USSWIT10(12), USSWIT30(13), FWISUS55(14)
+    Dim fwdHLbls(0 To 5) As String
+    Dim fwdHCols(0 To 5) As Long
+    fwdHLbls(0) = "2y fwd":  fwdHCols(0) = 9
+    fwdHLbls(1) = "3y fwd":  fwdHCols(1) = 10
+    fwdHLbls(2) = "5y fwd":  fwdHCols(2) = 11
+    fwdHLbls(3) = "10y fwd": fwdHCols(3) = 12
+    fwdHLbls(4) = "30y fwd": fwdHCols(4) = 13
+    fwdHLbls(5) = "5y5y":    fwdHCols(5) = 14
+
+    ' Juros Reais (TIPS): USGGT02Y(col15), USGGT05Y(16), USGGT10Y(17), USGGT30(18)
+    Dim realHLbls(0 To 3) As String
+    Dim realHCols(0 To 3) As Long
+    realHLbls(0) = "Real 2y":  realHCols(0) = 15
+    realHLbls(1) = "Real 5y":  realHCols(1) = 16
+    realHLbls(2) = "Real 10y": realHCols(2) = 17
+    realHLbls(3) = "Real 30y": realHCols(3) = 18
+
     ' Bolsas columns (dynamic, scanned from row 4)
     Dim bolsHCols(0 To 20)    As Long
     Dim bolsHLabels(0 To 20)  As String
@@ -743,8 +816,10 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
             Next m
         End If
 
-        ' Monta Treasuries array
+        ' Monta Treasuries array (nominais — backward compat)
         trJson = ""
+        Dim fwdJson2 As String: fwdJson2 = ""
+        Dim realJson2 As String: realJson2 = ""
         If dictTR.Exists(dateStr) Then
             rTR = dictTR(dateStr)
             For m = 0 To 6
@@ -755,6 +830,28 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
                 If vTR <> 0 Then
                     If trJson <> "" Then trJson = trJson & ","
                     trJson = trJson & "{""label"":""" & trLbls(m) & """,""yield"":" & Format(vTR, "0.000") & "}"
+                End If
+            Next m
+            ' Forwards Inflation (USSWIT + FWISUS55)
+            For m = 0 To 5
+                vTR = 0
+                If IsNumeric(wsTR.Cells(rTR, fwdHCols(m)).Value) Then
+                    vTR = CDbl(wsTR.Cells(rTR, fwdHCols(m)).Value)
+                End If
+                If vTR <> 0 Then
+                    If fwdJson2 <> "" Then fwdJson2 = fwdJson2 & ","
+                    fwdJson2 = fwdJson2 & "{""label"":""" & fwdHLbls(m) & """,""yield"":" & Format(vTR, "0.000") & "}"
+                End If
+            Next m
+            ' Juros Reais (USGGT)
+            For m = 0 To 3
+                vTR = 0
+                If IsNumeric(wsTR.Cells(rTR, realHCols(m)).Value) Then
+                    vTR = CDbl(wsTR.Cells(rTR, realHCols(m)).Value)
+                End If
+                If vTR <> 0 Then
+                    If realJson2 <> "" Then realJson2 = realJson2 & ","
+                    realJson2 = realJson2 & "{""label"":""" & realHLbls(m) & """,""yield"":" & Format(vTR, "0.000") & "}"
                 End If
             Next m
         End If
@@ -812,6 +909,9 @@ Public Sub ExportHistorico(Optional silencioso As Boolean = False)
                """ntnb"":[]," & _
                """fx"":{" & fxJson & "}," & _
                """treasuries"":[" & trJson & "]," & _
+               """us_rates"":{""nominais"":[" & trJson & "]," & _
+               """forwards_inflation"":[" & fwdJson2 & "]," & _
+               """juros_reais"":[" & realJson2 & "]}," & _
                """bolsas"":[" & bolsasJson & "]," & _
                """commodities"":[" & commodJson & "]}"
 

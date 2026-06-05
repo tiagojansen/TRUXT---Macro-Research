@@ -152,6 +152,32 @@
     .mkt-sub-btn:hover:not(.active) { border-color:var(--accent); color:var(--text); }
     .mkt-sub-panel { display:none; }
     .mkt-sub-panel.active { display:block; }
+    /* ── US Rates nested nav ─────────────────────────────────────────────── */
+    .us-rates-sub-bar { display:flex; gap:.35rem; margin-bottom:1rem; flex-wrap:wrap; }
+    .us-rates-sub-btn { padding:.3rem .85rem; background:var(--surface2); border:1px solid var(--border);
+      border-radius:99px; color:var(--text2); font-size:.76rem; font-weight:600; cursor:pointer;
+      transition:all .15s; -webkit-tap-highlight-color:transparent; }
+    .us-rates-sub-btn.active { background:color-mix(in srgb,var(--accent) 15%,var(--surface));
+      border-color:var(--accent); color:var(--accent); }
+    .us-rates-sub-btn:hover:not(.active) { border-color:var(--accent); color:var(--text); }
+    .us-rates-panel { display:none; }
+    .us-rates-panel.active { display:block; }
+    /* ── US Rates tabela ─────────────────────────────────────────────────── */
+    .us-rates-wrap { background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius); padding:1rem; margin-bottom:1rem; overflow-x:auto; }
+    .us-rates-tbl { width:100%; border-collapse:collapse; font-size:.82rem; }
+    .us-rates-tbl th { text-align:right; color:var(--text2); font-size:.68rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:.07em; padding:.4rem .65rem;
+      border-bottom:1px solid var(--border); white-space:nowrap; }
+    .us-rates-tbl th:first-child { text-align:left; }
+    .us-rates-tbl td { padding:.45rem .65rem; border-bottom:1px solid var(--border);
+      text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .us-rates-tbl td:first-child { text-align:left; font-weight:600; }
+    .us-rates-tbl tr:last-child td { border-bottom:none; }
+    .ur-chg-up  { color:var(--red); }
+    .ur-chg-dn  { color:var(--green); }
+    .ur-chg-neu { color:var(--text2); }
+    .ur-5y5y td:first-child { font-weight:700; }
     .snap-selectors { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:1rem; }
     .snap-selector-group { display:flex; align-items:center; gap:.4rem; }
     .snap-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
@@ -356,7 +382,7 @@
       <div class="mkt-sub-bar">
         <button class="mkt-sub-btn active" data-mkt="di">DI Futuro</button>
         <button class="mkt-sub-btn" data-mkt="fx">FX</button>
-        <button class="mkt-sub-btn" data-mkt="treasuries">Treasuries</button>
+        <button class="mkt-sub-btn" data-mkt="us-rates">US Rates</button>
         <button class="mkt-sub-btn" data-mkt="bolsas">Bolsas</button>
         <button class="mkt-sub-btn" data-mkt="commodities">Commodities</button>
       </div>
@@ -427,13 +453,57 @@
         </div>
       </div>
 
-      <!-- Treasuries -->
-      <div id="mkt-panel-treasuries" class="mkt-sub-panel">
-        <div class="curve-wrap">
-          <svg id="chart-treasuries" class="curve-svg"></svg>
-          <div class="curve-legend" id="legend-treasuries"></div>
+      <!-- US Rates (Nominais + Forwards Inflation + Juros Reais) -->
+      <div id="mkt-panel-us-rates" class="mkt-sub-panel">
+        <div class="us-rates-sub-bar">
+          <button class="us-rates-sub-btn active" data-ur="nom">Nominais</button>
+          <button class="us-rates-sub-btn" data-ur="fwd">Forwards</button>
+          <button class="us-rates-sub-btn" data-ur="real">Juros Reais</button>
         </div>
-        <div class="mkt-updated" id="mkt-updated-treasuries"></div>
+
+        <!-- Nominais -->
+        <div id="ur-panel-nom" class="us-rates-panel active">
+          <div class="us-rates-wrap">
+            <table class="us-rates-tbl">
+              <thead><tr><th>Vértice</th><th>Yield</th><th>Δ dia (bps)</th><th>Snap A</th><th>Snap B</th><th>Δ A→B (bps)</th></tr></thead>
+              <tbody id="ur-tbody-nom"></tbody>
+            </table>
+          </div>
+          <div class="curve-wrap">
+            <svg id="chart-ur-nom" class="curve-svg"></svg>
+            <div class="curve-legend" id="legend-ur-nom"></div>
+          </div>
+        </div>
+
+        <!-- Forwards Inflation -->
+        <div id="ur-panel-fwd" class="us-rates-panel">
+          <div class="us-rates-wrap">
+            <table class="us-rates-tbl">
+              <thead><tr><th>Vértice</th><th>Yield</th><th>Δ dia (bps)</th><th>Snap A</th><th>Snap B</th><th>Δ A→B (bps)</th></tr></thead>
+              <tbody id="ur-tbody-fwd"></tbody>
+            </table>
+          </div>
+          <div class="curve-wrap">
+            <svg id="chart-ur-fwd" class="curve-svg"></svg>
+            <div class="curve-legend" id="legend-ur-fwd"></div>
+          </div>
+        </div>
+
+        <!-- Juros Reais (TIPS) -->
+        <div id="ur-panel-real" class="us-rates-panel">
+          <div class="us-rates-wrap">
+            <table class="us-rates-tbl">
+              <thead><tr><th>Vértice</th><th>Yield</th><th>Δ dia (bps)</th><th>Snap A</th><th>Snap B</th><th>Δ A→B (bps)</th></tr></thead>
+              <tbody id="ur-tbody-real"></tbody>
+            </table>
+          </div>
+          <div class="curve-wrap">
+            <svg id="chart-ur-real" class="curve-svg"></svg>
+            <div class="curve-legend" id="legend-ur-real"></div>
+          </div>
+        </div>
+
+        <div class="mkt-updated" id="mkt-updated-us-rates"></div>
       </div>
 
       <!-- Bolsas -->
@@ -917,6 +987,137 @@ document.querySelectorAll(".mkt-sub-bar .mkt-sub-btn").forEach(btn =>
   })
 );
 
+// US Rates nested sub-tabs
+document.querySelectorAll(".us-rates-sub-btn").forEach(btn =>
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".us-rates-sub-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".us-rates-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("ur-panel-" + btn.dataset.ur).classList.add("active");
+  })
+);
+
+// ── US Rates ──────────────────────────────────────────────────────────────────
+
+function renderUSRates(snapA, snapB) {
+  const lA = snapA?.label || "—";
+  const lB = snapB?.label || "—";
+  const ur  = id => snapA?.us_rates?.[id] || [];
+  const urB = id => snapB?.us_rates?.[id] || [];
+
+  renderUSRatesSection("nom",  ur("nominais"),           urB("nominais"),           lA, lB, null, false);
+  renderUSRatesSection("fwd",  ur("forwards_inflation"), urB("forwards_inflation"), lA, lB, 2.0,  true);
+  renderUSRatesSection("real", ur("juros_reais"),        urB("juros_reais"),        lA, lB, null, false);
+  document.getElementById("mkt-updated-us-rates").textContent = snapA ? "Snapshot: " + lA : "";
+}
+
+function renderUSRatesSection(id, dataA, dataB, lA, lB, refLine, highlight5y5y) {
+  // ─ Tabela ─
+  const tbody = document.getElementById("ur-tbody-" + id);
+  if (tbody) {
+    if (!dataA || !dataA.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:.75rem">Sem dados</td></tr>`;
+    } else {
+      const mapB = {};
+      (dataB || []).forEach(d => { mapB[d.label] = d; });
+      tbody.innerHTML = dataA.map(d => {
+        const chg = d.chg ?? 0;
+        const chgCls  = chg > 0.05 ? "ur-chg-up" : chg < -0.05 ? "ur-chg-dn" : "ur-chg-neu";
+        const chgTxt  = Math.abs(chg) > 0.05 ? (chg > 0 ? "+" : "") + chg.toFixed(1) : "—";
+        const yA      = typeof d.yield === "number" ? d.yield.toFixed(3) + "%" : "—";
+        const dB      = mapB[d.label];
+        const yB      = dB ? dB.yield.toFixed(3) + "%" : "—";
+        const delta   = dB ? (d.yield - dB.yield) * 100 : null;
+        const dTxt    = delta !== null ? (Math.abs(delta) < 0.05 ? "—" : (delta > 0 ? "+" : "") + delta.toFixed(1)) : "—";
+        const dCls    = delta === null ? "ur-chg-neu" : delta > 0.05 ? "ur-chg-up" : delta < -0.05 ? "ur-chg-dn" : "ur-chg-neu";
+        const rowCls  = highlight5y5y && d.label === "5y5y" ? ' class="ur-5y5y"' : "";
+        return `<tr${rowCls}><td>${d.label}</td><td>${yA}</td><td class="${chgCls}">${chgTxt}</td><td>${yA}</td><td>${yB}</td><td class="${dCls}">${dTxt}</td></tr>`;
+      }).join("");
+    }
+  }
+
+  // ─ Gráfico SVG ─
+  const svg = document.getElementById("chart-ur-" + id);
+  const leg = document.getElementById("legend-ur-" + id);
+  if (!svg) return;
+  svg.innerHTML = "";
+
+  if (!dataA || !dataA.length) {
+    svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="var(--text2)" font-size="12">Sem dados</text>`;
+    return;
+  }
+
+  const W = svg.clientWidth || 600;
+  const H = W >= 600 ? 220 : 180;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.style.height = H + "px";
+
+  const PAD = {top:14, right:refLine ? 26 : 16, bottom:34, left:48};
+  const cW  = W - PAD.left - PAD.right;
+  const cH  = H - PAD.top  - PAD.bottom;
+  const ns  = "http://www.w3.org/2000/svg";
+  const mk  = (tag, attrs) => { const e = document.createElementNS(ns,tag); Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v)); return e; };
+
+  const allVals = dataA.map(d=>d.yield).concat((dataB||[]).map(d=>d.yield)).filter(v=>typeof v==="number");
+  if (refLine != null) allVals.push(refLine);
+  const minY = Math.min(...allVals) - 0.25;
+  const maxY = Math.max(...allVals) + 0.25;
+  const n    = dataA.length;
+  const scX  = i => PAD.left + (n > 1 ? i / (n-1) : 0.5) * cW;
+  const scY  = v => PAD.top  + (1 - (v - minY) / (maxY - minY || 1)) * cH;
+
+  // Grid
+  for (let i = 0; i <= 4; i++) {
+    const v = minY + (maxY - minY) * i / 4;
+    const y = scY(v);
+    svg.appendChild(mk("line", {x1:PAD.left, y1:y, x2:W-PAD.right, y2:y, stroke:"var(--border)", "stroke-width":"0.5"}));
+    const t = mk("text", {x:PAD.left-4, y:y+4, "text-anchor":"end", "font-size":"9", fill:"var(--text2)"});
+    t.textContent = v.toFixed(1);
+    svg.appendChild(t);
+  }
+
+  // Linha de referência (meta Fed 2%)
+  if (refLine != null) {
+    const ry = scY(refLine);
+    svg.appendChild(mk("line", {x1:PAD.left, y1:ry, x2:W-PAD.right, y2:ry, stroke:"var(--text2)", "stroke-width":"1", "stroke-dasharray":"4,3", opacity:"0.55"}));
+    const rt = mk("text", {x:W-PAD.right+3, y:ry+4, "font-size":"8", fill:"var(--text2)", opacity:"0.8"});
+    rt.textContent = "2%";
+    svg.appendChild(rt);
+  }
+
+  // Labels eixo X
+  dataA.forEach((d, i) => {
+    const t = mk("text", {x:scX(i), y:H-PAD.bottom+14, "text-anchor":"middle", "font-size":"9", fill:"var(--text2)"});
+    t.textContent = d.label;
+    svg.appendChild(t);
+    // Destaque 5y5y
+    if (highlight5y5y && d.label === "5y5y") {
+      const line = mk("line", {x1:scX(i), y1:PAD.top, x2:scX(i), y2:H-PAD.bottom, stroke:"var(--accent)", "stroke-width":"0.5", "stroke-dasharray":"2,2", opacity:"0.4"});
+      svg.appendChild(line);
+    }
+  });
+
+  // Linhas A e B
+  const drawLine = (data, color, r0) => {
+    if (!data || !data.length) return;
+    const pts = data.map((d,i) => `${scX(i)},${scY(d.yield)}`).join(" ");
+    svg.appendChild(mk("polyline", {points:pts, fill:"none", stroke:color, "stroke-width":"2", "stroke-linejoin":"round", "stroke-linecap":"round"}));
+    data.forEach((d,i) => {
+      const r = (highlight5y5y && d.label==="5y5y") ? 5 : r0;
+      svg.appendChild(mk("circle", {cx:scX(i), cy:scY(d.yield), r, fill:color}));
+    });
+  };
+  drawLine(dataA, "var(--accent)", 3);
+  if (dataB && dataB.length) drawLine(dataB, "var(--amber,#f59e0b)", 3);
+
+  // Legenda
+  if (leg) {
+    let h = `<div class="curve-legend-item"><span class="curve-legend-dot" style="background:var(--accent)"></span>${lA}</div>`;
+    if (dataB && dataB.length) h += `<div class="curve-legend-item"><span class="curve-legend-dot" style="background:var(--amber,#f59e0b)"></span>${lB}</div>`;
+    leg.innerHTML = h;
+  }
+}
+
 // Seletores de data
 ["snap-a","snap-b"].forEach(id =>
   document.getElementById(id).addEventListener("change", () => {
@@ -1149,6 +1350,18 @@ async function loadMarket() {
     // fx é objeto — usa live se tiver chaves, senão histórico
     const lFx = lv.fx || {}, hFx = hv.fx || {};
     merged.fx = Object.keys(lFx).length > 0 ? lFx : hFx;
+    // us_rates: objeto com sub-arrays — usa live se disponível, senão histórico
+    // backward compat: se não existe us_rates mas existe treasuries, monta nominais
+    const lRates = lv.us_rates, hRates = hv.us_rates;
+    if (lRates && Object.keys(lRates).length > 0) {
+      merged.us_rates = lRates;
+    } else if (hRates && Object.keys(hRates).length > 0) {
+      merged.us_rates = hRates;
+    } else {
+      // fallback: constrói nominais a partir de treasuries
+      const nom = merged.treasuries || [];
+      merged.us_rates = { nominais: nom, forwards_inflation: [], juros_reais: [] };
+    }
     byDate[date] = merged;
   });
 
@@ -1201,16 +1414,14 @@ function renderAllCharts() {
   drawCurve("chart-di",         "legend-di",         "mkt-updated-di",
             diA,                diB,
             snapA?.label,       snapB?.label,         "taxa", "%a.a.");
-  drawCurve("chart-treasuries", "legend-treasuries",  "mkt-updated-treasuries",
-            snapA?.treasuries,  snapB?.treasuries,
-            snapA?.label,       snapB?.label,         "yield", "%a.a.");
+  renderUSRates(snapA, snapB);
   if (fxHistView === "hist") { renderFXHistory(); }
   else { renderFX(snapA, snapB); }
   renderDITable(snapA, snapB, diA, diB);
   if (bolsasHistView === "hist") renderBolsasHistory(); else renderBolsas(snapA, snapB);
   if (commHistView   === "hist") renderCommHistory();   else renderCommodities(snapA, snapB);
   const ts = snapA ? snapA.label : "—";
-  ["di","treasuries"].forEach(k =>
+  ["di"].forEach(k =>
     document.getElementById("mkt-updated-" + k).textContent = snapA ? "Snapshot: " + ts : "");
   if (fxHistView === "table")
     document.getElementById("mkt-updated-fx").textContent = snapA ? "Snapshot: " + ts : "";

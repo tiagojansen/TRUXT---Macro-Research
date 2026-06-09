@@ -12,7 +12,7 @@
                         "country":  "brasil",
                         "section":  "alta_frequencia",
                         "file":  "reports/brasil/alta_frequencia/Focus.html",
-                        "updated":  "2026-06-08 09:49"
+                        "updated":  "2026-06-09 16:20"
                     },
                     {
                         "id":  "pib",
@@ -148,7 +148,7 @@
                         "country":  "china",
                         "section":  "inflacao",
                         "file":  "reports/china/inflacao/CN_Inflation.html",
-                        "updated":  "2026-06-09 16:06"
+                        "updated":  "2026-06-09 16:07"
                     }
                 ],
     "centralBanks":  [

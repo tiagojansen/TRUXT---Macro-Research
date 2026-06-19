@@ -149,6 +149,46 @@
                         "section":  "inflacao",
                         "file":  "reports/china/inflacao/CN_Inflation.html",
                         "updated":  "2026-06-10 07:24"
+                    },
+                    {
+                        "id":  "cn_atividade",
+                        "title":  "Atividade Econômica — China",
+                        "country":  "china",
+                        "section":  "atividade",
+                        "file":  "reports/china/atividade/CN_Atividade.html",
+                        "updated":  "2026-06-19 00:00"
+                    },
+                    {
+                        "id":  "cn_pmi",
+                        "title":  "PMI — China",
+                        "country":  "china",
+                        "section":  "atividade",
+                        "file":  "reports/china/atividade/CN_PMI.html",
+                        "updated":  "2026-06-19 00:00"
+                    },
+                    {
+                        "id":  "cn_gdp",
+                        "title":  "PIB — China",
+                        "country":  "china",
+                        "section":  "atividade",
+                        "file":  "reports/china/atividade/CN_GDP.html",
+                        "updated":  "2026-06-19 00:00"
+                    },
+                    {
+                        "id":  "cn_trade",
+                        "title":  "Trade Balance — China",
+                        "country":  "china",
+                        "section":  "atividade",
+                        "file":  "reports/china/atividade/CN_Trade_P.html",
+                        "updated":  "2026-06-19 00:00"
+                    },
+                    {
+                        "id":  "cn_credit",
+                        "title":  "Crédito — China",
+                        "country":  "china",
+                        "section":  "fiscal",
+                        "file":  "reports/china/fiscal/CN_Credit.html",
+                        "updated":  "2026-06-19 00:00"
                     }
                 ],
     "centralBanks":  [

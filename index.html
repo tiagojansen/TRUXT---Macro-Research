@@ -94,12 +94,15 @@
     .back-btn:hover { color:var(--accent); }
     .section-title { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text2); margin:1.5rem 0 .5rem; padding-bottom:.4rem; border-bottom:1px solid var(--border); }
     .report-list { display:flex; flex-direction:column; gap:.5rem; }
-    .report-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.875rem 1rem; display:flex; align-items:center; justify-content:space-between; text-decoration:none; transition:border-color .15s,background .15s; }
+    .report-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.875rem 1rem; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:border-color .15s,background .15s; }
     .report-card:hover { border-color:var(--accent); background:var(--surface2); }
     .report-info { flex:1; min-width:0; }
     .report-name { font-size:.9rem; font-weight:600; color:var(--text); }
     .report-meta { font-size:.73rem; color:var(--text2); margin-top:.2rem; }
-    .report-arrow { color:var(--accent); font-size:1rem; margin-left:.75rem; }
+    .report-actions { display:flex; align-items:center; gap:.4rem; margin-left:.75rem; }
+    .report-dl { display:inline-flex; align-items:center; justify-content:center; width:1.75rem; height:1.75rem; border-radius:.4rem; border:1px solid var(--border); color:var(--text2); text-decoration:none; font-size:.85rem; transition:border-color .15s,color .15s,background .15s; }
+    .report-dl:hover { border-color:var(--accent); color:var(--accent); background:var(--surface2); }
+    .report-arrow { color:var(--accent); font-size:1rem; }
     .empty-section { color:var(--text2); font-size:.83rem; padding:.4rem 0; }
 
     /* ── BCs ────────────────────────────────────────────────────────────── */
@@ -860,13 +863,16 @@ function showCountryDetail(country, byCountry) {
     const reps = sections[sec] || [];
     html += reps.length
       ? `<div class="report-list">` + reps.map(r => `
-          <a class="report-card" href="${r.file}" target="_blank" rel="noopener">
+          <div class="report-card" onclick="window.open('${r.file}','_blank')">
             <div class="report-info">
               <div class="report-name">${r.title}</div>
               <div class="report-meta">Atualizado em ${fmtDate(r.updated)}</div>
             </div>
-            <span class="report-arrow">↗</span>
-          </a>`).join("") + `</div>`
+            <div class="report-actions">
+              <a class="report-dl" href="${r.file}" download="${r.file.split('/').pop()}" onclick="event.stopPropagation()" title="Baixar HTML">&#x2193;</a>
+              <span class="report-arrow">↗</span>
+            </div>
+          </div>`).join("") + `</div>`
       : `<div class="empty-section">Nenhum relatório disponível.</div>`;
   });
   document.getElementById("country-detail-content").innerHTML = html;

@@ -796,18 +796,11 @@ const CENTRAL_BANKS_STATIC = [
 ];
 
 const BCB_DOCS = {
-  comunicados: [
-    { num:278, date:"29/04/2026", label:"Reunião 278", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:277, date:"18/03/2026", label:"Reunião 277", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:276, date:"28/01/2026", label:"Reunião 276", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:275, date:"10/12/2025", label:"Reunião 275", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:274, date:"05/11/2025", label:"Reunião 274", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:273, date:"17/09/2025", label:"Reunião 273", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:272, date:"30/07/2025", label:"Reunião 272", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:271, date:"18/06/2025", label:"Reunião 271", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:270, date:"07/05/2025", label:"Reunião 270", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:269, date:"19/03/2025", label:"Reunião 269", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
-    { num:268, date:"29/01/2025", label:"Reunião 268", url:"https://www.bcb.gov.br/politicamonetaria/copomcomunicados" },
+  links: [
+    { label:"Indicadores Selecionados",  url:"https://www.bcb.gov.br/estatisticas/indicadoresselecionados" },
+    { label:"Tabelas Especiais",          url:"https://www.bcb.gov.br/estatisticas/tabelasespeciais" },
+    { label:"Comunicados COPOM",          url:"https://www.bcb.gov.br/controleinflacao/comunicadoscopom" },
+    { label:"Focus",                      url:"https://www.bcb.gov.br/publicacoes/focus" },
   ],
   atas: [
     { num:278, date:"05/05/2026", label:"Ata 278", sub:"Reunião de 29/04/2026", url:"https://www.bcb.gov.br/content/copom/atascopom/Copom278-not20260429278.pdf" },
@@ -918,8 +911,12 @@ function buildBCBDocs() {
     </div>`;
   return `
     <div class="bcb-section">
-      <div class="bcb-section-title">Comunicados</div>
-      ${BCB_DOCS.comunicados.map(d => row(d, "↗ Web")).join("")}
+      <div class="bcb-section-title">Links Úteis</div>
+      ${BCB_DOCS.links.map(d => `
+        <div class="bcb-doc-row">
+          <div class="bcb-doc-label">${d.label}</div>
+          <a class="bcb-doc-link" href="${d.url}" target="_blank" rel="noopener">↗ Web</a>
+        </div>`).join("")}
     </div>
     <div class="bcb-section">
       <div class="bcb-section-title">Atas do COPOM</div>

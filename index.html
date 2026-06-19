@@ -131,12 +131,14 @@
 
     /* ── PPTs ───────────────────────────────────────────────────────────── */
     .ppt-list { display:flex; flex-direction:column; gap:.5rem; }
-    .ppt-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.875rem 1rem; display:flex; align-items:center; gap:.75rem; text-decoration:none; transition:border-color .15s,background .15s; }
+    .ppt-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.875rem 1rem; display:flex; align-items:center; gap:.75rem; cursor:pointer; transition:border-color .15s,background .15s; }
     .ppt-card:hover { border-color:var(--accent); background:var(--surface2); }
     .ppt-icon { font-size:1.5rem; flex-shrink:0; }
     .ppt-info { flex:1; min-width:0; }
     .ppt-title { font-size:.9rem; font-weight:600; color:var(--text); }
     .ppt-meta  { font-size:.73rem; color:var(--text2); margin-top:.2rem; }
+    .ppt-dl { display:inline-flex; align-items:center; justify-content:center; width:1.75rem; height:1.75rem; border-radius:.4rem; border:1px solid var(--border); color:var(--text2); text-decoration:none; font-size:.85rem; flex-shrink:0; transition:border-color .15s,color .15s,background .15s; }
+    .ppt-dl:hover { border-color:var(--accent); color:var(--accent); background:var(--surface2); }
 
     /* ── Misc ───────────────────────────────────────────────────────────── */
     .empty-state { text-align:center; padding:3rem 1rem; color:var(--text2); }
@@ -962,13 +964,14 @@ function renderPPTs(presentations) {
     const cards = byMonth[key]
       .sort((a,b) => (b.date||"") > (a.date||"") ? 1 : -1)
       .map(p => `
-        <a class="ppt-card" href="${p.file}" target="_blank" rel="noopener">
+        <div class="ppt-card" onclick="window.open('${p.file}','_blank')">
           <div class="ppt-icon">📑</div>
           <div class="ppt-info">
             <div class="ppt-title">${p.title}</div>
             <div class="ppt-meta">${fmtDate(p.date)}${p.description?" · "+p.description:""}</div>
           </div>
-        </a>`).join("");
+          <a class="ppt-dl" href="${p.file}" download="${p.file.split('/').pop()}" onclick="event.stopPropagation()" title="Baixar PDF">&#x2193;</a>
+        </div>`).join("");
     return `<div class="section-title">${monthName}</div>
             <div class="ppt-list">${cards}</div>`;
   }).join("");

@@ -60,7 +60,7 @@
                         "country":  "brasil",
                         "section":  "atividade",
                         "file":  "reports/brasil/atividade/PNAD.html",
-                        "updated":  "2026-05-28 09:01"
+                        "updated":  "2026-06-25 15:53"
                     },
                     {
                         "id":  "caged",
@@ -84,7 +84,7 @@
                         "country":  "brasil",
                         "section":  "alta_frequencia",
                         "file":  "reports/brasil/alta_frequencia/ColetaFGV.html",
-                        "updated":  "2026-06-25 14:04"
+                        "updated":  "2026-06-25 14:05"
                     },
                     {
                         "id":  "balanca_comercial",

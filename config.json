@@ -100,7 +100,7 @@
                         "country":  "brasil",
                         "section":  "alta_frequencia",
                         "file":  "reports/brasil/alta_frequencia/fluxo_cambial.html",
-                        "updated":  "2026-07-01 14:32"
+                        "updated":  "2026-07-15 14:40"
                     },
                     {
                         "id":  "ipca",
@@ -188,7 +188,7 @@
                         "country":  "china",
                         "section":  "fiscal",
                         "file":  "reports/china/fiscal/CN_Credit.html",
-                        "updated":  "2026-06-19 00:00"
+                        "updated":  "2026-07-15 11:02"
                     }
                 ],
     "centralBanks":  [

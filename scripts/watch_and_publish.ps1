@@ -18,6 +18,7 @@ $REPORTS_DIR  = "$SITE_DIR\reports"
 $PRES_DIR     = "$SITE_DIR\presentations"
 $CONFIG_FILE  = "$SITE_DIR\config.json"
 $UPDATE_DATES = "$SITE_DIR\scripts\update_config_dates.ps1"
+$AUTO_REG     = "$SITE_DIR\scripts\auto_register_reports.ps1"
 $LOG_FILE     = "$SITE_DIR\scripts\update_log.txt"
 
 $POLL_SECS = 10    # verifica a cada 10 segundos
@@ -56,6 +57,12 @@ function PublishReports {
     Log "=== Publicando reports ==="
     try {
         Set-Location $SITE_DIR
+
+        # Registra automaticamente HTMLs novos em reports/
+        if (Test-Path $AUTO_REG) {
+            Log "  Verificando novos reports..."
+            powershell -ExecutionPolicy Bypass -File $AUTO_REG 2>&1 | ForEach-Object { Log "  $_" }
+        }
 
         # Atualiza datas no config.json conforme data real dos arquivos
         if (Test-Path $UPDATE_DATES) {

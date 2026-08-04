@@ -143,6 +143,46 @@
                         "updated":  "2026-06-26 08:50"
                     },
                     {
+                        "id":  "us_cpi",
+                        "title":  "CPI — Inflação ao Consumidor",
+                        "country":  "eua",
+                        "section":  "inflacao",
+                        "file":  "reports/us/inflacao/US_CPI_BLS.html",
+                        "updated":  "2026-08-04 18:14"
+                    },
+                    {
+                        "id":  "us_pce_deflator",
+                        "title":  "PCE Deflator",
+                        "country":  "eua",
+                        "section":  "inflacao",
+                        "file":  "reports/us/inflacao/US_PCE_Deflator_BEA.html",
+                        "updated":  "2026-08-04 18:19"
+                    },
+                    {
+                        "id":  "us_real_pce",
+                        "title":  "Real PCE — Consumo Pessoal",
+                        "country":  "eua",
+                        "section":  "inflacao",
+                        "file":  "reports/us/inflacao/US_Real_PCE_BEA.html",
+                        "updated":  "2026-08-04 18:18"
+                    },
+                    {
+                        "id":  "us_factory_orders",
+                        "title":  "Factory Orders",
+                        "country":  "eua",
+                        "section":  "atividade",
+                        "file":  "reports/us/atividade/Factory-Orders.html",
+                        "updated":  "2026-08-04 18:16"
+                    },
+                    {
+                        "id":  "us_jolts",
+                        "title":  "JOLTS — Mercado de Trabalho",
+                        "country":  "eua",
+                        "section":  "atividade",
+                        "file":  "reports/us/atividade/US_JOLTS_BLS.html",
+                        "updated":  "2026-08-04 18:16"
+                    },
+                    {
                         "id":  "cn_inflation",
                         "title":  "Inflação — China",
                         "country":  "china",

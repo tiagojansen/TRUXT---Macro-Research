@@ -230,6 +230,46 @@
                         "section":  "fiscal",
                         "file":  "reports/china/fiscal/CN_Credit.html",
                         "updated":  "2026-07-15 11:02"
+                    },
+                    {
+                        "id":  "us_eci_bls",
+                        "title":  "US ECI BLS",
+                        "country":  "eua",
+                        "section":  "atividade",
+                        "file":  "reports/us/atividade/US_ECI_BLS.html",
+                        "updated":  "2026-08-04 18:39"
+                    },
+                    {
+                        "id":  "us_payroll_bls",
+                        "title":  "US Payroll BLS",
+                        "country":  "eua",
+                        "section":  "atividade",
+                        "file":  "reports/us/atividade/US_Payroll_BLS.html",
+                        "updated":  "2026-08-04 18:41"
+                    },
+                    {
+                        "id":  "us_gdp_bea",
+                        "title":  "US GDP BEA",
+                        "country":  "eua",
+                        "section":  "atividade",
+                        "file":  "reports/us/atividade/US_GDP_BEA.html",
+                        "updated":  "2026-08-04 18:43"
+                    },
+                    {
+                        "id":  "us_ipi",
+                        "title":  "US IPI",
+                        "country":  "eua",
+                        "section":  "inflacao",
+                        "file":  "reports/us/inflacao/US_IPI.html",
+                        "updated":  "2026-08-04 18:37"
+                    },
+                    {
+                        "id":  "us_ppi_bls",
+                        "title":  "US PPI BLS",
+                        "country":  "eua",
+                        "section":  "inflacao",
+                        "file":  "reports/us/inflacao/US_PPI_BLS.html",
+                        "updated":  "2026-08-04 18:38"
                     }
                 ],
     "centralBanks":  [

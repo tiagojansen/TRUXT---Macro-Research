@@ -109,5 +109,5 @@ if (Test-Path $PRES) {
 }
 
 if ($changed) {
-    $config | ConvertTo-Json -Depth 10 | Set-Content $CONFIG -Encoding UTF8
+    [System.IO.File]::WriteAllText($CONFIG, ($config | ConvertTo-Json -Depth 10), [System.Text.Encoding]::UTF8)
 }

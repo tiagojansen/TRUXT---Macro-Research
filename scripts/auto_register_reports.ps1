@@ -11,6 +11,7 @@ $folderToCountry = @{
     "us"        = "eua"
     "china"     = "china"
     "zona_euro" = "zona_euro"
+    "mexico"    = "mexico"
 }
 
 $raw    = Get-Content $CONFIG -Raw -Encoding UTF8

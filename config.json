@@ -85,7 +85,7 @@
                         "country":  "brasil",
                         "section":  "alta_frequencia",
                         "file":  "reports/brasil/alta_frequencia/ColetaFGV.html",
-                        "updated":  "2026-09-28 08:56"
+                        "updated":  "2026-09-29 15:52"
                     },
                     {
                         "id":  "balanca_comercial",
@@ -181,7 +181,7 @@
                         "country":  "eua",
                         "section":  "atividade",
                         "file":  "reports/us/atividade/US_JOLTS_BLS.html",
-                        "updated":  "2026-09-29 11:03"
+                        "updated":  "2026-09-29 11:04"
                     },
                     {
                         "id":  "cn_inflation",

@@ -101,7 +101,7 @@
                         "country":  "brasil",
                         "section":  "alta_frequencia",
                         "file":  "reports/brasil/alta_frequencia/fluxo_cambial.html",
-                        "updated":  "2026-09-16 14:31"
+                        "updated":  "2026-09-30 14:48"
                     },
                     {
                         "id":  "ipca",
@@ -165,7 +165,7 @@
                         "country":  "eua",
                         "section":  "inflacao",
                         "file":  "reports/us/inflacao/US_Real_PCE_BEA.html",
-                        "updated":  "2026-09-30 09:43"
+                        "updated":  "2026-09-30 09:45"
                     },
                     {
                         "id":  "us_factory_orders",

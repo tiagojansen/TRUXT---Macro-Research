@@ -85,7 +85,7 @@
                         "country":  "brasil",
                         "section":  "alta_frequencia",
                         "file":  "reports/brasil/alta_frequencia/ColetaFGV.html",
-                        "updated":  "2026-10-16 09:22"
+                        "updated":  "2026-10-19 08:17"
                     },
                     {
                         "id":  "balanca_comercial",
@@ -197,7 +197,7 @@
                         "country":  "china",
                         "section":  "atividade",
                         "file":  "reports/china/atividade/CN_Atividade.html",
-                        "updated":  "2026-09-15 07:50"
+                        "updated":  "2026-10-19 07:24"
                     },
                     {
                         "id":  "cn_pmi",

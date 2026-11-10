@@ -149,7 +149,7 @@
                         "country":  "eua",
                         "section":  "inflacao",
                         "file":  "reports/us/inflacao/US_CPI_BLS.html",
-                        "updated":  "2026-10-14 09:34"
+                        "updated":  "2026-11-10 10:35"
                     },
                     {
                         "id":  "us_pce_deflator",
@@ -221,7 +221,7 @@
                         "country":  "china",
                         "section":  "atividade",
                         "file":  "reports/china/atividade/CN_Trade_P.html",
-                        "updated":  "2026-10-14 07:50"
+                        "updated":  "2026-11-10 07:45"
                     },
                     {
                         "id":  "cn_credit",

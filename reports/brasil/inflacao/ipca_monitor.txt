@@ -1,1 +1,5 @@
 ﻿S:\Macro\Site\data\test_report.html
+"S:\Macro\Brasil\Inflação\Quarto\IPCA_Novo_Fluxo.html"
+"S:\Macro\Brasil\Inflação\Quarto\IPCA15_Novo_Fluxo.html"
+"S:\Macro\Brasil\Inflação\Coleta FGV\ColetaFGV-rmd\ColetaFGV.html"
+"S:\Macro\International\Novos\Outros\Tiago\Estudo\Brasil\IPCA\IGP\IGP.html"

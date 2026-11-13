@@ -45,7 +45,7 @@
                         "country":  "brasil",
                         "section":  "atividade",
                         "file":  "reports/brasil/atividade/pmc.html",
-                        "updated":  "2026-11-13 09:01"
+                        "updated":  "2026-11-13 09:02"
                     },
                     {
                         "id":  "pms",
@@ -269,7 +269,7 @@
                         "country":  "eua",
                         "section":  "inflacao",
                         "file":  "reports/us/inflacao/US_PPI_BLS.html",
-                        "updated":  "2026-10-15 09:32"
+                        "updated":  "2026-11-13 10:32"
                     }
                 ],
     "centralBanks":  [

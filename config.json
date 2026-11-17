@@ -197,7 +197,7 @@
                         "country":  "china",
                         "section":  "atividade",
                         "file":  "reports/china/atividade/CN_Atividade.html",
-                        "updated":  "2026-11-16 07:15"
+                        "updated":  "2026-11-16 07:22"
                     },
                     {
                         "id":  "cn_pmi",
@@ -261,7 +261,7 @@
                         "country":  "eua",
                         "section":  "inflacao",
                         "file":  "reports/us/inflacao/US_IPI.html",
-                        "updated":  "2026-10-16 13:52"
+                        "updated":  "2026-11-17 10:34"
                     },
                     {
                         "id":  "us_ppi_bls",

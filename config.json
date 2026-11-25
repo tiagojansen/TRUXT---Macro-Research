@@ -157,7 +157,7 @@
                         "country":  "eua",
                         "section":  "inflacao",
                         "file":  "reports/us/inflacao/US_PCE_Deflator_BEA.html",
-                        "updated":  "2026-10-29 09:32"
+                        "updated":  "2026-11-25 10:36"
                     },
                     {
                         "id":  "us_real_pce",
@@ -173,7 +173,7 @@
                         "country":  "eua",
                         "section":  "atividade",
                         "file":  "reports/us/atividade/Factory-Orders.html",
-                        "updated":  "2026-11-03 12:12"
+                        "updated":  "2026-11-25 10:41"
                     },
                     {
                         "id":  "us_jolts",
